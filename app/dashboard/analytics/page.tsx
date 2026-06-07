@@ -1,0 +1,535 @@
+"use client";
+
+import { Minus, TrendingDown, TrendingUp } from "lucide-react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import {
+    Area,
+    AreaChart,
+    Bar,
+    BarChart,
+    CartesianGrid,
+    Cell,
+    Line,
+    LineChart,
+    Pie,
+    PieChart,
+    ResponsiveContainer,
+    Tooltip,
+    XAxis,
+    YAxis,
+} from "recharts";
+
+const COLORS = [
+  "#14b8a6",
+  "#f59e0b",
+  "#ef4444",
+  "#3b82f6",
+  "#8b5cf6",
+  "#ec4899",
+];
+
+interface AnalyticsData {
+  monthly: Array<{
+    month: string;
+    revenue: number;
+    bookings: number;
+    nights: number;
+  }>;
+  paymentStatus: Array<{
+    status: string;
+    count: number;
+    revenue: number;
+    outstanding: number;
+  }>;
+  roomType: Array<{
+    type: string;
+    count: number;
+    revenue: number;
+    nights: number;
+  }>;
+  statusDistribution: Array<{ status: string; count: number; revenue: number }>;
+  weeklyTrend: Array<{ week: string; bookings: number; revenue: number }>;
+  leadTime: Array<{ bucket: string; count: number }>;
+  lastYearMonthly: Array<{ month: string; revenue: number }>;
+  topGuests: Array<{
+    name: string;
+    email: string;
+    bookings: number;
+    revenue: number;
+    nights: number;
+  }>;
+  upcomingOccupancy: Array<{
+    date: string;
+    rooms: number;
+    guests: number;
+    revenue: number;
+  }>;
+}
+
+export default function AnalyticsPage() {
+  const [data, setData] = useState<AnalyticsData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/analytics")
+      .then((r) => r.json())
+      .then((d) => {
+        setData(d);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return <div className="text-muted-foreground">Loading analytics...</div>;
+  }
+  if (!data) {
+    return (
+      <div className="text-muted-foreground">Failed to load analytics.</div>
+    );
+  }
+
+  const totalRevenue = data.monthly.reduce((s, d) => s + d.revenue, 0);
+  const totalBookings = data.monthly.reduce((s, d) => s + d.bookings, 0);
+  const totalNights = data.monthly.reduce((s, d) => s + d.nights, 0);
+  const avgNights =
+    totalBookings > 0 ? (totalNights / totalBookings).toFixed(1) : "0";
+  const outstandingTotal = data.paymentStatus.reduce(
+    (s, d) => s + d.outstanding,
+    0,
+  );
+
+  // Revenue vs last year comparison
+  const currentRev = totalRevenue;
+  const lastYearRev = data.lastYearMonthly.reduce((s, d) => s + d.revenue, 0);
+  const revChange =
+    lastYearRev > 0 ? ((currentRev - lastYearRev) / lastYearRev) * 100 : 0;
+
+  const formatMonth = (m: string) => {
+    const [year, month] = m.split("-");
+    return `${month}/${year.slice(2)}`;
+  };
+
+  const formatWeek = (w: string) => {
+    const parts = w.split("-");
+    return `W${parts[1]}`;
+  };
+
+  const formatCurrency = (v: number) => `₹${v.toLocaleString("en-IN")}`;
+
+  return (
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold">Analytics Overview</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Insights into bookings, revenue, and occupancy.
+          </p>
+        </div>
+        <div className="flex gap-3">
+          <Link
+            href="/dashboard/analytics/revenue"
+            className="rounded-md border border-border px-4 py-2 text-sm font-medium hover:bg-muted transition"
+          >
+            Revenue Report →
+          </Link>
+          <Link
+            href="/dashboard/analytics/occupancy"
+            className="rounded-md border border-border px-4 py-2 text-sm font-medium hover:bg-muted transition"
+          >
+            Occupancy Report →
+          </Link>
+        </div>
+      </div>
+
+      {/* KPI Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <KpiCard
+          label="Total Revenue"
+          value={formatCurrency(totalRevenue)}
+          change={revChange}
+          suffix="vs last year"
+        />
+        <KpiCard
+          label="Total Bookings"
+          value={String(totalBookings)}
+          change={null}
+          suffix="this year"
+        />
+        <KpiCard
+          label="Avg Stay"
+          value={`${avgNights} nights`}
+          change={null}
+          suffix="per booking"
+        />
+        <KpiCard
+          label="Outstanding"
+          value={formatCurrency(outstandingTotal)}
+          change={null}
+          suffix="to collect"
+        />
+      </div>
+
+      {/* Charts Row 1 */}
+      <div className="grid lg:grid-cols-2 gap-4 lg:gap-6">
+        <ChartCard title="Monthly Revenue" subtitle="Revenue trend this year">
+          <ResponsiveContainer width="100%" height={220}>
+            <AreaChart data={data.monthly}>
+              <defs>
+                <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#14b8a6" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#14b8a6" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+              <XAxis
+                dataKey="month"
+                tickFormatter={formatMonth}
+                stroke="#94a3b8"
+                fontSize={12}
+              />
+              <YAxis
+                tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}k`}
+                stroke="#94a3b8"
+                fontSize={12}
+              />
+              <Tooltip
+                contentStyle={{
+                  background: "#1e293b",
+                  border: "1px solid #334155",
+                  borderRadius: 8,
+                }}
+                formatter={(v: any) => formatCurrency(Number(v))}
+              />
+              <Area
+                type="monotone"
+                dataKey="revenue"
+                stroke="#14b8a6"
+                fill="url(#revGrad)"
+                strokeWidth={2}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </ChartCard>
+
+        <ChartCard title="Monthly Bookings vs Nights" subtitle="Volume trend">
+          <ResponsiveContainer width="100%" height={220}>
+            <BarChart data={data.monthly}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+              <XAxis
+                dataKey="month"
+                tickFormatter={formatMonth}
+                stroke="#94a3b8"
+                fontSize={12}
+              />
+              <YAxis stroke="#94a3b8" fontSize={12} />
+              <Tooltip
+                contentStyle={{
+                  background: "#1e293b",
+                  border: "1px solid #334155",
+                  borderRadius: 8,
+                }}
+              />
+              <Bar dataKey="bookings" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="nights" fill="#14b8a6" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </ChartCard>
+      </div>
+
+      {/* Charts Row 2 */}
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
+        <ChartCard title="Payment Status" subtitle="Booking distribution">
+          <ResponsiveContainer width="100%" height={200}>
+            <PieChart>
+              <Pie
+                data={data.paymentStatus}
+                dataKey="count"
+                nameKey="status"
+                cx="50%"
+                cy="50%"
+                innerRadius={60}
+                outerRadius={90}
+                paddingAngle={4}
+              >
+                {data.paymentStatus.map((_, i) => (
+                  <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip
+                contentStyle={{
+                  background: "#1e293b",
+                  border: "1px solid #334155",
+                  borderRadius: 8,
+                }}
+              />
+            </PieChart>
+          </ResponsiveContainer>
+          <div className="flex flex-wrap gap-3 justify-center mt-2">
+            {data.paymentStatus.map((d, i) => (
+              <div key={d.status} className="flex items-center gap-1.5 text-xs">
+                <span
+                  className="w-2.5 h-2.5 rounded-full"
+                  style={{ background: COLORS[i % COLORS.length] }}
+                />
+                <span className="text-muted-foreground">{d.status}</span>
+                <span className="font-medium">{d.count}</span>
+              </div>
+            ))}
+          </div>
+        </ChartCard>
+
+        <ChartCard title="Room Type Breakdown" subtitle="By revenue">
+          <ResponsiveContainer width="100%" height={200}>
+            <BarChart data={data.roomType} layout="vertical">
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke="#334155"
+                horizontal={false}
+              />
+              <XAxis
+                type="number"
+                tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}k`}
+                stroke="#94a3b8"
+                fontSize={12}
+              />
+              <YAxis
+                dataKey="type"
+                type="category"
+                width={100}
+                stroke="#94a3b8"
+                fontSize={11}
+              />
+              <Tooltip
+                contentStyle={{
+                  background: "#1e293b",
+                  border: "1px solid #334155",
+                  borderRadius: 8,
+                }}
+                formatter={(v: any) => formatCurrency(Number(v))}
+              />
+              <Bar dataKey="revenue" fill="#f59e0b" radius={[0, 4, 4, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </ChartCard>
+
+        <ChartCard
+          title="Booking Lead Time"
+          subtitle="Days between booking & check-in"
+        >
+          <ResponsiveContainer width="100%" height={200}>
+            <BarChart data={data.leadTime}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+              <XAxis
+                dataKey="bucket"
+                stroke="#94a3b8"
+                fontSize={11}
+                interval={0}
+                angle={-20}
+                textAnchor="end"
+                height={50}
+              />
+              <YAxis stroke="#94a3b8" fontSize={12} />
+              <Tooltip
+                contentStyle={{
+                  background: "#1e293b",
+                  border: "1px solid #334155",
+                  borderRadius: 8,
+                }}
+              />
+              <Bar dataKey="count" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </ChartCard>
+      </div>
+
+      {/* Charts Row 3 */}
+      <div className="grid lg:grid-cols-2 gap-4 lg:gap-6">
+        <ChartCard title="Weekly Booking Trend" subtitle="Last 12 weeks">
+          <ResponsiveContainer width="100%" height={200}>
+            <LineChart data={data.weeklyTrend}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+              <XAxis
+                dataKey="week"
+                tickFormatter={formatWeek}
+                stroke="#94a3b8"
+                fontSize={12}
+              />
+              <YAxis stroke="#94a3b8" fontSize={12} />
+              <Tooltip
+                contentStyle={{
+                  background: "#1e293b",
+                  border: "1px solid #334155",
+                  borderRadius: 8,
+                }}
+                formatter={(v: any, n: any) => [
+                  n === "revenue" ? formatCurrency(Number(v)) : v,
+                  n,
+                ]}
+              />
+              <Line
+                type="monotone"
+                dataKey="bookings"
+                stroke="#3b82f6"
+                strokeWidth={2}
+                dot={false}
+              />
+              <Line
+                type="monotone"
+                dataKey="revenue"
+                stroke="#14b8a6"
+                strokeWidth={2}
+                dot={false}
+                yAxisId={1}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </ChartCard>
+
+        <ChartCard title="Top 10 Guests" subtitle="By lifetime revenue">
+          <div className="space-y-2 max-h-[200px] overflow-y-auto pr-1">
+            {data.topGuests.map((g, i) => (
+              <div
+                key={g.email}
+                className="flex items-center justify-between text-sm border-b border-border pb-2 last:border-0"
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="w-5 h-5 rounded-full bg-teal-500/10 text-teal-400 flex items-center justify-center text-xs font-bold shrink-0">
+                    {i + 1}
+                  </span>
+                  <div className="min-w-0">
+                    <div className="font-medium truncate">{g.name}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {g.bookings} bookings · {g.nights} nights
+                    </div>
+                  </div>
+                </div>
+                <div className="font-medium text-right shrink-0">
+                  {formatCurrency(g.revenue)}
+                </div>
+              </div>
+            ))}
+          </div>
+        </ChartCard>
+      </div>
+
+      {/* Upcoming Occupancy */}
+      <ChartCard
+        title="Upcoming Occupancy (Next 90 Days)"
+        subtitle="Projected check-ins"
+      >
+        <ResponsiveContainer width="100%" height={220}>
+          <AreaChart data={data.upcomingOccupancy}>
+            <defs>
+              <linearGradient id="occGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
+                <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+            <XAxis dataKey="date" stroke="#94a3b8" fontSize={11} interval={6} />
+            <YAxis stroke="#94a3b8" fontSize={12} />
+            <Tooltip
+              contentStyle={{
+                background: "#1e293b",
+                border: "1px solid #334155",
+                borderRadius: 8,
+              }}
+              formatter={(v: any, n: any) => [
+                n === "revenue" ? formatCurrency(Number(v)) : v,
+                n,
+              ]}
+            />
+            <Area
+              type="monotone"
+              dataKey="rooms"
+              stroke="#3b82f6"
+              fill="url(#occGrad)"
+              strokeWidth={2}
+              name="Rooms"
+            />
+            <Line
+              type="monotone"
+              dataKey="guests"
+              stroke="#f59e0b"
+              strokeWidth={2}
+              dot={false}
+              name="Guests"
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      </ChartCard>
+    </div>
+  );
+}
+
+function KpiCard({
+  label,
+  value,
+  change,
+  suffix,
+}: {
+  label: string;
+  value: string;
+  change: number | null;
+  suffix: string;
+}) {
+  return (
+    <div className="rounded-lg border border-border p-4 space-y-2">
+      <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+        {label}
+      </div>
+      <div className="text-2xl font-bold">{value}</div>
+      {change !== null && (
+        <div className="flex items-center gap-1 text-xs">
+          {change > 0 ? (
+            <>
+              <TrendingUp className="w-3.5 h-3.5 text-green-400" />
+              <span className="text-green-400 font-medium">
+                +{change.toFixed(1)}%
+              </span>
+            </>
+          ) : change < 0 ? (
+            <>
+              <TrendingDown className="w-3.5 h-3.5 text-red-400" />
+              <span className="text-red-400 font-medium">
+                {change.toFixed(1)}%
+              </span>
+            </>
+          ) : (
+            <>
+              <Minus className="w-3.5 h-3.5 text-muted-foreground" />
+              <span className="text-muted-foreground">0%</span>
+            </>
+          )}
+          <span className="text-muted-foreground ml-1">{suffix}</span>
+        </div>
+      )}
+      {change === null && (
+        <div className="text-xs text-muted-foreground">{suffix}</div>
+      )}
+    </div>
+  );
+}
+
+function ChartCard({
+  title,
+  subtitle,
+  children,
+}: {
+  title: string;
+  subtitle: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-lg border border-border p-5 space-y-4">
+      <div>
+        <h3 className="font-semibold">{title}</h3>
+        <p className="text-xs text-muted-foreground">{subtitle}</p>
+      </div>
+      {children}
+    </div>
+  );
+}

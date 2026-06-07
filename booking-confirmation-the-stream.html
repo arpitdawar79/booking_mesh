@@ -1,0 +1,521 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="x-apple-disable-message-reformatting">
+    <title>Booking Confirmation | The Stream by Ekantah</title>
+    <style>
+      body,
+      table,
+      td,
+      a {
+        -webkit-text-size-adjust: 100%;
+        -ms-text-size-adjust: 100%;
+      }
+
+      table,
+      td {
+        mso-table-lspace: 0pt;
+        mso-table-rspace: 0pt;
+      }
+
+      img {
+        -ms-interpolation-mode: bicubic;
+        border: 0;
+        outline: none;
+        text-decoration: none;
+      }
+
+      table {
+        border-collapse: collapse !important;
+      }
+
+      body {
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        background: #edf3ec;
+      }
+
+      a {
+        color: #28665f;
+        text-decoration: underline;
+      }
+
+      .email-shell {
+        width: 100%;
+        background: #edf3ec;
+      }
+
+      .container {
+        width: 100%;
+        max-width: 680px;
+      }
+
+      .inner {
+        padding-left: 34px;
+        padding-right: 34px;
+      }
+
+      .body-copy {
+        color: #465149;
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 15px;
+        line-height: 24px;
+      }
+
+      .small-copy {
+        color: #737b70;
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 12px;
+        line-height: 18px;
+      }
+
+      .eyebrow {
+        color: #7e6b4d;
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 11px;
+        line-height: 15px;
+        text-transform: uppercase;
+        letter-spacing: 1.3px;
+        font-weight: bold;
+      }
+
+      .label {
+        color: #7b8175;
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 11px;
+        line-height: 15px;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        font-weight: bold;
+      }
+
+      .value {
+        color: #183b34;
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 15px;
+        line-height: 21px;
+        font-weight: bold;
+      }
+
+      .section-title {
+        color: #183b34;
+        font-family: Georgia, 'Times New Roman', serif;
+        font-size: 23px;
+        line-height: 29px;
+        font-weight: normal;
+      }
+
+      .card {
+        background: #fffaf0;
+        border: 1px solid #ded6c4;
+      }
+
+      .mist-card {
+        background: #eef6ef;
+        border: 1px solid #c9ddce;
+      }
+
+      .clay-card {
+        background: #fbf1e6;
+        border: 1px solid #e4d1b8;
+      }
+
+      .amount-row td {
+        border-bottom: 1px solid #e5ddcb;
+      }
+
+      .divider {
+        border-top: 1px solid #d8dfd5;
+      }
+
+      @media screen and (max-width: 600px) {
+        .container {
+          width: 100% !important;
+        }
+
+        .outer-pad {
+          padding: 0 !important;
+        }
+
+        .inner {
+          padding-left: 20px !important;
+          padding-right: 20px !important;
+        }
+
+        .stack {
+          display: block !important;
+          width: 100% !important;
+        }
+
+        .stack-pad {
+          padding-bottom: 14px !important;
+        }
+
+        .stack-pad-large {
+          padding-bottom: 18px !important;
+        }
+
+        .stack-left {
+          padding-left: 0 !important;
+        }
+
+        .stack-right {
+          padding-right: 0 !important;
+        }
+
+        .hero-title {
+          font-size: 30px !important;
+          line-height: 36px !important;
+        }
+
+        .mobile-center {
+          text-align: center !important;
+        }
+
+        .mobile-logo {
+          margin: 0 auto !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <center class="email-shell">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="email-shell">
+        <tr>
+          <td class="outer-pad" align="center" style="padding: 30px 12px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" class="container" style="background: #fffdf7; border: 1px solid #d8dfd5;">
+              <tr>
+                <td style="background: #f7f4ea;">
+                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                    <tr>
+                      <td class="inner" style="padding-top: 26px; padding-bottom: 22px;">
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                          <tr>
+                            <td class="stack mobile-center stack-pad" valign="middle">
+                              <img class="mobile-logo" src="https://thestream.ekantah.com/wp-content/uploads/2025/06/the-stream-full.svg" width="188" alt="The Stream by Ekantah" style="display: block; max-width: 188px; height: auto;">
+                            </td>
+                            <td class="stack mobile-center" valign="middle" align="right">
+                              <div class="eyebrow">Booking Confirmation</div>
+                              <div class="value" style="padding-top: 5px;">Reservation ID: {{booking_id}}</div>
+                            </td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+
+              <tr>
+                <td style="background: #174c43;">
+                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                    <tr>
+                      <td class="inner" style="padding-top: 38px; padding-bottom: 0;">
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                          <tr>
+                            <td style="background: #174c43;">
+                              <div style="color: #d9c79b; font-family: Arial, Helvetica, sans-serif; font-size: 12px; line-height: 18px; text-transform: uppercase; letter-spacing: 1.5px; font-weight: bold;">Your riverside pause is confirmed</div>
+                              <div class="hero-title" style="color: #fffaf0; font-family: Georgia, 'Times New Roman', serif; font-size: 38px; line-height: 46px; font-weight: normal; padding-top: 10px;">
+                                See you beside the stream, {{guest_first_name}}.
+                              </div>
+                              <div style="color: #dfece2; font-family: Arial, Helvetica, sans-serif; font-size: 15px; line-height: 25px; padding-top: 16px;">
+                                Thank you for choosing The Stream by Ekantah, our hidden 5-room boutique stay by the river in Tirthan Valley. Your booking has been received and confirmed.
+                              </div>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td style="padding-top: 28px;">
+                              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background: #f7f4ea;">
+                                <tr>
+                                  <td style="height: 9px; line-height: 9px; background: #7aa497;">&nbsp;</td>
+                                  <td style="height: 9px; line-height: 9px; background: #d9c79b;">&nbsp;</td>
+                                  <td style="height: 9px; line-height: 9px; background: #b67855;">&nbsp;</td>
+                                </tr>
+                              </table>
+                            </td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+
+              <tr>
+                <td class="inner" style="padding-top: 28px; padding-bottom: 8px;">
+                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="mist-card">
+                    <tr>
+                      <td style="padding: 22px 22px 8px;">
+                        <div class="eyebrow">Stay Snapshot</div>
+                        <div class="section-title" style="padding-top: 6px;">A quiet room, river air, and time to slow down.</div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 12px 22px 22px;">
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                          <tr>
+                            <td class="stack stack-pad" width="50%" valign="top" style="padding-right: 12px;">
+                              <div class="label">Guest Name</div>
+                              <div class="value">{{guest_full_name}}</div>
+                            </td>
+                            <td class="stack" width="50%" valign="top" style="padding-left: 12px;">
+                              <div class="label">Guests</div>
+                              <div class="value">{{adult_count}} adults, {{child_count}} child</div>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td colspan="2" style="height: 18px; line-height: 18px;">&nbsp;</td>
+                          </tr>
+                          <tr>
+                            <td class="stack stack-pad" width="50%" valign="top" style="padding-right: 12px;">
+                              <div class="label">Check-in</div>
+                              <div class="value">{{check_in_date}} after {{check_in_time}}</div>
+                            </td>
+                            <td class="stack" width="50%" valign="top" style="padding-left: 12px;">
+                              <div class="label">Check-out</div>
+                              <div class="value">{{check_out_date}} by {{check_out_time}}</div>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td colspan="2" style="height: 18px; line-height: 18px;">&nbsp;</td>
+                          </tr>
+                          <tr>
+                            <td class="stack stack-pad" width="50%" valign="top" style="padding-right: 12px;">
+                              <div class="label">Nights</div>
+                              <div class="value">{{night_count}}</div>
+                            </td>
+                            <td class="stack" width="50%" valign="top" style="padding-left: 12px;">
+                              <div class="label">Rooms</div>
+                              <div class="value">{{room_count}} x {{room_type}}</div>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td colspan="2" style="height: 18px; line-height: 18px;">&nbsp;</td>
+                          </tr>
+                          <tr>
+                            <td class="stack stack-pad" width="50%" valign="top" style="padding-right: 12px;">
+                              <div class="label">Meal Plan</div>
+                              <div class="value">{{meal_plan}}</div>
+                            </td>
+                            <td class="stack" width="50%" valign="top" style="padding-left: 12px;">
+                              <div class="label">Booked On</div>
+                              <div class="value">{{booking_date}}</div>
+                            </td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+
+              <tr>
+                <td class="inner" style="padding-top: 14px; padding-bottom: 8px;">
+                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                    <tr>
+                      <td class="stack stack-pad-large stack-right" width="50%" valign="top" style="padding-right: 8px;">
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="card">
+                          <tr>
+                            <td style="padding: 20px;">
+                              <div class="eyebrow">Payment</div>
+                              <div class="section-title" style="padding-top: 6px;">Booking Summary</div>
+                              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top: 12px;">
+                                <tr class="amount-row">
+                                  <td class="body-copy" style="padding: 9px 0;">Total amount</td>
+                                  <td class="value" align="right" style="padding: 9px 0;">{{currency}} {{total_booking_amount}}</td>
+                                </tr>
+                                <tr class="amount-row">
+                                  <td class="body-copy" style="padding: 9px 0;">Paid online</td>
+                                  <td class="value" align="right" style="padding: 9px 0;">{{currency}} {{amount_paid_online}}</td>
+                                </tr>
+                                <tr>
+                                  <td style="color: #183b34; font-family: Arial, Helvetica, sans-serif; font-size: 15px; line-height: 22px; font-weight: bold; padding: 13px 0 2px;">Balance at property</td>
+                                  <td style="color: #183b34; font-family: Arial, Helvetica, sans-serif; font-size: 17px; line-height: 24px; font-weight: bold; padding: 13px 0 2px;" align="right">{{currency}} {{balance_amount}}</td>
+                                </tr>
+                              </table>
+                              <div class="small-copy" style="padding-top: 10px;">Status: {{payment_status}}</div>
+                            </td>
+                          </tr>
+                        </table>
+                      </td>
+                      <td class="stack stack-left" width="50%" valign="top" style="padding-left: 8px;">
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="clay-card">
+                          <tr>
+                            <td style="padding: 20px;">
+                              <div class="eyebrow">Before You Arrive</div>
+                              <div class="section-title" style="padding-top: 6px;">Easy Arrival Notes</div>
+                              <div class="body-copy" style="padding-top: 12px;">
+                                Check-in: {{check_in_time}} onwards<br>
+                                Check-out: before {{check_out_time}}<br>
+                                Parking: {{parking_details}}<br>
+                                Directions: <a href="{{map_link}}">Open map</a>
+                              </div>
+                            </td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+
+              <tr>
+                <td class="inner" style="padding-top: 14px; padding-bottom: 8px;">
+                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="card">
+                    <tr>
+                      <td style="padding: 22px;">
+                        <div class="eyebrow">What Awaits You</div>
+                        <div class="section-title" style="padding-top: 6px;">Five rooms, one private stream, many little corners to pause.</div>
+                        <div class="body-copy" style="padding-top: 12px;">
+                          Wake up to flowing water, wander 50 meters to a hidden waterfall, linger over soulful meals at Tony's Cafe, then spend the evening with music, bonfire warmth, movie nights, karaoke, books, games, and the hush of Tirthan Valley.
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 0 22px 22px;">
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                          <tr>
+                            <td class="stack stack-pad" width="33.33%" valign="top" style="padding-right: 8px;">
+                              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background: #eef6ef; border: 1px solid #c9ddce;">
+                                <tr>
+                                  <td style="padding: 14px;">
+                                    <div class="label">Stream</div>
+                                    <div class="body-copy" style="padding-top: 5px;">Private access for quiet mornings.</div>
+                                  </td>
+                                </tr>
+                              </table>
+                            </td>
+                            <td class="stack stack-pad" width="33.33%" valign="top" style="padding-left: 4px; padding-right: 4px;">
+                              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background: #fbf1e6; border: 1px solid #e4d1b8;">
+                                <tr>
+                                  <td style="padding: 14px;">
+                                    <div class="label">Cafe</div>
+                                    <div class="body-copy" style="padding-top: 5px;">Riverside meals and soulful music.</div>
+                                  </td>
+                                </tr>
+                              </table>
+                            </td>
+                            <td class="stack" width="33.33%" valign="top" style="padding-left: 8px;">
+                              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background: #f7f4ea; border: 1px solid #ded6c4;">
+                                <tr>
+                                  <td style="padding: 14px;">
+                                    <div class="label">Evenings</div>
+                                    <div class="body-copy" style="padding-top: 5px;">Bonfires, films, karaoke, books.</div>
+                                  </td>
+                                </tr>
+                              </table>
+                            </td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+
+              <tr>
+                <td class="inner" style="padding-top: 14px; padding-bottom: 8px;">
+                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                    <tr>
+                      <td class="stack stack-pad-large stack-right" width="50%" valign="top" style="padding-right: 8px;">
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="mist-card">
+                          <tr>
+                            <td style="padding: 20px;">
+                              <div class="eyebrow">Property</div>
+                              <div class="section-title" style="padding-top: 6px;">The Stream by Ekantah</div>
+                              <div class="body-copy" style="padding-top: 12px;">
+                                {{property_address}}<br>
+                                Tirthan Valley, Himachal Pradesh
+                              </div>
+                            </td>
+                          </tr>
+                        </table>
+                      </td>
+                      <td class="stack stack-left" width="50%" valign="top" style="padding-left: 8px;">
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="mist-card">
+                          <tr>
+                            <td style="padding: 20px;">
+                              <div class="eyebrow">Contact</div>
+                              <div class="section-title" style="padding-top: 6px;">Need anything?</div>
+                              <div class="body-copy" style="padding-top: 12px;">
+                                Phone: <a href="tel:{{property_phone}}">{{property_phone}}</a><br>
+                                Email: <a href="mailto:{{property_email}}">{{property_email}}</a>
+                              </div>
+                            </td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+
+              <tr>
+                <td class="inner" style="padding-top: 14px; padding-bottom: 8px;">
+                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border: 1px solid #ded6c4; background: #fffdf7;">
+                    <tr>
+                      <td style="padding: 22px;">
+                        <div class="eyebrow">House Notes</div>
+                        <div class="section-title" style="padding-top: 6px;">A few gentle reminders</div>
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top: 12px;">
+                          <tr>
+                            <td class="body-copy" valign="top" width="22" style="padding-top: 2px;">&#8226;</td>
+                            <td class="body-copy">All adult guests must present a valid government ID at check-in.</td>
+                          </tr>
+                          <tr>
+                            <td class="body-copy" valign="top" width="22" style="padding-top: 2px;">&#8226;</td>
+                            <td class="body-copy">Bonfire, karaoke, movie nights, and cafe orders may be subject to weather, timing, or additional charges.</td>
+                          </tr>
+                          <tr>
+                            <td class="body-copy" valign="top" width="22" style="padding-top: 2px;">&#8226;</td>
+                            <td class="body-copy">Please supervise children near the stream and river areas.</td>
+                          </tr>
+                          <tr>
+                            <td class="body-copy" valign="top" width="22" style="padding-top: 2px;">&#8226;</td>
+                            <td class="body-copy">Cancellation policy: {{cancellation_policy}}</td>
+                          </tr>
+                          <tr>
+                            <td class="body-copy" valign="top" width="22" style="padding-top: 2px;">&#8226;</td>
+                            <td class="body-copy">Special requests: {{special_requests}}</td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+
+              <tr>
+                <td class="inner" style="padding-top: 18px; padding-bottom: 30px;">
+                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background: #174c43;">
+                    <tr>
+                      <td style="padding: 24px 22px;" align="center">
+                        <div style="color: #d9c79b; font-family: Arial, Helvetica, sans-serif; font-size: 11px; line-height: 16px; text-transform: uppercase; letter-spacing: 1.4px; font-weight: bold;">The Stream by Ekantah</div>
+                        <div style="color: #fffaf0; font-family: Georgia, 'Times New Roman', serif; font-size: 24px; line-height: 32px; font-weight: normal; padding-top: 8px;">Slow down. Breathe deep. Stay somewhere that feels like a story.</div>
+                        <div style="color: #dfece2; font-family: Arial, Helvetica, sans-serif; font-size: 14px; line-height: 22px; padding-top: 10px;">
+                          We are looking forward to hosting you by the river.
+                        </div>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+
+              <tr>
+                <td class="inner divider" style="padding-top: 18px; padding-bottom: 24px;">
+                  <div class="small-copy" style="text-align: center;">
+                    The Stream by Ekantah, Tirthan Valley<br>
+                    This email was sent to {{guest_email}} for booking {{booking_id}}.
+                  </div>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </center>
+  </body>
+</html>
