@@ -69,6 +69,11 @@ function generateUpiQrUrl(booking: Booking): string | undefined {
   return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upiString)}`;
 }
 
+function formatDate(date: Date | string): string {
+  if (date instanceof Date) return date.toISOString().split("T")[0];
+  return String(date);
+}
+
 function bookingToProps(booking: Booking) {
   return {
     bookingId: booking.bookingId,
@@ -78,8 +83,8 @@ function bookingToProps(booking: Booking) {
     guestEmail: booking.guestEmail,
     adultCount: String(booking.adultCount),
     childCount: String(booking.childCount),
-    checkInDate: booking.checkInDate,
-    checkOutDate: booking.checkOutDate,
+    checkInDate: formatDate(booking.checkInDate),
+    checkOutDate: formatDate(booking.checkOutDate),
     checkInTime: booking.checkInTime,
     checkOutTime: booking.checkOutTime,
     nightCount: String(booking.nightCount),

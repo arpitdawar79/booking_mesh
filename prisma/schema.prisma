@@ -7,57 +7,152 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum BookingStatus {
+  confirmed
+  cancelled
+  completed
+  archived
+}
+
+enum PaymentStatus {
+  pending
+  partially_paid
+  paid_in_full
+  refunded
+}
+
+enum PaymentMethod {
+  upi
+  card
+  cash
+  bank_transfer
+}
+
+enum RoomStatus {
+  active
+  maintenance
+}
+
 model Booking {
-  id                String   @id @default(cuid())
-  bookingId         String   @unique @map("booking_id")
-  bookingDate       DateTime @default(now()) @map("booking_date")
-  guestFirstName    String   @map("guest_first_name")
-  guestFullName     String   @map("guest_full_name")
-  guestEmail        String   @map("guest_email")
-  guestPhone        String?  @map("guest_phone")
-  adultCount        Int      @default(1) @map("adult_count")
-  childCount        Int      @default(0) @map("child_count")
-  checkInDate       String   @map("check_in_date")
-  checkOutDate      String   @map("check_out_date")
-  checkInTime       String   @default("1:00 PM") @map("check_in_time")
-  checkOutTime      String   @default("10:00 AM") @map("check_out_time")
-  nightCount        Int      @default(1) @map("night_count")
-  roomCount         Int      @default(1) @map("room_count")
-  roomType          String   @default("Boutique Room") @map("room_type")
-  mealPlan          String   @default("As per booking") @map("meal_plan")
-  currency          String   @default("INR") @map("currency")
-  totalAmount       Decimal  @default(0) @map("total_amount")
-  amountPaidOnline  Decimal  @default(0) @map("amount_paid_online")
-  balanceAmount     Decimal  @default(0) @map("balance_amount")
-  paymentStatus     String   @default("Partially paid") @map("payment_status")
-  propertyAddress   String   @default("The Stream by Ekantah") @map("property_address")
-  propertyPhone     String   @default("+91 93193 47443, +91 99100 06437") @map("property_phone")
-  propertyEmail     String   @default("Digital@ekantah.com") @map("property_email")
-  caretakerNumber   String   @default("+91 94599 89576") @map("caretaker_number")
-  parkingDetails    String   @default("Available near the property. Please contact us before arrival for exact guidance.") @map("parking_details")
-  mapLink           String   @default("https://maps.google.com/?q=The%20Stream%20by%20Ekantah%20Tirthan%20Valley") @map("map_link")
-  cancellationPolicy String  @default("As per the booking terms shared at the time of reservation.") @map("cancellation_policy")
-  specialRequests   String   @default("None shared.") @map("special_requests")
-  status            String   @default("confirmed") // confirmed, cancelled, completed
-  createdAt         DateTime @default(now()) @map("created_at")
-  updatedAt         DateTime @updatedAt @map("updated_at")
+  id                String        @id @default(cuid())
+  bookingId         String        @unique @map("booking_id")
+  bookingDate       DateTime      @default(now()) @map("booking_date")
+  guestFirstName    String        @map("guest_first_name")
+  guestFullName     String        @map("guest_full_name")
+  guestEmail        String        @map("guest_email")
+  guestPhone        String?       @map("guest_phone")
+  adultCount        Int           @default(1) @map("adult_count")
+  childCount        Int           @default(0) @map("child_count")
+  checkInDate       DateTime      @map("check_in_date")
+  checkOutDate      DateTime      @map("check_out_date")
+  checkInTime       String        @default("1:00 PM") @map("check_in_time")
+  checkOutTime      String        @default("10:00 AM") @map("check_out_time")
+  nightCount        Int           @default(1) @map("night_count")
+  roomCount         Int           @default(1) @map("room_count")
+  roomType          String        @default("Boutique Room") @map("room_type")
+  mealPlan          String        @default("As per booking") @map("meal_plan")
+  currency          String        @default("INR") @map("currency")
+  totalAmount       Decimal       @default(0) @map("total_amount")
+  amountPaidOnline  Decimal       @default(0) @map("amount_paid_online")
+  balanceAmount     Decimal       @default(0) @map("balance_amount")
+  paymentStatus     PaymentStatus @default(partially_paid) @map("payment_status")
+  propertyAddress   String        @default("The Stream by Ekantah") @map("property_address")
+  propertyPhone     String        @default("+91 93193 47443, +91 99100 06437") @map("property_phone")
+  propertyEmail     String        @default("Digital@ekantah.com") @map("property_email")
+  caretakerNumber   String        @default("+91 94599 89576") @map("caretaker_number")
+  parkingDetails    String        @default("Available near the property. Please contact us before arrival for exact guidance.") @map("parking_details")
+  mapLink           String        @default("https://maps.google.com/?q=The%20Stream%20by%20Ekantah%20Tirthan%20Valley") @map("map_link")
+  cancellationPolicy String       @default("As per the booking terms shared at the time of reservation.") @map("cancellation_policy")
+  specialRequests   String        @default("None shared.") @map("special_requests")
+  status            BookingStatus @default(confirmed)
+  gstRate           Decimal?      @map("gst_rate")
+  cgstAmount        Decimal?      @map("cgst_amount")
+  sgstAmount        Decimal?      @map("sgst_amount")
+  igstAmount        Decimal?      @map("igst_amount")
+  hsnCode           String        @default("996311") @map("hsn_code")
+  guestId           String?       @map("guest_id")
+  createdAt         DateTime      @default(now()) @map("created_at")
+  updatedAt         DateTime      @updatedAt @map("updated_at")
 
   emailsSent       EmailSent[]
   whatsappMessages WhatsAppMessage[]
+  payments         Payment[]
+  guest            Guest?    @relation(fields: [guestId], references: [id])
 
   @@map("bookings")
+}
+
+model Guest {
+  id          String    @id @default(cuid())
+  name        String
+  phone       String?   @unique
+  email       String?   @unique
+  idType      String?   @map("id_type")
+  idNumber    String?   @map("id_number")
+  address     String?
+  preferences String?
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  bookings    Booking[]
+
+  @@map("guests")
+}
+
+model Room {
+  id           String     @id @default(cuid())
+  roomNumber   String     @unique @map("room_number")
+  type         String
+  floor        Int?
+  maxOccupancy Int        @default(2) @map("max_occupancy")
+  status       RoomStatus @default(active)
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+
+  @@map("rooms")
+}
+
+model PropertyConfig {
+  id         String   @id @default(cuid())
+  roomType   String   @map("room_type")
+  totalRooms Int      @map("total_rooms")
+  basePrice  Decimal? @map("base_price")
+  gstRate    Decimal? @map("gst_rate")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@unique([roomType])
+  @@map("property_config")
+}
+
+model Payment {
+  id              String        @id @default(cuid())
+  bookingId       String        @map("booking_id")
+  amount          Decimal
+  method          PaymentMethod
+  date            DateTime      @default(now())
+  referenceNumber String?       @map("reference_number")
+  recordedBy      String?       @map("recorded_by")
+  isRefund        Boolean       @default(false) @map("is_refund")
+  refundReason    String?       @map("refund_reason")
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@map("payments")
 }
 
 model EmailSent {
   id        String   @id @default(cuid())
   bookingId String   @map("booking_id")
-  type      String   // booking_confirmation, cancellation, notification, thank_you
+  type      String
   toEmail   String   @map("to_email")
   ccEmails  String?  @map("cc_emails")
   subject   String
   htmlBody  String   @map("html_body")
   sentAt    DateTime @default(now()) @map("sent_at")
-  status    String   @default("sent") // sent, failed
+  status    String   @default("sent")
 
   booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
 
@@ -67,11 +162,11 @@ model EmailSent {
 model WhatsAppMessage {
   id        String   @id @default(cuid())
   bookingId String   @map("booking_id")
-  type      String   // booking_confirmation, cancellation, notification, thank_you, checkout_reminder, pre_arrival_reminder
+  type      String
   toPhone   String   @map("to_phone")
   body      String
   sentAt    DateTime @default(now()) @map("sent_at")
-  status    String   @default("sent") // sent, failed
+  status    String   @default("sent")
   error     String?
   hasPdf    Boolean  @default(false) @map("has_pdf")
 

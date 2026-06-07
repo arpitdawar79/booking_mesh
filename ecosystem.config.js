@@ -1,8 +1,11 @@
+const path = require("path");
+
 module.exports = {
   apps: [
     {
       name: "ekantah-email-templates",
-      script: "./node_modules/next/dist/bin/next",
+      cwd: path.resolve(__dirname),
+      script: "./node_modules/.bin/next",
       args: "start",
       exec_mode: "fork",
       instances: 1,
@@ -25,6 +28,7 @@ module.exports = {
     },
     {
       name: "ekantah-cron-runner",
+      cwd: path.resolve(__dirname),
       script: "./node_modules/.bin/tsx",
       args: "./jobs/cron-runner.ts",
       exec_mode: "fork",

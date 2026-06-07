@@ -1,12 +1,26 @@
 import { renderAdminDigestHtml, sendEmail, sendRawEmail } from "@/lib/email";
 import { PrismaClient } from "@prisma/client";
-import { addDays, format } from "date-fns";
+import { format } from "date-fns";
 import cron from "node-cron";
 
 const prisma = new PrismaClient();
 
 function log(label: string, message: string) {
   console.log(`[${new Date().toISOString()}] [${label}] ${message}`);
+}
+
+function getTodayRange() {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+  return { start, end };
+}
+
+function getTomorrowRange() {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+  const end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 2);
+  return { start, end };
 }
 
 async function wasEmailSent(bookingId: string, type: string) {
@@ -42,13 +56,14 @@ const adminDigestJob = cron.schedule(
   async () => {
     log("admin-digest", "Starting admin daily digest...");
     try {
-      const today = format(new Date(), "yyyy-MM-dd");
+      const todayStr = format(new Date(), "yyyy-MM-dd");
+      const { start: todayStart, end: todayEnd } = getTodayRange();
       const adminEmail = process.env.ADMIN_EMAIL || "digital@ekantah.com";
 
       const checkIns = await prisma.booking.findMany({
         where: {
           status: "confirmed",
-          checkInDate: today,
+          checkInDate: { gte: todayStart, lt: todayEnd },
         },
         select: {
           bookingId: true,
@@ -66,7 +81,7 @@ const adminDigestJob = cron.schedule(
       const checkOuts = await prisma.booking.findMany({
         where: {
           status: { in: ["confirmed", "completed"] },
-          checkOutDate: today,
+          checkOutDate: { gte: todayStart, lt: todayEnd },
         },
         select: {
           bookingId: true,
@@ -82,13 +97,19 @@ const adminDigestJob = cron.schedule(
       });
 
       const html = await renderAdminDigestHtml(
-        today,
+        todayStr,
         checkIns.map((b: (typeof checkIns)[number]) => ({
           bookingId: b.bookingId,
           guestFullName: b.guestFullName,
           guestEmail: b.guestEmail,
-          checkInDate: b.checkInDate,
-          checkOutDate: b.checkOutDate,
+          checkInDate:
+            b.checkInDate instanceof Date
+              ? b.checkInDate.toISOString().split("T")[0]
+              : String(b.checkInDate),
+          checkOutDate:
+            b.checkOutDate instanceof Date
+              ? b.checkOutDate.toISOString().split("T")[0]
+              : String(b.checkOutDate),
           nightCount: b.nightCount,
           roomCount: b.roomCount,
           roomType: b.roomType,
@@ -98,8 +119,14 @@ const adminDigestJob = cron.schedule(
           bookingId: b.bookingId,
           guestFullName: b.guestFullName,
           guestEmail: b.guestEmail,
-          checkInDate: b.checkInDate,
-          checkOutDate: b.checkOutDate,
+          checkInDate:
+            b.checkInDate instanceof Date
+              ? b.checkInDate.toISOString().split("T")[0]
+              : String(b.checkInDate),
+          checkOutDate:
+            b.checkOutDate instanceof Date
+              ? b.checkOutDate.toISOString().split("T")[0]
+              : String(b.checkOutDate),
           nightCount: b.nightCount,
           roomCount: b.roomCount,
           roomType: b.roomType,
@@ -109,9 +136,9 @@ const adminDigestJob = cron.schedule(
 
       const result = await sendRawEmail({
         to: [adminEmail],
-        subject: `Daily Digest — ${today} | The Stream by Ekantah`,
+        subject: `Daily Digest — ${todayStr} | The Stream by Ekantah`,
         html,
-        text: `Daily Digest for ${today}\n\nCheck-ins: ${checkIns.length}\nCheck-outs: ${checkOuts.length}`,
+        text: `Daily Digest for ${todayStr}\n\nCheck-ins: ${checkIns.length}\nCheck-outs: ${checkOuts.length}`,
       });
 
       if (result.error) {
@@ -137,12 +164,12 @@ const checkoutReminderJob = cron.schedule(
   async () => {
     log("checkout-reminder", "Starting checkout reminders...");
     try {
-      const today = format(new Date(), "yyyy-MM-dd");
+      const { start: todayStart, end: todayEnd } = getTodayRange();
 
       const bookings = await prisma.booking.findMany({
         where: {
           status: "confirmed",
-          checkOutDate: today,
+          checkOutDate: { gte: todayStart, lt: todayEnd },
         },
       });
 
@@ -215,12 +242,12 @@ const preArrivalReminderJob = cron.schedule(
   async () => {
     log("pre-arrival", "Starting pre-arrival reminders...");
     try {
-      const tomorrow = format(addDays(new Date(), 1), "yyyy-MM-dd");
+      const { start: tomorrowStart, end: tomorrowEnd } = getTomorrowRange();
 
       const bookings = await prisma.booking.findMany({
         where: {
           status: "confirmed",
-          checkInDate: tomorrow,
+          checkInDate: { gte: tomorrowStart, lt: tomorrowEnd },
         },
       });
 

@@ -88,7 +88,7 @@ export async function GET() {
           ELSE '60+ days'
         END as bucket
       FROM bookings
-      WHERE status != 'cancelled'
+      WHERE status NOT IN ('cancelled', 'archived')
     ) sub
     GROUP BY bucket
     ORDER BY 
@@ -132,13 +132,11 @@ export async function GET() {
   });
 
   // Upcoming 90 days occupancy projection
-  const todayStr = now.toISOString().split("T")[0];
-  const future90 = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000)
-    .toISOString()
-    .split("T")[0];
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const future90 = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000);
   const upcomingOccupancy = await prisma.$queryRaw<
     Array<{
-      date: string;
+      date: Date;
       rooms: number;
       guests: number;
       revenue: number;
@@ -151,8 +149,8 @@ export async function GET() {
       COALESCE(SUM(total_amount), 0) as revenue
     FROM bookings
     WHERE status = 'confirmed'
-      AND check_in_date >= ${todayStr}
-      AND check_in_date < ${future90}
+      AND check_in_date >= ${today}::timestamp
+      AND check_in_date < ${future90}::timestamp
     GROUP BY check_in_date
     ORDER BY date ASC
   `;
@@ -238,13 +236,8 @@ export async function GET() {
       }),
     ),
     upcomingOccupancy: upcomingOccupancy.map(
-      (d: {
-        date: string;
-        rooms: number;
-        guests: number;
-        revenue: number;
-      }) => ({
-        date: d.date,
+      (d: { date: Date; rooms: number; guests: number; revenue: number }) => ({
+        date: d.date.toISOString().split("T")[0],
         rooms: Number(d.rooms),
         guests: Number(d.guests),
         revenue: Number(d.revenue),

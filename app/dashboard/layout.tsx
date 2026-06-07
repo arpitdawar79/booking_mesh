@@ -2,26 +2,27 @@
 
 import { Dock } from "@/components/ui/dock";
 import {
-  Drawer,
-  DrawerContent,
-  DrawerTitle,
-  DrawerTrigger,
+    Drawer,
+    DrawerContent,
+    DrawerTitle,
+    DrawerTrigger,
 } from "@/components/ui/drawer";
 import {
-  BarChart3,
-  CalendarDays,
-  ChevronLeft,
-  ChevronRight,
-  Hotel,
-  IndianRupee,
-  LayoutDashboard,
-  LogOut,
-  Mail,
-  Menu,
-  MoreHorizontal,
-  PlusCircle,
-  Smartphone,
-  X,
+    BarChart3,
+    CalendarDays,
+    ChevronLeft,
+    ChevronRight,
+    Hotel,
+    IndianRupee,
+    LayoutDashboard,
+    LogOut,
+    Mail,
+    Menu,
+    MoreHorizontal,
+    PlusCircle,
+    Smartphone,
+    Users,
+    X,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -30,6 +31,7 @@ import { useState } from "react";
 const navItems = [
   { href: "/dashboard", label: "Bookings", icon: CalendarDays },
   { href: "/dashboard/new", label: "New Booking", icon: PlusCircle },
+  { href: "/dashboard/guests", label: "Guests", icon: Users },
   { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
   {
     href: "/dashboard/analytics/revenue",
@@ -60,6 +62,11 @@ const dockItems = [
     href: "/dashboard/new",
     label: "New Booking",
     icon: <PlusCircle className="w-5 h-5" />,
+  },
+  {
+    href: "/dashboard/guests",
+    label: "Guests",
+    icon: <Users className="w-5 h-5" />,
   },
   {
     href: "/dashboard/analytics",

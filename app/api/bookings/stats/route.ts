@@ -6,12 +6,14 @@ export async function GET() {
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const startOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
 
+  const todayStr = now.toISOString().split("T")[0];
+
   const [
     allBookings,
     confirmedBookings,
     cancelledBookings,
     thisMonthBookings,
-    upcomingCheckins,
+    upcomingCheckinsRaw,
     totalRevenueAgg,
     outstandingBalanceAgg,
   ] = await Promise.all([
@@ -24,12 +26,8 @@ export async function GET() {
       },
     }),
     prisma.booking.findMany({
-      where: {
-        status: "confirmed",
-        checkInDate: { gte: now.toISOString().split("T")[0] },
-      },
+      where: { status: "confirmed" },
       orderBy: { checkInDate: "asc" },
-      take: 5,
       select: {
         id: true,
         bookingId: true,
@@ -50,12 +48,20 @@ export async function GET() {
     }),
   ]);
 
-  const occupancyNights = confirmedBookings > 0
-    ? await prisma.booking.aggregate({
-        _sum: { nightCount: true },
-        where: { status: "confirmed" },
-      })
-    : { _sum: { nightCount: 0 } };
+  const upcomingCheckins = upcomingCheckinsRaw
+    .filter((b) => {
+      const checkInStr = String(b.checkInDate as unknown).split("T")[0];
+      return checkInStr >= todayStr;
+    })
+    .slice(0, 5);
+
+  const occupancyNights =
+    confirmedBookings > 0
+      ? await prisma.booking.aggregate({
+          _sum: { nightCount: true },
+          where: { status: "confirmed" },
+        })
+      : { _sum: { nightCount: 0 } };
 
   return NextResponse.json({
     counts: {

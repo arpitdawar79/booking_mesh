@@ -217,10 +217,13 @@ export default function NewBookingPage() {
               defaultValue="1:00 PM"
             >
               {Array.from({ length: 24 }, (_, i) => {
-                const hour = i.toString().padStart(2, "0");
+                const hour24 = i;
+                const hour12 = hour24 % 12 === 0 ? 12 : hour24 % 12;
+                const amPm = hour24 < 12 ? "AM" : "PM";
+                const label = `${hour12}:00 ${amPm}`;
                 return (
-                  <option key={hour} value={`${hour}:00`}>
-                    {hour}:00
+                  <option key={label} value={label}>
+                    {label}
                   </option>
                 );
               })}
@@ -231,10 +234,13 @@ export default function NewBookingPage() {
               defaultValue="10:00 AM"
             >
               {Array.from({ length: 24 }, (_, i) => {
-                const hour = i.toString().padStart(2, "0");
+                const hour24 = i;
+                const hour12 = hour24 % 12 === 0 ? 12 : hour24 % 12;
+                const amPm = hour24 < 12 ? "AM" : "PM";
+                const label = `${hour12}:00 ${amPm}`;
                 return (
-                  <option key={hour} value={`${hour}:00`}>
-                    {hour}:00
+                  <option key={label} value={label}>
+                    {label}
                   </option>
                 );
               })}
@@ -392,10 +398,26 @@ export default function NewBookingPage() {
             name="caretakerNumber"
             defaultValue="+91 94599 89576"
           />
-          <Field label="Parking Details" name="parkingDetails" />
-          <Field label="Map Link" name="mapLink" />
-          <Field label="Cancellation Policy" name="cancellationPolicy" />
-          <Field label="Special Requests" name="specialRequests" />
+          <Field
+            label="Parking Details"
+            name="parkingDetails"
+            defaultValue="Available near the property. Please contact us before arrival for exact guidance."
+          />
+          <Field
+            label="Map Link"
+            name="mapLink"
+            defaultValue="https://maps.google.com/?q=The%20Stream%20by%20Ekantah%20Tirthan%20Valley"
+          />
+          <Field
+            label="Cancellation Policy"
+            name="cancellationPolicy"
+            defaultValue="As per the booking terms shared at the time of reservation."
+          />
+          <Field
+            label="Special Requests"
+            name="specialRequests"
+            defaultValue="None shared."
+          />
         </Section>
 
         <div className="flex gap-3">

@@ -1,5 +1,11 @@
 import { sendEmail, type EmailType } from "@/lib/email";
+import { logger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
+import {
+  bookingCreateSchema,
+  bookingStatusSchema,
+  bookingUpdateSchema,
+} from "@/lib/validation";
 import { sendBookingWhatsApp } from "@/lib/whatsapp";
 import { NextResponse } from "next/server";
 
@@ -16,6 +22,13 @@ function generateBookingId(): string {
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
+  const page = Math.max(1, Number(searchParams.get("page") || "1"));
+  const pageSize = Math.min(
+    100,
+    Math.max(1, Number(searchParams.get("pageSize") || "20")),
+  );
+  const search = searchParams.get("search") || "";
+  const statusFilter = searchParams.get("status") || undefined;
 
   if (id) {
     const bookings = await prisma.booking.findMany({
@@ -23,27 +36,64 @@ export async function GET(request: Request) {
       include: {
         emailsSent: { orderBy: { sentAt: "desc" }, take: 20 },
         whatsappMessages: { orderBy: { sentAt: "desc" }, take: 20 },
+        payments: { orderBy: { createdAt: "desc" } },
+        guest: true,
       },
     });
     return NextResponse.json({ bookings });
   }
 
-  const bookings = await prisma.booking.findMany({
-    orderBy: { createdAt: "desc" },
-    include: { emailsSent: { orderBy: { sentAt: "desc" }, take: 5 } },
+  const where: Record<string, unknown> = {};
+  if (statusFilter) {
+    where.status = statusFilter;
+  } else {
+    where.status = { not: "archived" };
+  }
+  if (search.trim()) {
+    const q = search.trim();
+    where.OR = [
+      { guestFullName: { contains: q, mode: "insensitive" } },
+      { guestEmail: { contains: q, mode: "insensitive" } },
+      { bookingId: { contains: q, mode: "insensitive" } },
+    ];
+  }
+
+  const [bookings, total] = await Promise.all([
+    prisma.booking.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      include: { emailsSent: { orderBy: { sentAt: "desc" }, take: 5 } },
+    }),
+    prisma.booking.count({ where }),
+  ]);
+
+  return NextResponse.json({
+    bookings,
+    total,
+    page,
+    pageSize,
+    totalPages: Math.ceil(total / pageSize),
   });
-  return NextResponse.json({ bookings });
 }
 
 export async function POST(request: Request) {
-  const data = await request.json();
+  const body = await request.json().catch(() => ({}));
+  const parsed = bookingCreateSchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json(
+      {
+        error: "Invalid input",
+        details: parsed.error.issues.map(
+          (i) => `${String(i.path)}: ${i.message}`,
+        ),
+      },
+      { status: 400 },
+    );
+  }
 
-  const bookingId = generateBookingId();
-  const totalAmount = Number(data.totalAmount || 0);
-  const amountPaidOnline = Number(data.amountPaidOnline || 0);
-  const balanceAmount = totalAmount - amountPaidOnline;
-  const paymentStatus = balanceAmount > 0 ? "Partially paid" : "Paid in full";
-
+  const data = parsed.data;
   const checkIn = new Date(data.checkInDate);
   const checkOut = new Date(data.checkOutDate);
   const nightCount = Math.max(
@@ -51,28 +101,90 @@ export async function POST(request: Request) {
     Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)),
   );
 
+  // Duplicate detection: same name + phone + check-in date within 24h
+  if (data.guestPhone) {
+    const recentDuplicate = await prisma.booking.findFirst({
+      where: {
+        guestFullName: { equals: data.guestFullName, mode: "insensitive" },
+        guestPhone: data.guestPhone,
+        checkInDate: checkIn,
+        createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+      },
+    });
+    if (recentDuplicate) {
+      return NextResponse.json(
+        {
+          error: "Duplicate booking detected",
+          duplicateId: recentDuplicate.id,
+        },
+        { status: 409 },
+      );
+    }
+  }
+
+  // Overbooking guard
+  const config = await prisma.propertyConfig.findUnique({
+    where: { roomType: data.roomType },
+  });
+  if (config) {
+    const overlapping = await prisma.booking.aggregate({
+      _sum: { roomCount: true },
+      where: {
+        status: { in: ["confirmed", "completed"] },
+        roomType: data.roomType,
+        checkInDate: { lt: checkOut },
+        checkOutDate: { gt: checkIn },
+      },
+    });
+    const bookedRooms = Number(overlapping._sum.roomCount || 0);
+    if (bookedRooms + data.roomCount > config.totalRooms) {
+      return NextResponse.json(
+        {
+          error:
+            "Overbooking guard: not enough rooms available for the selected dates",
+        },
+        { status: 409 },
+      );
+    }
+  }
+
+  const totalAmount = Number(data.totalAmount || 0);
+  const amountPaidOnline = Number(data.amountPaidOnline || 0);
+  const balanceAmount = totalAmount - amountPaidOnline;
+  const paymentStatus = balanceAmount > 0 ? "partially_paid" : "paid_in_full";
+
+  // GST calculation (default 18% for accommodation)
+  const gstRate = data.totalAmount >= 7500 ? 18 : 12;
+  const taxableValue = totalAmount / (1 + gstRate / 100);
+  const gstAmount = totalAmount - taxableValue;
+  const cgstAmount = gstAmount / 2;
+  const sgstAmount = gstAmount / 2;
+
   const booking = await prisma.booking.create({
     data: {
-      bookingId,
-      guestFirstName: data.guestFullName?.split(" ")[0] || data.guestFullName,
+      bookingId: generateBookingId(),
+      guestFirstName: data.guestFullName.split(" ")[0] || data.guestFullName,
       guestFullName: data.guestFullName,
       guestEmail: data.guestEmail,
       guestPhone: data.guestPhone || null,
-      adultCount: Number(data.adultCount || 1),
-      childCount: Number(data.childCount || 0),
-      checkInDate: data.checkInDate,
-      checkOutDate: data.checkOutDate,
-      checkInTime: data.checkInTime || "1:00 PM",
-      checkOutTime: data.checkOutTime || "10:00 AM",
+      adultCount: data.adultCount,
+      childCount: data.childCount,
+      checkInDate: checkIn,
+      checkOutDate: checkOut,
+      checkInTime: data.checkInTime,
+      checkOutTime: data.checkOutTime,
       nightCount,
-      roomCount: Number(data.roomCount || 1),
-      roomType: data.roomType || "Boutique Room",
-      mealPlan: data.mealPlan || "As per booking",
-      currency: data.currency || "INR",
+      roomCount: data.roomCount,
+      roomType: data.roomType,
+      mealPlan: data.mealPlan,
+      currency: data.currency,
       totalAmount,
       amountPaidOnline,
       balanceAmount,
       paymentStatus,
+      gstRate,
+      cgstAmount,
+      sgstAmount,
       propertyAddress: data.propertyAddress || "The Stream by Ekantah",
       propertyPhone: data.propertyPhone || "+91 93193 47443, +91 99100 06437",
       propertyEmail: data.propertyEmail || "digital@ekantah.com",
@@ -91,11 +203,21 @@ export async function POST(request: Request) {
     },
   });
 
+  logger.info("booking", `Created booking ${booking.bookingId}`, {
+    bookingId: booking.id,
+  });
+
   // Fire-and-forget WhatsApp + email on creation
   if (booking.guestPhone) {
     sendBookingWhatsApp("booking_confirmation", booking, {
       sendPdf: true,
-    }).catch(() => {});
+    }).catch((err) => {
+      logger.error(
+        "whatsapp",
+        `Failed to send confirmation for ${booking.bookingId}`,
+        { error: String(err) },
+      );
+    });
   }
   if (booking.guestEmail) {
     sendEmail("booking_confirmation", booking, { to: [booking.guestEmail] })
@@ -111,65 +233,171 @@ export async function POST(request: Request) {
           },
         });
       })
-      .catch(() => {});
+      .catch((err) => {
+        logger.error(
+          "email",
+          `Failed to send confirmation for ${booking.bookingId}`,
+          { error: String(err) },
+        );
+      });
   }
 
   return NextResponse.json({ booking });
 }
 
 export async function PATCH(request: Request) {
-  const data = await request.json();
-  const { id, status } = data;
+  const body = await request.json().catch(() => ({}));
 
-  if (!id || !status) {
+  // Support both simple status update and full booking update
+  if (body.status && !body.guestFullName && !body.checkInDate) {
+    const parsed = bookingStatusSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        {
+          error: "Invalid input",
+          details: parsed.error.issues.map(
+            (i) => `${String(i.path)}: ${i.message}`,
+          ),
+        },
+        { status: 400 },
+      );
+    }
+
+    const { id, status } = parsed.data;
+    const booking = await prisma.booking.update({
+      where: { id },
+      data: { status },
+    });
+
+    let waType: string | null = null;
+    let emailType: EmailType | null = null;
+    if (status === "confirmed") {
+      waType = "booking_confirmation";
+      emailType = "booking_confirmation";
+    }
+    if (status === "cancelled") {
+      waType = "cancellation";
+      emailType = "cancellation";
+    }
+
+    if (booking.guestPhone && waType) {
+      sendBookingWhatsApp(waType, booking, {
+        sendPdf: waType === "booking_confirmation",
+      }).catch(() => {});
+    }
+    if (booking.guestEmail && emailType) {
+      sendEmail(emailType, booking, { to: [booking.guestEmail] })
+        .then(async (result) => {
+          await prisma.emailSent.create({
+            data: {
+              bookingId: booking.id,
+              type: emailType as string,
+              toEmail: booking.guestEmail,
+              subject:
+                emailType === "booking_confirmation"
+                  ? `Booking confirmed: The Stream by Ekantah #${booking.bookingId}`
+                  : `Booking cancelled: The Stream by Ekantah #${booking.bookingId}`,
+              htmlBody: result.error
+                ? ""
+                : `Email sent to ${booking.guestEmail}`,
+              status: result.error ? "failed" : "sent",
+            },
+          });
+        })
+        .catch(() => {});
+    }
+
+    return NextResponse.json({ booking });
+  }
+
+  const parsed = bookingUpdateSchema.safeParse(body);
+  if (!parsed.success) {
     return NextResponse.json(
-      { error: "Missing id or status" },
+      {
+        error: "Invalid input",
+        details: parsed.error.issues.map(
+          (i) => `${String(i.path)}: ${i.message}`,
+        ),
+      },
       { status: 400 },
     );
   }
 
+  const data = parsed.data;
+  const existing = await prisma.booking.findUnique({ where: { id: data.id } });
+  if (!existing) {
+    return NextResponse.json({ error: "Booking not found" }, { status: 404 });
+  }
+
+  const updateData: Record<string, unknown> = {};
+  if (data.guestFullName !== undefined)
+    updateData.guestFullName = data.guestFullName;
+  if (data.guestEmail !== undefined) updateData.guestEmail = data.guestEmail;
+  if (data.guestPhone !== undefined) updateData.guestPhone = data.guestPhone;
+  if (data.adultCount !== undefined) updateData.adultCount = data.adultCount;
+  if (data.childCount !== undefined) updateData.childCount = data.childCount;
+  if (data.checkInDate !== undefined)
+    updateData.checkInDate = new Date(data.checkInDate);
+  if (data.checkOutDate !== undefined)
+    updateData.checkOutDate = new Date(data.checkOutDate);
+  if (data.checkInTime !== undefined) updateData.checkInTime = data.checkInTime;
+  if (data.checkOutTime !== undefined)
+    updateData.checkOutTime = data.checkOutTime;
+  if (data.roomCount !== undefined) updateData.roomCount = data.roomCount;
+  if (data.roomType !== undefined) updateData.roomType = data.roomType;
+  if (data.mealPlan !== undefined) updateData.mealPlan = data.mealPlan;
+  if (data.totalAmount !== undefined) updateData.totalAmount = data.totalAmount;
+  if (data.amountPaidOnline !== undefined)
+    updateData.amountPaidOnline = data.amountPaidOnline;
+  if (data.status !== undefined) updateData.status = data.status;
+  if (data.paymentStatus !== undefined)
+    updateData.paymentStatus = data.paymentStatus;
+  if (data.specialRequests !== undefined)
+    updateData.specialRequests = data.specialRequests;
+
+  // Recompute night count if dates changed
+  const inDate = (updateData.checkInDate as Date) || existing.checkInDate;
+  const outDate = (updateData.checkOutDate as Date) || existing.checkOutDate;
+  updateData.nightCount = Math.max(
+    1,
+    Math.ceil((outDate.getTime() - inDate.getTime()) / (1000 * 60 * 60 * 24)),
+  );
+
+  // Recompute balance if amounts changed
+  const total =
+    updateData.totalAmount !== undefined
+      ? Number(updateData.totalAmount)
+      : Number(existing.totalAmount);
+  const paidOnline =
+    updateData.amountPaidOnline !== undefined
+      ? Number(updateData.amountPaidOnline)
+      : Number(existing.amountPaidOnline);
+  const paymentsAgg = await prisma.payment.aggregate({
+    _sum: { amount: true },
+    where: { bookingId: data.id, isRefund: false },
+  });
+  const totalPaid = paidOnline + Number(paymentsAgg._sum?.amount || 0);
+  const newBalance = total - totalPaid;
+  updateData.balanceAmount = newBalance;
+  updateData.paymentStatus = newBalance > 0 ? "partially_paid" : "paid_in_full";
+
+  // Recompute GST if total changed
+  if (updateData.totalAmount !== undefined) {
+    const gstRate = total >= 7500 ? 18 : 12;
+    const taxableValue = total / (1 + gstRate / 100);
+    const gstAmount = total - taxableValue;
+    updateData.gstRate = gstRate;
+    updateData.cgstAmount = gstAmount / 2;
+    updateData.sgstAmount = gstAmount / 2;
+  }
+
   const booking = await prisma.booking.update({
-    where: { id },
-    data: { status },
+    where: { id: data.id },
+    data: updateData,
   });
 
-  let waType: string | null = null;
-  let emailType: EmailType | null = null;
-  if (status === "confirmed") {
-    waType = "booking_confirmation";
-    emailType = "booking_confirmation";
-  }
-  if (status === "cancelled") {
-    waType = "cancellation";
-    emailType = "cancellation";
-  }
-
-  if (booking.guestPhone && waType) {
-    sendBookingWhatsApp(waType, booking, {
-      sendPdf: waType === "booking_confirmation",
-    }).catch(() => {});
-  }
-
-  if (booking.guestEmail && emailType) {
-    const subjectMap: Record<string, string> = {
-      booking_confirmation: `Booking confirmed: The Stream by Ekantah #${booking.bookingId}`,
-      cancellation: `Booking cancelled: The Stream by Ekantah #${booking.bookingId}`,
-    };
-    sendEmail(emailType, booking, { to: [booking.guestEmail] })
-      .then(async (result) => {
-        await prisma.emailSent.create({
-          data: {
-            bookingId: booking.id,
-            type: emailType as string,
-            toEmail: booking.guestEmail,
-            subject: subjectMap[emailType] || `${emailType} email`,
-            htmlBody: result.error ? "" : `Email sent to ${booking.guestEmail}`,
-            status: result.error ? "failed" : "sent",
-          },
-        });
-      })
-      .catch(() => {});
-  }
-
+  logger.info("booking", `Updated booking ${booking.bookingId}`, {
+    bookingId: booking.id,
+  });
   return NextResponse.json({ booking });
 }

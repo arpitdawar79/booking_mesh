@@ -1,17 +1,24 @@
-import { NextResponse } from "next/server";
+import { EmailType, sendEmail } from "@/lib/email";
 import { prisma } from "@/lib/prisma";
-import { sendEmail, EmailType } from "@/lib/email";
+import { sendEmailSchema } from "@/lib/validation";
+import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
-  const body = await request.json();
-  const { bookingId, type, to, cc, bcc, subject, customMessage } = body;
-
-  if (!bookingId || !type || !to || !Array.isArray(to)) {
+  const body = await request.json().catch(() => ({}));
+  const parsed = sendEmailSchema.safeParse(body);
+  if (!parsed.success) {
     return NextResponse.json(
-      { error: "Missing bookingId, type, or to" },
-      { status: 400 }
+      {
+        error: "Invalid input",
+        details: parsed.error.issues.map(
+          (i) => `${String(i.path)}: ${i.message}`,
+        ),
+      },
+      { status: 400 },
     );
   }
+
+  const { bookingId, type, to, cc, bcc, subject, customMessage } = parsed.data;
 
   const booking = await prisma.booking.findUnique({
     where: { id: bookingId },
@@ -30,9 +37,7 @@ export async function POST(request: Request) {
   });
 
   const htmlBody =
-    result.error || !result.messageId
-      ? ""
-      : `Email sent to ${to.join(", ")}`;
+    result.error || !result.messageId ? "" : `Email sent to ${to.join(", ")}`;
 
   await prisma.emailSent.create({
     data: {

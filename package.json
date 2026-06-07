@@ -9,11 +9,13 @@
     "start": "next start",
     "lint": "next lint",
     "db:migrate": "dotenv -e .env.local -- prisma migrate dev",
+    "db:migrate:reset": "dotenv -e .env.local -- prisma migrate reset",
     "db:migrate:prod": "dotenv -e .env.local -- prisma migrate deploy",
     "db:generate": "dotenv -e .env.local -- prisma generate",
     "db:push": "dotenv -e .env.local -- prisma db push",
     "db:studio": "dotenv -e .env.local -- prisma studio",
     "db:seed": "dotenv -e .env.local -- tsx prisma/seed.ts",
+    "test:emails": "dotenv -e .env.local -- tsx scripts/test-emails.ts",
     "postinstall": "prisma generate",
     "typecheck": "tsc --noEmit"
   },

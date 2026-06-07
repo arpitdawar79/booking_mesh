@@ -1,17 +1,24 @@
-import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { sendWhatsAppSchema } from "@/lib/validation";
 import { sendBookingWhatsApp } from "@/lib/whatsapp";
+import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
-  const body = await request.json();
-  const { bookingId, type, sendPdf } = body;
-
-  if (!bookingId || !type) {
+  const body = await request.json().catch(() => ({}));
+  const parsed = sendWhatsAppSchema.safeParse(body);
+  if (!parsed.success) {
     return NextResponse.json(
-      { error: "Missing bookingId or type" },
+      {
+        error: "Invalid input",
+        details: parsed.error.issues.map(
+          (i) => `${String(i.path)}: ${i.message}`,
+        ),
+      },
       { status: 400 },
     );
   }
+
+  const { bookingId, type, sendPdf, customMessage } = parsed.data;
 
   const booking = await prisma.booking.findUnique({
     where: { id: bookingId },
@@ -29,7 +36,7 @@ export async function POST(request: Request) {
   }
 
   const result = await sendBookingWhatsApp(type, booking, {
-    customMessage: body.customMessage,
+    customMessage,
     sendPdf: sendPdf ?? true,
   });
 

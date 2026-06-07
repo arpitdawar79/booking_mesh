@@ -1,5 +1,7 @@
 "use client";
 
+import { Pagination } from "@/components/ui/pagination";
+import { StatusBadge } from "@/components/ui/status-badge";
 import {
     AlertCircle,
     CalendarCheck,
@@ -9,6 +11,7 @@ import {
     Mail,
     MessageCircle,
     PlusCircle,
+    Search,
     TrendingUp,
     Users,
 } from "lucide-react";
@@ -20,8 +23,8 @@ interface Booking {
   bookingId: string;
   guestFullName: string;
   guestEmail: string;
-  checkInDate: string;
-  checkOutDate: string;
+  checkInDate: string | Date;
+  checkOutDate: string | Date;
   nightCount: number;
   roomCount: number;
   roomType: string;
@@ -51,34 +54,70 @@ interface Stats {
     id: string;
     bookingId: string;
     guestFullName: string;
-    checkInDate: string;
-    checkOutDate: string;
+    checkInDate: string | Date;
+    checkOutDate: string | Date;
     nightCount: number;
     totalAmount: number;
   }>;
+}
+
+function fmtDate(d: string | Date): string {
+  if (!d) return "";
+  if (typeof d === "string") return d.split("T")[0];
+  return d.toISOString().split("T")[0];
 }
 
 export default function DashboardPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<"all" | "confirmed" | "cancelled">(
-    "all",
-  );
+  const [filter, setFilter] = useState<
+    "all" | "confirmed" | "cancelled" | "archived"
+  >("all");
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [pageSize] = useState(20);
+  const [total, setTotal] = useState(0);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   useEffect(() => {
-    Promise.all([
-      fetch("/api/bookings").then((r) => r.json()),
-      fetch("/api/bookings/stats").then((r) => r.json()),
-    ])
-      .then(([bookingsData, statsData]) => {
-        setBookings(bookingsData.bookings || []);
-        setStats(statsData);
-        setLoading(false);
+    setPage(1);
+  }, [filter, search]);
+
+  useEffect(() => {
+    setLoading(true);
+    const params = new URLSearchParams();
+    params.set("page", String(page));
+    params.set("pageSize", String(pageSize));
+    if (search.trim()) params.set("search", search.trim());
+    if (filter !== "all") params.set("status", filter);
+
+    fetch(`/api/bookings?${params}`)
+      .then(async (r) => {
+        if (!r.ok) throw new Error(`Bookings API error: ${r.status}`);
+        return r.json();
       })
-      .catch(() => setLoading(false));
-  }, []);
+      .then((bookingsData) => {
+        setBookings(bookingsData.bookings || []);
+        setTotal(bookingsData.total || 0);
+      })
+      .catch((err) => {
+        console.error("Failed to load bookings:", err);
+      })
+      .finally(() => setLoading(false));
+
+    fetch("/api/bookings/stats")
+      .then(async (r) => {
+        if (!r.ok) throw new Error(`Stats API error: ${r.status}`);
+        return r.json();
+      })
+      .then((statsData) => {
+        setStats(statsData);
+      })
+      .catch((err) => {
+        console.error("Failed to load stats:", err);
+      });
+  }, [page, pageSize, filter, search]);
 
   async function handleQuickEmail(booking: Booking) {
     const res = await fetch("/api/send-email", {
@@ -94,25 +133,13 @@ export default function DashboardPage() {
     alert(json.success ? "Email sent!" : json.error || "Failed to send.");
   }
 
-  async function handleCopySummary(booking: Booking) {
-    const text = `
-Booking #${booking.bookingId} – ${booking.guestFullName}
-Dates: ${booking.checkInDate} → ${booking.checkOutDate}
-Nights: ${booking.nightCount} | Rooms: ${booking.roomCount} × ${booking.roomType}
-Total: ₹${booking.totalAmount} | Paid: ₹${booking.amountPaidOnline} | Balance: ₹${booking.balanceAmount}
-Status: ${booking.status}
-    `.trim();
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopiedId(booking.id);
-      setTimeout(() => setCopiedId(null), 2000);
-    } catch {
-      alert("Could not copy.");
-    }
+  function handleCopy(bookingId: string) {
+    setCopiedId(bookingId);
+    setTimeout(() => setCopiedId(null), 2000);
   }
 
   async function handleWhatsApp(booking: Booking) {
-    const text = `Booking confirmation #%23${booking.bookingId} for ${booking.guestFullName}. Dates: ${booking.checkInDate} to ${booking.checkOutDate} (${booking.nightCount} nights). Total: ₹${booking.totalAmount}. The Stream by Ekantah.`;
+    const text = `Booking confirmation #%23${booking.bookingId} for ${booking.guestFullName}. Dates: ${fmtDate(booking.checkInDate)} to ${fmtDate(booking.checkOutDate)} (${booking.nightCount} nights). Total: ₹${booking.totalAmount}. The Stream by Ekantah.`;
     const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
     window.open(url, "_blank");
   }
@@ -126,11 +153,9 @@ Status: ${booking.status}
     }
   }
 
-  const filtered = bookings.filter((b) =>
-    filter === "all" ? true : b.status === filter,
-  );
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
-  if (loading) {
+  if (loading && bookings.length === 0) {
     return <div className="text-muted-foreground">Loading dashboard...</div>;
   }
 
@@ -181,7 +206,7 @@ Status: ${booking.status}
                 className="min-w-[180px] snap-start rounded-xl border border-border bg-muted/20 p-3 hover:bg-muted/40 transition"
               >
                 <div className="text-xs text-muted-foreground">
-                  {u.checkInDate}
+                  {fmtDate(u.checkInDate)}
                 </div>
                 <div className="font-medium text-sm truncate">
                   {u.guestFullName}
@@ -199,21 +224,33 @@ Status: ${booking.status}
       {/* Bookings Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <h1 className="text-xl sm:text-2xl font-bold">Bookings</h1>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="relative">
+            <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search bookings..."
+              className="pl-7 pr-3 py-1.5 rounded-lg border border-border bg-background text-xs focus:outline-none focus:ring-2 focus:ring-ring w-40 sm:w-56"
+            />
+          </div>
           <div className="flex rounded-lg border border-border overflow-hidden">
-            {(["all", "confirmed", "cancelled"] as const).map((f) => (
-              <button
-                key={f}
-                onClick={() => setFilter(f)}
-                className={`px-3 py-1.5 text-xs font-medium capitalize transition ${
-                  filter === f
-                    ? "bg-foreground text-background"
-                    : "hover:bg-muted"
-                }`}
-              >
-                {f}
-              </button>
-            ))}
+            {(["all", "confirmed", "cancelled", "archived"] as const).map(
+              (f) => (
+                <button
+                  key={f}
+                  onClick={() => setFilter(f)}
+                  className={`px-3 py-1.5 text-xs font-medium capitalize transition ${
+                    filter === f
+                      ? "bg-foreground text-background"
+                      : "hover:bg-muted"
+                  }`}
+                >
+                  {f}
+                </button>
+              ),
+            )}
           </div>
           <Link
             href="/dashboard/new"
@@ -227,7 +264,7 @@ Status: ${booking.status}
       </div>
 
       {/* Booking List / Table */}
-      {filtered.length === 0 ? (
+      {bookings.length === 0 ? (
         <div className="rounded-xl border border-border p-8 text-center text-muted-foreground">
           No bookings match the selected filter.
         </div>
@@ -235,7 +272,7 @@ Status: ${booking.status}
         <>
           {/* Mobile: Card List */}
           <div className="lg:hidden space-y-3">
-            {filtered.map((b) => (
+            {bookings.map((b) => (
               <div
                 key={b.id}
                 className="rounded-xl border border-border bg-card/30 p-4 space-y-3"
@@ -250,20 +287,11 @@ Status: ${booking.status}
                       {b.guestEmail}
                     </div>
                   </div>
-                  <span
-                    className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium ${
-                      b.status === "confirmed"
-                        ? "bg-green-900/30 text-green-300"
-                        : b.status === "cancelled"
-                          ? "bg-red-900/30 text-red-300"
-                          : "bg-blue-900/30 text-blue-300"
-                    }`}
-                  >
-                    {b.status}
-                  </span>
+                  <StatusBadge status={b.status} />
                 </div>
                 <div className="text-xs text-muted-foreground">
-                  {b.checkInDate} → {b.checkOutDate} · {b.nightCount} nights
+                  {fmtDate(b.checkInDate)} → {fmtDate(b.checkOutDate)} ·{" "}
+                  {b.nightCount} nights
                 </div>
                 <div className="text-xs">
                   {b.roomCount} × {b.roomType}
@@ -295,7 +323,7 @@ Status: ${booking.status}
                       <MessageCircle className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={() => handleCopySummary(b)}
+                      onClick={() => handleCopy(b.id)}
                       className="p-1.5 rounded-md hover:bg-muted transition min-w-[40px]"
                       title="Copy Summary"
                     >
@@ -331,7 +359,7 @@ Status: ${booking.status}
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {filtered.map((b) => (
+                {bookings.map((b) => (
                   <tr key={b.id} className="hover:bg-muted/30">
                     <td className="px-4 py-3 font-mono text-xs">
                       {b.bookingId}
@@ -343,7 +371,7 @@ Status: ${booking.status}
                       </div>
                     </td>
                     <td className="px-4 py-3 text-muted-foreground">
-                      {b.checkInDate} → {b.checkOutDate}
+                      {fmtDate(b.checkInDate)} → {fmtDate(b.checkOutDate)}
                     </td>
                     <td className="px-4 py-3">{b.nightCount}</td>
                     <td className="px-4 py-3">
@@ -360,17 +388,7 @@ Status: ${booking.status}
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <span
-                        className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
-                          b.status === "confirmed"
-                            ? "bg-green-900/30 text-green-300"
-                            : b.status === "cancelled"
-                              ? "bg-red-900/30 text-red-300"
-                              : "bg-blue-900/30 text-blue-300"
-                        }`}
-                      >
-                        {b.status}
-                      </span>
+                      <StatusBadge status={b.status} />
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
@@ -396,7 +414,7 @@ Status: ${booking.status}
                           <MessageCircle className="w-4 h-4" />
                         </button>
                         <button
-                          onClick={() => handleCopySummary(b)}
+                          onClick={() => handleCopy(b.id)}
                           className="p-1.5 rounded-md hover:bg-muted transition"
                           title="Copy Summary"
                         >
@@ -415,6 +433,12 @@ Status: ${booking.status}
               </tbody>
             </table>
           </div>
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            total={total}
+            onPageChange={setPage}
+          />
         </>
       )}
     </div>
