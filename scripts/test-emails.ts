@@ -6,7 +6,8 @@ import {
 } from "@/lib/email";
 import { prisma } from "@/lib/prisma";
 
-const TEST_EMAIL = "akshat.dawar8848@gmail.com";
+// const TEST_EMAIL = "akshat.dawar8848@gmail.com";
+const TEST_EMAIL = "arpitdawar79@gmail.com";
 
 const EMAIL_TYPES: EmailType[] = [
   "booking_confirmation",
@@ -54,6 +55,9 @@ async function main() {
 
   console.log("Sending admin daily digest...");
   const today = new Date().toISOString().split("T")[0];
+  const googleReviewUrl = process.env.GOOGLE_REVIEW_URL;
+  const instagramUrl = process.env.INSTAGRAM_URL;
+
   const digestHtml = await renderAdminDigestHtml(
     today,
     [
@@ -61,12 +65,24 @@ async function main() {
         bookingId: booking.bookingId,
         guestFullName: booking.guestFullName,
         guestEmail: booking.guestEmail,
+        guestPhone: booking.guestPhone,
         checkInDate: booking.checkInDate.toISOString().split("T")[0],
         checkOutDate: booking.checkOutDate.toISOString().split("T")[0],
+        checkInTime: booking.checkInTime,
+        checkOutTime: booking.checkOutTime,
         nightCount: booking.nightCount,
         roomCount: booking.roomCount,
         roomType: booking.roomType,
+        mealPlan: booking.mealPlan,
+        adultCount: booking.adultCount,
+        childCount: booking.childCount,
         caretakerNumber: booking.caretakerNumber,
+        specialRequests: booking.specialRequests || "None shared.",
+        balanceAmount: Number(booking.balanceAmount || 0),
+        paymentStatus: booking.paymentStatus,
+        currency: booking.currency,
+        googleReviewUrl,
+        instagramUrl,
       },
     ],
     [
@@ -74,12 +90,24 @@ async function main() {
         bookingId: booking.bookingId,
         guestFullName: booking.guestFullName,
         guestEmail: booking.guestEmail,
+        guestPhone: booking.guestPhone,
         checkInDate: booking.checkInDate.toISOString().split("T")[0],
         checkOutDate: booking.checkOutDate.toISOString().split("T")[0],
+        checkInTime: booking.checkInTime,
+        checkOutTime: booking.checkOutTime,
         nightCount: booking.nightCount,
         roomCount: booking.roomCount,
         roomType: booking.roomType,
+        mealPlan: booking.mealPlan,
+        adultCount: booking.adultCount,
+        childCount: booking.childCount,
         caretakerNumber: booking.caretakerNumber,
+        specialRequests: booking.specialRequests || "None shared.",
+        balanceAmount: Number(booking.balanceAmount || 0),
+        paymentStatus: booking.paymentStatus,
+        currency: booking.currency,
+        googleReviewUrl,
+        instagramUrl,
       },
     ],
   );

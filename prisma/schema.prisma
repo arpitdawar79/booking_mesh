@@ -174,3 +174,109 @@ model WhatsAppMessage {
 
   @@map("whatsapp_messages")
 }
+
+model AppConfig {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("app_config")
+}
+
+model WhatsAppGroupCache {
+  id        String   @id @default(cuid())
+  groupId   String   @unique @map("group_id")
+  name      String
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("whatsapp_group_cache")
+}
+
+enum ExpenseCategory {
+  utilities
+  maintenance
+  salaries
+  food_beverages
+  supplies
+  marketing
+  transport
+  misc
+}
+
+model Expense {
+  id            String          @id @default(cuid())
+  date          DateTime        @default(now())
+  category      ExpenseCategory
+  description   String
+  amount        Decimal         @db.Decimal(10, 2)
+  paymentMethod PaymentMethod   @default(cash) @map("payment_method")
+  recordedBy    String?         @map("recorded_by")
+  receiptUrl    String?         @map("receipt_url")
+  notes         String?
+  createdAt     DateTime        @default(now()) @map("created_at")
+  updatedAt     DateTime        @updatedAt @map("updated_at")
+
+  @@map("expenses")
+}
+
+model RestaurantSale {
+  id            String        @id @default(cuid())
+  date          DateTime      @default(now())
+  itemName      String        @map("item_name")
+  quantity      Int           @default(1)
+  unitPrice     Decimal       @map("unit_price") @db.Decimal(10, 2)
+  totalAmount   Decimal       @map("total_amount") @db.Decimal(10, 2)
+  paymentMethod PaymentMethod @default(cash) @map("payment_method")
+  recordedBy    String?       @map("recorded_by")
+  notes         String?
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+
+  @@map("restaurant_sales")
+}
+
+model Employee {
+  id            String   @id @default(cuid())
+  name          String
+  phone         String?
+  designation   String   @default("Staff")
+  monthlySalary Decimal  @default(0) @map("monthly_salary") @db.Decimal(10, 2)
+  joiningDate   DateTime @default(now()) @map("joining_date")
+  status        String   @default("active")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  salarySlips SalarySlip[]
+
+  @@map("employees")
+}
+
+model SalarySlip {
+  id               String        @id @default(cuid())
+  employeeId       String        @map("employee_id")
+  month            Int
+  year             Int
+  daysWorked       Int           @default(30) @map("days_worked")
+  totalDays        Int           @default(30) @map("total_days")
+  basicSalary      Decimal       @default(0) @map("basic_salary") @db.Decimal(10, 2)
+  overtimeDays     Int           @default(0) @map("overtime_days")
+  overtimeRate     Decimal       @default(0) @map("overtime_rate") @db.Decimal(10, 2)
+  overtimeAmount   Decimal       @default(0) @map("overtime_amount") @db.Decimal(10, 2)
+  allowance        Decimal       @default(0) @db.Decimal(10, 2)
+  deduction        Decimal       @default(0) @db.Decimal(10, 2)
+  deductionReason  String?       @map("deduction_reason")
+  netSalary        Decimal       @default(0) @map("net_salary") @db.Decimal(10, 2)
+  paymentMethod    PaymentMethod @default(cash) @map("payment_method")
+  paymentDate      DateTime?     @map("payment_date")
+  notes            String?
+  whatsappSentAt   DateTime?     @map("whatsapp_sent_at")
+  createdAt        DateTime      @default(now()) @map("created_at")
+  updatedAt        DateTime      @updatedAt @map("updated_at")
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeId, month, year])
+  @@map("salary_slips")
+}

@@ -12,7 +12,11 @@ import {
 import fs from "fs";
 import pino from "pino";
 import QRCode from "qrcode";
-import { renderBookingPdfHtml } from "./pdf";
+import {
+  renderBookingPdfHtml,
+  renderSalarySlipPdfHtml,
+  type SalarySlipPdfData,
+} from "./pdf";
 import { prisma } from "./prisma";
 
 type WASocket = ReturnType<typeof makeWASocket>;
@@ -415,7 +419,7 @@ export async function sendWhatsAppImage(
   }
 }
 
-function formatWhatsAppMessage(
+export function formatWhatsAppMessage(
   type: string,
   booking: Booking,
   customMessage?: string,
@@ -528,6 +532,58 @@ async function sendWithRetry(
   return result;
 }
 
+export async function generateBookingPdf(
+  type: string,
+  booking: Booking,
+  customMessage?: string,
+): Promise<Buffer> {
+  const puppeteer = await import("puppeteer");
+  const browser = await puppeteer.launch({
+    headless: true,
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+  });
+  const page = await browser.newPage();
+  const html = await renderBookingPdfHtml(type, booking, customMessage);
+  await page.setContent(html, { waitUntil: "load" });
+
+  // Measure rendered content height so the PDF is one continuous page
+  const bodyHeight = await page.evaluate(() => document.body.scrollHeight);
+  const heightMm = Math.ceil(bodyHeight * 0.264583) + 20; // px → mm (96 dpi) + padding
+
+  const pdfUint8 = await page.pdf({
+    width: "210mm",
+    height: `${heightMm}mm`,
+    printBackground: true,
+    margin: { top: "0px", right: "0px", bottom: "0px", left: "0px" },
+    preferCSSPageSize: false,
+  });
+  await browser.close();
+  return Buffer.from(pdfUint8);
+}
+
+export async function generatePdfFromHtml(html: string): Promise<Buffer> {
+  const puppeteer = await import("puppeteer");
+  const browser = await puppeteer.launch({
+    headless: true,
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+  });
+  const page = await browser.newPage();
+  await page.setContent(html, { waitUntil: "load" });
+
+  const bodyHeight = await page.evaluate(() => document.body.scrollHeight);
+  const heightMm = Math.ceil(bodyHeight * 0.264583) + 20;
+
+  const pdfUint8 = await page.pdf({
+    width: "210mm",
+    height: `${heightMm}mm`,
+    printBackground: true,
+    margin: { top: "0px", right: "0px", bottom: "0px", left: "0px" },
+    preferCSSPageSize: false,
+  });
+  await browser.close();
+  return Buffer.from(pdfUint8);
+}
+
 export async function sendBookingWhatsApp(
   type: string,
   booking: Booking,
@@ -542,26 +598,11 @@ export async function sendBookingWhatsApp(
 
   if (options?.sendPdf) {
     try {
-      const puppeteer = await import("puppeteer");
-      const browser = await puppeteer.launch({
-        headless: true,
-        args: ["--no-sandbox", "--disable-setuid-sandbox"],
-      });
-      const page = await browser.newPage();
-      const html = await renderBookingPdfHtml(
+      const pdfBuffer = await generateBookingPdf(
         type,
         booking,
         options?.customMessage,
       );
-      await page.setContent(html, { waitUntil: "load" });
-      const pdfUint8 = await page.pdf({
-        format: "A4",
-        printBackground: true,
-        margin: { top: "20px", right: "20px", bottom: "20px", left: "20px" },
-      });
-      await browser.close();
-      const pdfBuffer = Buffer.from(pdfUint8);
-
       pdfResult = await sendWithRetry(() =>
         sendWhatsAppPdf(
           booking.guestPhone!,
@@ -595,6 +636,98 @@ export async function sendBookingWhatsApp(
   });
 
   return pdfResult;
+}
+
+/**
+ * Fetch all WhatsApp groups the connected account participates in.
+ * Returns an array of { id, name } objects, or null if not connected.
+ */
+export async function getWhatsAppGroups(): Promise<
+  { id: string; name: string }[] | null
+> {
+  const connected = await waitForConnection();
+  if (!connected) {
+    return null;
+  }
+
+  const state = getState();
+  try {
+    const groups = await state.sock!.groupFetchAllParticipating();
+    return Object.values(groups).map((g: any) => ({
+      id: g.id,
+      name: g.subject || "Unnamed Group",
+    }));
+  } catch (err) {
+    log(
+      `groupFetchAllParticipating failed: ${err instanceof Error ? err.message : String(err)}`,
+    );
+    return null;
+  }
+}
+
+/**
+ * Send a plain text message to a WhatsApp group JID.
+ * `groupJid` can be either the full JID (e.g. 123456789@g.us) or just the
+ * numeric part (e.g. 123456789).
+ */
+export async function sendWhatsAppGroupMessage(
+  groupJid: string,
+  message: string,
+): Promise<{ success: boolean; error?: string }> {
+  const connected = await waitForConnection();
+  if (!connected) {
+    return { success: false, error: "WhatsApp not connected" };
+  }
+
+  const state = getState();
+  const jid = groupJid.includes("@") ? groupJid : `${groupJid}@g.us`;
+
+  try {
+    await state.sock!.sendMessage(jid, { text: message });
+    return { success: true };
+  } catch (err) {
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : String(err),
+    };
+  }
+}
+
+/**
+ * Send a PDF document to a WhatsApp group JID.
+ * `groupJid` can be either the full JID (e.g. 123456789@g.us) or just the
+ * numeric part (e.g. 123456789).
+ */
+export async function sendWhatsAppGroupPdf(
+  groupJid: string,
+  pdfBuffer: Buffer,
+  filename: string,
+  caption?: string,
+): Promise<{ success: boolean; error?: string }> {
+  const connected = await waitForConnection();
+  if (!connected) {
+    return { success: false, error: "WhatsApp not connected" };
+  }
+
+  const state = getState();
+  const jid = groupJid.includes("@") ? groupJid : `${groupJid}@g.us`;
+
+  const messageContent: AnyMessageContent = {
+    document: pdfBuffer,
+    mimetype: "application/pdf",
+    fileName: filename,
+    caption: caption || undefined,
+  };
+
+  try {
+    await state.sock!.sendMessage(jid, messageContent);
+    return { success: true };
+  } catch (err) {
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : String(err),
+    };
+  }
 }
 
 /**
@@ -661,4 +794,103 @@ export async function logoutWhatsApp() {
   state.status = "close";
   wipeAuth();
   await initWhatsApp();
+}
+
+export function formatSalarySlipMessage(data: SalarySlipPdfData): string {
+  const net = Number(data.netSalary).toLocaleString("en-IN", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+  const basic = Number(data.basicSalary).toLocaleString("en-IN", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+  let msg =
+    `*Salary Slip — ${data.month} ${data.year}* \u2728\n\n` +
+    `Dear ${data.employeeName},\n\n` +
+    `Your salary for *${data.month} ${data.year}* has been processed.\n\n` +
+    `*Details:*\n` +
+    `Designation: ${data.designation}\n` +
+    `Days Worked: ${data.daysWorked} / ${data.totalDays}\n` +
+    `Basic Salary: INR ${basic}\n`;
+
+  if (Number(data.overtimeAmount) > 0) {
+    msg += `Overtime: INR ${Number(data.overtimeAmount).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\n`;
+  }
+  if (Number(data.allowance) > 0) {
+    msg += `Allowance: INR ${Number(data.allowance).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\n`;
+  }
+  if (Number(data.deduction) > 0) {
+    msg += `Deduction: INR ${Number(data.deduction).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\n`;
+  }
+
+  msg +=
+    `\n*Net Salary: INR ${net}*\n` +
+    `Payment Method: ${data.paymentMethod.replace("_", " ").toUpperCase()}\n`;
+
+  if (data.paymentDate) {
+    msg += `Payment Date: ${data.paymentDate}\n`;
+  }
+
+  msg += `\n*${data.employerName}*\n` + `Tirthan Valley, Himachal Pradesh`;
+
+  return msg;
+}
+
+export async function generateSalarySlipPdf(
+  data: SalarySlipPdfData,
+): Promise<Buffer> {
+  const puppeteer = await import("puppeteer");
+  const browser = await puppeteer.launch({
+    headless: true,
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+  });
+  const page = await browser.newPage();
+  const html = await renderSalarySlipPdfHtml(data);
+  await page.setContent(html, { waitUntil: "load" });
+
+  const bodyHeight = await page.evaluate(() => document.body.scrollHeight);
+  const heightMm = Math.ceil(bodyHeight * 0.264583) + 20;
+
+  const pdfUint8 = await page.pdf({
+    width: "210mm",
+    height: `${heightMm}mm`,
+    printBackground: true,
+    margin: { top: "0px", right: "0px", bottom: "0px", left: "0px" },
+    preferCSSPageSize: false,
+  });
+  await browser.close();
+  return Buffer.from(pdfUint8);
+}
+
+export async function sendSalarySlipWhatsApp(
+  phone: string,
+  data: SalarySlipPdfData,
+): Promise<{ success: boolean; error?: string }> {
+  if (!phone) {
+    return { success: false, error: "Employee phone number not available" };
+  }
+
+  const message = formatSalarySlipMessage(data);
+  let pdfResult: { success: boolean; error?: string } = { success: false };
+
+  try {
+    const pdfBuffer = await generateSalarySlipPdf(data);
+    pdfResult = await sendWithRetry(() =>
+      sendWhatsAppPdf(
+        phone,
+        pdfBuffer,
+        `Salary_Slip_${data.employeeName.replace(/\s+/g, "_")}_${data.month}_${data.year}.pdf`,
+        message,
+      ),
+    );
+  } catch (err) {
+    pdfResult = {
+      success: false,
+      error: err instanceof Error ? err.message : String(err),
+    };
+  }
+
+  return pdfResult;
 }

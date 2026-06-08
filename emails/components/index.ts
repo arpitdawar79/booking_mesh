@@ -1,0 +1,12 @@
+export { EmailShell } from "./email-shell";
+export { EmailHeader } from "./email-header";
+export { EmailHero } from "./email-hero";
+export { EmailSection } from "./email-section";
+export { EmailFooter } from "./email-footer";
+export { DataRow } from "./data-row";
+export { AmountRow } from "./amount-row";
+export { CTAButton } from "./cta-button";
+export { InfoCard } from "./info-card";
+export { ContactBlock } from "./contact-block";
+export { SparkleDecoration } from "./sparkle-decoration";
+export { themes, type EmailTheme } from "./themes";

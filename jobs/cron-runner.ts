@@ -1,9 +1,13 @@
 import { renderAdminDigestHtml, sendEmail, sendRawEmail } from "@/lib/email";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
+import {
+  generatePdfFromHtml,
+  sendBookingWhatsApp,
+  sendWhatsAppGroupMessage,
+  sendWhatsAppGroupPdf,
+} from "@/lib/whatsapp";
 import { format } from "date-fns";
 import cron from "node-cron";
-
-const prisma = new PrismaClient();
 
 function log(label: string, message: string) {
   console.log(`[${new Date().toISOString()}] [${label}] ${message}`);
@@ -28,6 +32,20 @@ async function wasEmailSent(bookingId: string, type: string) {
     where: { bookingId, type },
   });
   return !!existing;
+}
+
+async function wasWhatsAppSent(bookingId: string, type: string) {
+  const existing = await prisma.whatsAppMessage.findFirst({
+    where: { bookingId, type },
+  });
+  return !!existing;
+}
+
+async function getAdminWhatsAppGroupId(): Promise<string | null> {
+  const config = await prisma.appConfig.findUnique({
+    where: { key: "adminWhatsAppGroupId" },
+  });
+  return config?.value ?? null;
 }
 
 async function recordEmailSent(
@@ -69,12 +87,22 @@ const adminDigestJob = cron.schedule(
           bookingId: true,
           guestFullName: true,
           guestEmail: true,
+          guestPhone: true,
           checkInDate: true,
           checkOutDate: true,
+          checkInTime: true,
+          checkOutTime: true,
           nightCount: true,
           roomCount: true,
           roomType: true,
+          mealPlan: true,
+          adultCount: true,
+          childCount: true,
           caretakerNumber: true,
+          specialRequests: true,
+          balanceAmount: true,
+          paymentStatus: true,
+          currency: true,
         },
       });
 
@@ -87,21 +115,35 @@ const adminDigestJob = cron.schedule(
           bookingId: true,
           guestFullName: true,
           guestEmail: true,
+          guestPhone: true,
           checkInDate: true,
           checkOutDate: true,
+          checkInTime: true,
+          checkOutTime: true,
           nightCount: true,
           roomCount: true,
           roomType: true,
+          mealPlan: true,
+          adultCount: true,
+          childCount: true,
           caretakerNumber: true,
+          specialRequests: true,
+          balanceAmount: true,
+          paymentStatus: true,
+          currency: true,
         },
       });
 
+      const googleReviewUrl = process.env.GOOGLE_REVIEW_URL;
+      const instagramUrl = process.env.INSTAGRAM_URL;
+
       const html = await renderAdminDigestHtml(
         todayStr,
-        checkIns.map((b: (typeof checkIns)[number]) => ({
+        checkIns.map((b) => ({
           bookingId: b.bookingId,
           guestFullName: b.guestFullName,
           guestEmail: b.guestEmail,
+          guestPhone: b.guestPhone,
           checkInDate:
             b.checkInDate instanceof Date
               ? b.checkInDate.toISOString().split("T")[0]
@@ -110,15 +152,27 @@ const adminDigestJob = cron.schedule(
             b.checkOutDate instanceof Date
               ? b.checkOutDate.toISOString().split("T")[0]
               : String(b.checkOutDate),
+          checkInTime: b.checkInTime,
+          checkOutTime: b.checkOutTime,
           nightCount: b.nightCount,
           roomCount: b.roomCount,
           roomType: b.roomType,
+          mealPlan: b.mealPlan,
+          adultCount: b.adultCount,
+          childCount: b.childCount,
           caretakerNumber: b.caretakerNumber,
+          specialRequests: b.specialRequests || "None shared.",
+          balanceAmount: Number(b.balanceAmount || 0),
+          paymentStatus: b.paymentStatus,
+          currency: b.currency,
+          googleReviewUrl,
+          instagramUrl,
         })),
-        checkOuts.map((b: (typeof checkOuts)[number]) => ({
+        checkOuts.map((b) => ({
           bookingId: b.bookingId,
           guestFullName: b.guestFullName,
           guestEmail: b.guestEmail,
+          guestPhone: b.guestPhone,
           checkInDate:
             b.checkInDate instanceof Date
               ? b.checkInDate.toISOString().split("T")[0]
@@ -127,10 +181,21 @@ const adminDigestJob = cron.schedule(
             b.checkOutDate instanceof Date
               ? b.checkOutDate.toISOString().split("T")[0]
               : String(b.checkOutDate),
+          checkInTime: b.checkInTime,
+          checkOutTime: b.checkOutTime,
           nightCount: b.nightCount,
           roomCount: b.roomCount,
           roomType: b.roomType,
+          mealPlan: b.mealPlan,
+          adultCount: b.adultCount,
+          childCount: b.childCount,
           caretakerNumber: b.caretakerNumber,
+          specialRequests: b.specialRequests || "None shared.",
+          balanceAmount: Number(b.balanceAmount || 0),
+          paymentStatus: b.paymentStatus,
+          currency: b.currency,
+          googleReviewUrl,
+          instagramUrl,
         })),
       );
 
@@ -148,6 +213,67 @@ const adminDigestJob = cron.schedule(
           "admin-digest",
           `Sent to ${adminEmail}. Check-ins: ${checkIns.length}, Check-outs: ${checkOuts.length}`,
         );
+      }
+
+      const adminGroupId = await getAdminWhatsAppGroupId();
+      if (adminGroupId && (checkIns.length > 0 || checkOuts.length > 0)) {
+        let waMessage = `*Daily Digest — ${todayStr}* \n\n`;
+        waMessage += `📥 Check-ins today: ${checkIns.length}\n`;
+        if (checkIns.length > 0) {
+          checkIns.forEach((b, i) => {
+            waMessage += `${i + 1}. ${b.guestFullName} (#${b.bookingId})\n`;
+            waMessage += `   📞 ${b.guestPhone || "—"} · ${b.adultCount} adults${b.childCount > 0 ? `, ${b.childCount} children` : ""}\n`;
+            waMessage += `   🛏 ${b.roomCount}x ${b.roomType} · 🍽 ${b.mealPlan}\n`;
+            if (b.specialRequests && b.specialRequests !== "None shared.") {
+              waMessage += `   📝 ${b.specialRequests}\n`;
+            }
+            waMessage += `\n`;
+          });
+        }
+        waMessage += `📤 Check-outs today: ${checkOuts.length}\n`;
+        if (checkOuts.length > 0) {
+          checkOuts.forEach((b, i) => {
+            const bal = Number(b.balanceAmount || 0);
+            waMessage += `${i + 1}. ${b.guestFullName} (#${b.bookingId})\n`;
+            waMessage += `   📞 ${b.guestPhone || "—"}\n`;
+            if (bal > 0) {
+              waMessage += `   💰 Balance: ${b.currency} ${bal.toLocaleString("en-IN")} (${b.paymentStatus})\n`;
+            }
+            waMessage += `   ✅ Ask for review · Ask for group photo · Ask for Instagram mention\n`;
+            if (instagramUrl) waMessage += `   📸 IG: ${instagramUrl}\n`;
+            waMessage += `\n`;
+          });
+        }
+
+        const waResult = await sendWhatsAppGroupMessage(
+          adminGroupId,
+          waMessage,
+        );
+        if (waResult.error) {
+          log("admin-digest", `WA group failed: ${waResult.error}`);
+        } else {
+          log("admin-digest", `WA group sent to ${adminGroupId}`);
+        }
+
+        try {
+          const pdfBuffer = await generatePdfFromHtml(html);
+          const waPdfResult = await sendWhatsAppGroupPdf(
+            adminGroupId,
+            pdfBuffer,
+            `Daily_Digest_${todayStr}.pdf`,
+            `Daily Digest — ${todayStr}`,
+          );
+          if (waPdfResult.error) {
+            log("admin-digest", `WA group PDF failed: ${waPdfResult.error}`);
+          } else {
+            log("admin-digest", `WA group PDF sent to ${adminGroupId}`);
+          }
+        } catch (pdfErr) {
+          log(
+            "admin-digest",
+            `WA group PDF error: ${pdfErr instanceof Error ? pdfErr.message : String(pdfErr)}`,
+          );
+        }
       }
     } catch (err) {
       log("admin-digest", `Error: ${err}`);
@@ -221,6 +347,26 @@ const checkoutReminderJob = cron.schedule(
           });
           sentCount++;
         }
+
+        if (booking.guestPhone) {
+          const alreadySentWA = await wasWhatsAppSent(
+            booking.id,
+            "checkout_reminder",
+          );
+          if (!alreadySentWA) {
+            const waResult = await sendBookingWhatsApp(
+              "checkout_reminder",
+              booking,
+              { sendPdf: true },
+            );
+            if (!waResult.success) {
+              log(
+                "checkout-reminder",
+                `WA failed ${booking.bookingId}: ${waResult.error}`,
+              );
+            }
+          }
+        }
       }
 
       log(
@@ -290,6 +436,26 @@ const preArrivalReminderJob = cron.schedule(
             "sent",
           );
           sentCount++;
+        }
+
+        if (booking.guestPhone) {
+          const alreadySentWA = await wasWhatsAppSent(
+            booking.id,
+            "pre_arrival_reminder",
+          );
+          if (!alreadySentWA) {
+            const waResult = await sendBookingWhatsApp(
+              "pre_arrival_reminder",
+              booking,
+              { sendPdf: true },
+            );
+            if (!waResult.success) {
+              log(
+                "pre-arrival",
+                `WA failed ${booking.bookingId}: ${waResult.error}`,
+              );
+            }
+          }
         }
       }
 

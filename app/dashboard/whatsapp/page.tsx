@@ -1,12 +1,15 @@
 "use client";
 
 import {
-  CheckCircle,
-  LogOut,
-  QrCode,
-  RefreshCw,
-  Smartphone,
-  XCircle,
+    CheckCircle,
+    LogOut,
+    QrCode,
+    RefreshCw,
+    Save,
+    Search,
+    Smartphone,
+    Users,
+    XCircle,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -19,11 +22,25 @@ interface WhatsAppStatus {
   user?: { id: string; name: string };
 }
 
+interface WhatsAppGroup {
+  id: string;
+  name: string;
+}
+
 export default function WhatsAppSetupPage() {
   const [status, setStatus] = useState<WhatsAppStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [restarting, setRestarting] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+
+  const [groups, setGroups] = useState<WhatsAppGroup[]>([]);
+  const [groupsLoading, setGroupsLoading] = useState(false);
+  const [refreshingGroups, setRefreshingGroups] = useState(false);
+  const [groupSearch, setGroupSearch] = useState("");
+  const [selectedGroupId, setSelectedGroupId] = useState<string>("");
+  const [savingConfig, setSavingConfig] = useState(false);
+  const [configSaved, setConfigSaved] = useState(false);
+  const [groupsCached, setGroupsCached] = useState(false);
 
   async function fetchStatus() {
     try {
@@ -37,11 +54,59 @@ export default function WhatsAppSetupPage() {
     }
   }
 
+  async function fetchGroups(refresh = false) {
+    if (refresh) {
+      setRefreshingGroups(true);
+    } else {
+      setGroupsLoading(true);
+    }
+    try {
+      const res = await fetch(`/api/whatsapp/groups?refresh=${refresh}`);
+      if (res.ok) {
+        const data = await res.json();
+        setGroups(data.groups || []);
+        setGroupsCached(data.cached === true);
+      } else {
+        setGroups([]);
+        setGroupsCached(false);
+      }
+    } catch {
+      setGroups([]);
+      setGroupsCached(false);
+    } finally {
+      setGroupsLoading(false);
+      setRefreshingGroups(false);
+    }
+  }
+
+  async function fetchConfig() {
+    try {
+      const res = await fetch("/api/whatsapp/config");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.adminGroupId) {
+          setSelectedGroupId(data.adminGroupId);
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }
+
   useEffect(() => {
     fetchStatus();
+    fetchConfig();
     const interval = setInterval(fetchStatus, 5000);
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    if (status?.isConnected) {
+      fetchGroups();
+    } else {
+      setGroups([]);
+    }
+  }, [status?.isConnected]);
 
   async function handleRestart() {
     setRestarting(true);
@@ -73,6 +138,27 @@ export default function WhatsAppSetupPage() {
       }, 2000);
     } catch {
       setLoggingOut(false);
+    }
+  }
+
+  async function handleSaveConfig() {
+    if (!selectedGroupId) return;
+    setSavingConfig(true);
+    setConfigSaved(false);
+    try {
+      const res = await fetch("/api/whatsapp/config", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ adminGroupId: selectedGroupId }),
+      });
+      if (res.ok) {
+        setConfigSaved(true);
+        setTimeout(() => setConfigSaved(false), 3000);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setSavingConfig(false);
     }
   }
 
@@ -189,6 +275,107 @@ export default function WhatsAppSetupPage() {
           <p className="text-sm text-muted-foreground">
             WhatsApp is initializing. The QR code will appear here shortly.
           </p>
+        </div>
+      )}
+
+      {/* Admin Group Selection */}
+      {status?.isConnected && (
+        <div className="rounded-xl border border-border p-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Users className="w-5 h-5 text-teal-500" />
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                Admin Group
+              </h2>
+            </div>
+            {groupsCached && (
+              <span className="text-[10px] font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                cached
+              </span>
+            )}
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Choose the WhatsApp group where daily digests and admin
+            notifications will be sent.
+          </p>
+
+          {groupsLoading ? (
+            <p className="text-sm text-muted-foreground">Loading groups...</p>
+          ) : groups.length === 0 ? (
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                No groups found. Make sure this WhatsApp account is a member of
+                at least one group.
+              </p>
+              <button
+                onClick={() => fetchGroups(true)}
+                disabled={refreshingGroups}
+                className="flex items-center gap-2 rounded-xl border border-border px-4 py-2.5 text-sm font-medium hover:bg-muted disabled:opacity-50 transition"
+              >
+                <RefreshCw
+                  className={`w-4 h-4 ${refreshingGroups ? "animate-spin" : ""}`}
+                />
+                {refreshingGroups ? "Refreshing..." : "Refresh Groups"}
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input
+                  type="text"
+                  placeholder="Search groups..."
+                  value={groupSearch}
+                  onChange={(e) => setGroupSearch(e.target.value)}
+                  className="w-full rounded-xl border border-border bg-background pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/50"
+                />
+              </div>
+
+              <select
+                value={selectedGroupId}
+                onChange={(e) => setSelectedGroupId(e.target.value)}
+                className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/50"
+              >
+                <option value="">Select a group...</option>
+                {groups
+                  .filter((g) =>
+                    g.name.toLowerCase().includes(groupSearch.toLowerCase()),
+                  )
+                  .map((group) => (
+                    <option key={group.id} value={group.id}>
+                      {group.name}
+                    </option>
+                  ))}
+              </select>
+
+              <div className="flex items-center gap-3 flex-wrap">
+                <button
+                  onClick={handleSaveConfig}
+                  disabled={!selectedGroupId || savingConfig}
+                  className="flex items-center gap-2 rounded-xl bg-teal-600 text-white px-4 py-2.5 text-sm font-medium hover:bg-teal-500 disabled:opacity-50 transition"
+                >
+                  <Save className="w-4 h-4" />
+                  {savingConfig ? "Saving..." : "Save"}
+                </button>
+                <button
+                  onClick={() => fetchGroups(true)}
+                  disabled={refreshingGroups}
+                  className="flex items-center gap-2 rounded-xl border border-border px-4 py-2.5 text-sm font-medium hover:bg-muted disabled:opacity-50 transition"
+                >
+                  <RefreshCw
+                    className={`w-4 h-4 ${refreshingGroups ? "animate-spin" : ""}`}
+                  />
+                  {refreshingGroups ? "Refreshing..." : "Refresh"}
+                </button>
+                {configSaved && (
+                  <span className="flex items-center gap-1 text-xs font-medium text-green-400">
+                    <CheckCircle className="w-3.5 h-3.5" />
+                    Saved
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

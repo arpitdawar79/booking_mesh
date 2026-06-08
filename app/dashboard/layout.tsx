@@ -8,6 +8,7 @@ import {
     DrawerTrigger,
 } from "@/components/ui/drawer";
 import {
+    Banknote,
     BarChart3,
     CalendarDays,
     ChevronLeft,
@@ -20,8 +21,10 @@ import {
     Menu,
     MoreHorizontal,
     PlusCircle,
+    Receipt,
     Smartphone,
     Users,
+    Utensils,
     X,
 } from "lucide-react";
 import Link from "next/link";
@@ -50,6 +53,13 @@ const navItems = [
   },
   { href: "/dashboard/templates", label: "Templates", icon: Mail },
   { href: "/dashboard/whatsapp", label: "WhatsApp Setup", icon: Smartphone },
+  { href: "/dashboard/expenses", label: "Expenses", icon: Receipt },
+  { href: "/dashboard/salary", label: "Salary & Payroll", icon: Banknote },
+  {
+    href: "/dashboard/restaurant-sales",
+    label: "Restaurant Sales",
+    icon: Utensils,
+  },
 ];
 
 const dockItems = [
@@ -69,14 +79,19 @@ const dockItems = [
     icon: <Users className="w-5 h-5" />,
   },
   {
-    href: "/dashboard/analytics",
-    label: "Analytics",
-    icon: <BarChart3 className="w-5 h-5" />,
+    href: "/dashboard/expenses",
+    label: "Expenses",
+    icon: <Receipt className="w-5 h-5" />,
   },
   {
-    href: "/dashboard/templates",
-    label: "Templates",
-    icon: <Mail className="w-5 h-5" />,
+    href: "/dashboard/salary",
+    label: "Salary",
+    icon: <Banknote className="w-5 h-5" />,
+  },
+  {
+    href: "/dashboard/restaurant-sales",
+    label: "Sales",
+    icon: <Utensils className="w-5 h-5" />,
   },
 ];
 

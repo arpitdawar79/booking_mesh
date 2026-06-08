@@ -2,9 +2,9 @@ import { sendEmail, type EmailType } from "@/lib/email";
 import { logger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import {
-  bookingCreateSchema,
-  bookingStatusSchema,
-  bookingUpdateSchema,
+    bookingCreateSchema,
+    bookingStatusSchema,
+    bookingUpdateSchema,
 } from "@/lib/validation";
 import { sendBookingWhatsApp } from "@/lib/whatsapp";
 import { NextResponse } from "next/server";
@@ -160,6 +160,31 @@ export async function POST(request: Request) {
   const cgstAmount = gstAmount / 2;
   const sgstAmount = gstAmount / 2;
 
+  // Auto-create or link existing guest
+  let guestId: string | null = null;
+  if (data.guestPhone || data.guestEmail) {
+    const existingGuest = await prisma.guest.findFirst({
+      where: {
+        OR: [
+          ...(data.guestPhone ? [{ phone: data.guestPhone }] : []),
+          ...(data.guestEmail ? [{ email: data.guestEmail }] : []),
+        ],
+      },
+    });
+    if (existingGuest) {
+      guestId = existingGuest.id;
+    } else {
+      const newGuest = await prisma.guest.create({
+        data: {
+          name: data.guestFullName,
+          phone: data.guestPhone || null,
+          email: data.guestEmail || null,
+        },
+      });
+      guestId = newGuest.id;
+    }
+  }
+
   const booking = await prisma.booking.create({
     data: {
       bookingId: generateBookingId(),
@@ -200,6 +225,7 @@ export async function POST(request: Request) {
         "As per the booking terms shared at the time of reservation.",
       specialRequests: data.specialRequests || "None shared.",
       status: "confirmed",
+      guestId,
     },
   });
 
@@ -281,9 +307,7 @@ export async function PATCH(request: Request) {
     }
 
     if (booking.guestPhone && waType) {
-      sendBookingWhatsApp(waType, booking, {
-        sendPdf: waType === "booking_confirmation",
-      }).catch(() => {});
+      sendBookingWhatsApp(waType, booking, { sendPdf: true }).catch(() => {});
     }
     if (booking.guestEmail && emailType) {
       sendEmail(emailType, booking, { to: [booking.guestEmail] })

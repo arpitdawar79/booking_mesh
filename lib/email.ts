@@ -217,23 +217,47 @@ export async function renderAdminDigestHtml(
     bookingId: string;
     guestFullName: string;
     guestEmail: string;
+    guestPhone: string | null;
     checkInDate: string;
     checkOutDate: string;
+    checkInTime: string;
+    checkOutTime: string;
     nightCount: number;
     roomCount: number;
     roomType: string;
+    mealPlan: string;
+    adultCount: number;
+    childCount: number;
     caretakerNumber: string;
+    specialRequests: string;
+    balanceAmount: number;
+    paymentStatus: string;
+    currency: string;
+    googleReviewUrl?: string;
+    instagramUrl?: string;
   }>,
   checkOuts: Array<{
     bookingId: string;
     guestFullName: string;
     guestEmail: string;
+    guestPhone: string | null;
     checkInDate: string;
     checkOutDate: string;
+    checkInTime: string;
+    checkOutTime: string;
     nightCount: number;
     roomCount: number;
     roomType: string;
+    mealPlan: string;
+    adultCount: number;
+    childCount: number;
     caretakerNumber: string;
+    specialRequests: string;
+    balanceAmount: number;
+    paymentStatus: string;
+    currency: string;
+    googleReviewUrl?: string;
+    instagramUrl?: string;
   }>,
 ): Promise<string> {
   const { renderToStaticMarkup } = await import("react-dom/server");
