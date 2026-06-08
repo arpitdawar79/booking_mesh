@@ -2,7 +2,15 @@ import { verifySessionToken } from "@/lib/auth";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-const PUBLIC = ["/", "/login", "/api/auth", "/api/preview-email"];
+const PUBLIC = [
+  "/",
+  "/login",
+  "/signup",
+  "/forgot-password",
+  "/reset-password",
+  "/api/auth",
+  "/api/preview-email",
+];
 const PROTECTED_PREFIX = "/dashboard";
 
 // Simple in-memory rate limiter
@@ -82,7 +90,7 @@ export async function middleware(request: NextRequest) {
   }
 
   if (pathname.startsWith(PROTECTED_PREFIX)) {
-    const token = request.cookies.get("session")?.value;
+    const token = request.cookies.get("access_token")?.value;
     if (!token || !(await verifySessionToken(token))) {
       const loginUrl = new URL("/login", request.url);
       loginUrl.searchParams.set("redirect", pathname);

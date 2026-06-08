@@ -2,32 +2,33 @@
 
 import { PullToRefresh } from "@/components/pwa/pull-to-refresh";
 import {
-  Drawer,
-  DrawerContent,
-  DrawerTitle,
-  DrawerTrigger,
+    Drawer,
+    DrawerContent,
+    DrawerTitle,
+    DrawerTrigger,
 } from "@/components/ui/drawer";
 import { MobileBottomNav } from "@/components/ui/mobile-bottom-nav";
 import { useHaptic } from "@/lib/pwa-hooks";
 import {
-  Banknote,
-  BarChart3,
-  CalendarDays,
-  ChevronLeft,
-  ChevronRight,
-  Hotel,
-  IndianRupee,
-  LayoutDashboard,
-  LogOut,
-  Mail,
-  Menu,
-  MoreHorizontal,
-  PlusCircle,
-  Receipt,
-  ShoppingCart,
-  Smartphone,
-  Users,
-  X,
+    Banknote,
+    BarChart3,
+    CalendarDays,
+    ChevronLeft,
+    ChevronRight,
+    Clock,
+    Hotel,
+    IndianRupee,
+    LayoutDashboard,
+    LogOut,
+    Mail,
+    Menu,
+    MoreHorizontal,
+    PlusCircle,
+    Receipt,
+    ShoppingCart,
+    Smartphone,
+    Users,
+    X,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -61,6 +62,7 @@ const navItems = [
     label: "Occupancy Calendar",
     icon: CalendarDays,
   },
+  { href: "/dashboard/crons", label: "Crons", icon: Clock },
   { href: "/dashboard/templates", label: "Templates", icon: Mail },
   { href: "/dashboard/whatsapp", label: "WhatsApp Setup", icon: Smartphone },
 ];
@@ -113,7 +115,14 @@ function LogoutForm({
   iconClassName?: string;
 }) {
   const [mounted, setMounted] = useState(false);
+  const [loading, setLoading] = useState(false);
   useEffect(() => setMounted(true), []);
+
+  async function handleLogout() {
+    setLoading(true);
+    await fetch("/api/auth?action=logout", { method: "POST" });
+    window.location.href = "/login";
+  }
 
   if (!mounted) {
     return (
@@ -130,18 +139,16 @@ function LogoutForm({
   }
 
   return (
-    <form action="/api/auth" method="POST">
-      <input type="hidden" name="logout" value="true" />
-      <button
-        type="submit"
-        className={`flex items-center gap-3 w-full text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition ${
-          collapsed ? "justify-center" : ""
-        } ${className}`}
-      >
-        <LogOut className={`${iconClassName} shrink-0`} />
-        {!collapsed && <span>Log out</span>}
-      </button>
-    </form>
+    <button
+      onClick={handleLogout}
+      disabled={loading}
+      className={`flex items-center gap-3 w-full text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition disabled:opacity-50 ${
+        collapsed ? "justify-center" : ""
+      } ${className}`}
+    >
+      <LogOut className={`${iconClassName} shrink-0`} />
+      {!collapsed && <span>{loading ? "Logging out..." : "Log out"}</span>}
+    </button>
   );
 }
 

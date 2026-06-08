@@ -90,6 +90,34 @@ export const authSchema = z.object({
   logout: z.boolean().optional(),
 });
 
+export const authLoginSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(1, "Password is required"),
+});
+
+export const authSignupSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  name: z.string().min(1, "Name is required"),
+});
+
+export const authForgotPasswordSchema = z.object({
+  email: z.string().email("Invalid email address"),
+});
+
+export const authResetPasswordSchema = z.object({
+  token: z.string().min(1, "Token is required"),
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+});
+
+export const authAdminUserSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  name: z.string().min(1, "Name is required"),
+  role: z.enum(["admin", "manager", "staff"]).default("staff"),
+});
+
 export const guestCreateSchema = z.object({
   name: z.string().min(1),
   phone: z.string().optional(),

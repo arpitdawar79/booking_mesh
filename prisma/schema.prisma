@@ -291,3 +291,48 @@ model SalarySlip {
   @@unique([employeeId, month, year])
   @@map("salary_slips")
 }
+
+enum CronStatus {
+  running
+  success
+  failed
+}
+
+model CronRun {
+  id            String     @id @default(cuid())
+  jobName       String     @map("job_name")
+  status        CronStatus
+  startedAt     DateTime   @map("started_at")
+  completedAt   DateTime?  @map("completed_at")
+  durationMs    Int?       @map("duration_ms")
+  logs          String?
+  error         String?
+  triggeredBy   String     @default("schedule") @map("triggered_by")
+  createdAt     DateTime   @default(now()) @map("created_at")
+
+  @@index([jobName, startedAt(sort: Desc)])
+  @@index([status])
+  @@map("cron_runs")
+}
+
+enum UserRole {
+  admin
+  manager
+  staff
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String    @map("password_hash")
+  name         String
+  role         UserRole  @default(staff)
+  isActive     Boolean   @default(true) @map("is_active")
+  lastLoginAt  DateTime? @map("last_login_at")
+  resetToken   String?   @map("reset_token")
+  resetTokenExpiry DateTime? @map("reset_token_expiry")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  @@map("users")
+}

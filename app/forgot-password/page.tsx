@@ -2,23 +2,14 @@
 
 import { AnimatedGrid } from "@/components/ui/animated-grid";
 import { motion } from "framer-motion";
-import { Eye, EyeOff, Loader2, Lock, Mail } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Loader2, Mail, ArrowLeft } from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
 
-export default function LoginPage() {
-  const router = useRouter();
-  const [redirect, setRedirect] = useState("/dashboard");
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    setRedirect(params.get("redirect") || "/dashboard");
-  }, []);
-
+export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -26,20 +17,48 @@ export default function LoginPage() {
     setLoading(true);
     setError("");
 
-    const res = await fetch("/api/auth?action=login", {
+    const res = await fetch("/api/auth?action=forgot-password", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email }),
     });
 
     const data = await res.json();
 
     if (res.ok) {
-      router.push(redirect);
+      setSuccess(true);
     } else {
-      setError(data.error || "Login failed");
+      setError(data.error || "Failed to send reset email");
       setLoading(false);
     }
+  }
+
+  if (success) {
+    return (
+      <main className="relative min-h-screen flex items-center justify-center bg-background px-4 py-12 overflow-hidden">
+        <AnimatedGrid />
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="relative z-10 w-full max-w-sm text-center space-y-4"
+        >
+          <div className="w-16 h-16 rounded-full bg-teal-500/10 flex items-center justify-center mx-auto">
+            <Mail className="w-8 h-8 text-teal-400" />
+          </div>
+          <h2 className="text-2xl font-bold">Check your email</h2>
+          <p className="text-sm text-muted-foreground">
+            If an account exists for {email}, we&apos;ve sent password reset instructions.
+          </p>
+          <Link
+            href="/login"
+            className="inline-flex items-center gap-2 text-sm text-teal-400 hover:text-teal-300 transition"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to login
+          </Link>
+        </motion.div>
+      </main>
+    );
   }
 
   return (
@@ -54,10 +73,12 @@ export default function LoginPage() {
       >
         <div className="text-center space-y-3">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-teal-500/10 text-teal-400 mb-2">
-            <Lock className="w-6 h-6" />
+            <Mail className="w-6 h-6" />
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold">Dashboard Login</h1>
-          <p className="text-sm text-muted-foreground">The Stream by Ekantah</p>
+          <h1 className="text-2xl sm:text-3xl font-bold">Reset Password</h1>
+          <p className="text-sm text-muted-foreground">
+            Enter your email and we&apos;ll send you reset instructions
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -74,41 +95,6 @@ export default function LoginPage() {
                 placeholder="admin@ekantah.com"
               />
             </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1.5">Password</label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <input
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="w-full rounded-xl border border-input bg-background pl-10 pr-10 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring transition"
-                placeholder="Enter password"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition"
-              >
-                {showPassword ? (
-                  <EyeOff className="w-4 h-4" />
-                ) : (
-                  <Eye className="w-4 h-4" />
-                )}
-              </button>
-            </div>
-          </div>
-
-          <div className="flex justify-end">
-            <a
-              href="/forgot-password"
-              className="text-sm text-teal-400 hover:text-teal-300 transition"
-            >
-              Forgot password?
-            </a>
           </div>
 
           {error && (
@@ -129,23 +115,21 @@ export default function LoginPage() {
             {loading ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                Signing in...
+                Sending...
               </>
             ) : (
-              "Sign In"
+              "Send Reset Link"
             )}
           </button>
         </form>
 
-        <p className="text-center text-sm text-muted-foreground">
-          Don&apos;t have an account?{" "}
-          <a
-            href="/signup"
-            className="text-teal-400 hover:text-teal-300 transition"
-          >
-            Sign up
-          </a>
-        </p>
+        <Link
+          href="/login"
+          className="flex items-center justify-center gap-2 text-sm text-muted-foreground hover:text-foreground transition"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to login
+        </Link>
       </motion.div>
     </main>
   );
