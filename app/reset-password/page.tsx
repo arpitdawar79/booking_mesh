@@ -2,11 +2,11 @@
 
 import { AnimatedGrid } from "@/components/ui/animated-grid";
 import { motion } from "framer-motion";
-import { Loader2, Lock, Eye, EyeOff, ArrowLeft } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff, Loader2, Lock } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 
-export default function ResetPasswordPage() {
+function ResetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
@@ -98,8 +98,18 @@ export default function ResetPasswordPage() {
           className="relative z-10 w-full max-w-sm text-center space-y-4"
         >
           <div className="w-16 h-16 rounded-full bg-teal-500/10 flex items-center justify-center mx-auto">
-            <svg className="w-8 h-8 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            <svg
+              className="w-8 h-8 text-teal-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M5 13l4 4L19 7"
+              />
             </svg>
           </div>
           <h2 className="text-2xl font-bold">Password reset!</h2>
@@ -133,7 +143,9 @@ export default function ResetPasswordPage() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1.5">New Password</label>
+            <label className="block text-sm font-medium mb-1.5">
+              New Password
+            </label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <input
@@ -150,13 +162,19 @@ export default function ResetPasswordPage() {
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition"
               >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                {showPassword ? (
+                  <EyeOff className="w-4 h-4" />
+                ) : (
+                  <Eye className="w-4 h-4" />
+                )}
               </button>
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1.5">Confirm Password</label>
+            <label className="block text-sm font-medium mb-1.5">
+              Confirm Password
+            </label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <input
@@ -198,5 +216,24 @@ export default function ResetPasswordPage() {
         </form>
       </motion.div>
     </main>
+  );
+}
+
+function LoadingState() {
+  return (
+    <main className="relative min-h-screen flex items-center justify-center bg-background px-4 py-12 overflow-hidden">
+      <AnimatedGrid />
+      <div className="relative z-10 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+      </div>
+    </main>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={<LoadingState />}>
+      <ResetPasswordForm />
+    </Suspense>
   );
 }

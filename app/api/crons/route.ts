@@ -1,8 +1,8 @@
 import {
-  runAdminDigestJob,
-  runCheckoutReminderJob,
-  runJob,
-  runPreArrivalReminderJob,
+    runAdminDigestJob,
+    runCheckoutReminderJob,
+    runJob,
+    runPreArrivalReminderJob,
 } from "@/lib/cron-jobs";
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
@@ -50,9 +50,14 @@ export async function GET() {
     _max: { startedAt: true },
   });
 
+  const validRuns = latestRuns.filter(
+    (r): r is typeof r & { _max: { startedAt: Date } } =>
+      r._max.startedAt !== null,
+  );
+
   const latestRunIds = await prisma.cronRun.findMany({
     where: {
-      OR: latestRuns.map((r) => ({
+      OR: validRuns.map((r) => ({
         jobName: r.jobName,
         startedAt: r._max.startedAt,
       })),
@@ -67,9 +72,16 @@ export async function GET() {
     _count: { id: true },
   });
 
-  const statsByName = new Map<string, { success: number; failed: number; total: number }>();
+  const statsByName = new Map<
+    string,
+    { success: number; failed: number; total: number }
+  >();
   for (const c of counts) {
-    const existing = statsByName.get(c.jobName) || { success: 0, failed: 0, total: 0 };
+    const existing = statsByName.get(c.jobName) || {
+      success: 0,
+      failed: 0,
+      total: 0,
+    };
     existing.total += c._count.id;
     if (c.status === "success") existing.success += c._count.id;
     if (c.status === "failed") existing.failed += c._count.id;
@@ -78,7 +90,11 @@ export async function GET() {
 
   const jobs = CRON_JOBS.map((job) => {
     const latest = latestByName.get(job.name);
-    const stats = statsByName.get(job.name) || { success: 0, failed: 0, total: 0 };
+    const stats = statsByName.get(job.name) || {
+      success: 0,
+      failed: 0,
+      total: 0,
+    };
     return {
       ...job,
       latestRun: latest
