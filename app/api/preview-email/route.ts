@@ -20,6 +20,7 @@ const DEMO_BOOKING: Booking = {
   nightCount: 3,
   roomCount: 1,
   roomType: "Boutique Room",
+  extraMattressCount: 0,
   mealPlan: "Breakfast included",
   currency: "INR",
   totalAmount: 15000 as any,
