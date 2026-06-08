@@ -38,9 +38,11 @@ module.exports = {
       max_memory_restart: "512M",
       env: {
         NODE_ENV: "development",
+        NODE_OPTIONS: "--conditions=import",
       },
       env_production: {
         NODE_ENV: "production",
+        NODE_OPTIONS: "--conditions=import",
       },
       error_log: "./logs/cron-err.log",
       out_log: "./logs/cron-out.log",

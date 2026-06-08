@@ -1,23 +1,44 @@
 import type { Boom } from "@hapi/boom";
 import type { Booking } from "@prisma/client";
 import {
-  Browsers,
-  DisconnectReason,
-  fetchLatestBaileysVersion,
-  makeCacheableSignalKeyStore,
-  makeWASocket,
-  useMultiFileAuthState,
-  type AnyMessageContent,
+    Browsers,
+    DisconnectReason,
+    fetchLatestBaileysVersion,
+    makeCacheableSignalKeyStore,
+    makeWASocket,
+    useMultiFileAuthState,
+    type AnyMessageContent,
 } from "@whiskeysockets/baileys";
-import fs from "fs";
+import fs, { existsSync } from "fs";
 import pino from "pino";
 import QRCode from "qrcode";
 import {
-  renderBookingPdfHtml,
-  renderSalarySlipPdfHtml,
-  type SalarySlipPdfData,
+    renderBookingPdfHtml,
+    renderSalarySlipPdfHtml,
+    type SalarySlipPdfData,
 } from "./pdf";
 import { prisma } from "./prisma";
+
+function getPuppeteerLaunchOptions(): import("puppeteer").LaunchOptions {
+  const executablePath =
+    process.env.PUPPETEER_EXECUTABLE_PATH ||
+    (process.platform === "linux" && existsSync("/usr/bin/chromium-browser")
+      ? "/usr/bin/chromium-browser"
+      : process.platform === "linux" && existsSync("/usr/bin/chromium")
+        ? "/usr/bin/chromium"
+        : undefined);
+
+  return {
+    headless: true,
+    executablePath: executablePath || undefined,
+    args: [
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--disable-gpu",
+      "--disable-dev-shm-usage",
+    ],
+  };
+}
 
 type WASocket = ReturnType<typeof makeWASocket>;
 type WAStatus = "connecting" | "qr" | "open" | "close" | "logged_out";
@@ -538,10 +559,7 @@ export async function generateBookingPdf(
   customMessage?: string,
 ): Promise<Buffer> {
   const puppeteer = await import("puppeteer");
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
-  });
+  const browser = await puppeteer.launch(getPuppeteerLaunchOptions());
   const page = await browser.newPage();
   const html = await renderBookingPdfHtml(type, booking, customMessage);
   await page.setContent(html, { waitUntil: "load" });
@@ -563,10 +581,7 @@ export async function generateBookingPdf(
 
 export async function generatePdfFromHtml(html: string): Promise<Buffer> {
   const puppeteer = await import("puppeteer");
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
-  });
+  const browser = await puppeteer.launch(getPuppeteerLaunchOptions());
   const page = await browser.newPage();
   await page.setContent(html, { waitUntil: "load" });
 
@@ -842,10 +857,7 @@ export async function generateSalarySlipPdf(
   data: SalarySlipPdfData,
 ): Promise<Buffer> {
   const puppeteer = await import("puppeteer");
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
-  });
+  const browser = await puppeteer.launch(getPuppeteerLaunchOptions());
   const page = await browser.newPage();
   const html = await renderSalarySlipPdfHtml(data);
   await page.setContent(html, { waitUntil: "load" });
