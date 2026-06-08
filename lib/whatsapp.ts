@@ -10,6 +10,7 @@ import {
     type AnyMessageContent,
 } from "@whiskeysockets/baileys";
 import fs, { existsSync } from "fs";
+import path from "path";
 import pino from "pino";
 import QRCode from "qrcode";
 import {
@@ -55,7 +56,9 @@ interface WAState {
   lastConnectedAt: number | null;
 }
 
-const AUTH_FOLDER = process.env.WHATSAPP_AUTH_DIR || "./whatsapp_auth";
+const AUTH_FOLDER =
+  process.env.WHATSAPP_AUTH_DIR ||
+  path.join(/* turbopackIgnore: true */ process.cwd(), "whatsapp_auth");
 const MAX_RECONNECT_DELAY_MS = 30_000;
 
 const logger = pino({ level: process.env.WHATSAPP_LOG_LEVEL || "silent" });
@@ -137,8 +140,11 @@ export function getConnectionStatus() {
 
 function wipeAuth() {
   try {
-    if (fs.existsSync(AUTH_FOLDER)) {
-      fs.rmSync(AUTH_FOLDER, { recursive: true, force: true });
+    if (fs.existsSync(/* turbopackIgnore: true */ AUTH_FOLDER)) {
+      fs.rmSync(/* turbopackIgnore: true */ AUTH_FOLDER, {
+        recursive: true,
+        force: true,
+      });
     }
   } catch {
     // ignore cleanup errors

@@ -26,14 +26,173 @@
   --color-chart-4: #f87171;
   --color-chart-5: #a78bfa;
   --color-radius: 0.625rem;
-  --font-sans: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  --font-sans:
+    ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
 }
 
 @layer base {
+  html {
+    min-height: 100%;
+    background: var(--color-background);
+    color-scheme: dark;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+
   * {
     @apply border-border;
+    -webkit-tap-highlight-color: transparent;
   }
+
   body {
     @apply bg-background text-foreground;
+    min-height: 100dvh;
+    min-height: -webkit-fill-available;
+    overscroll-behavior-y: none;
+    touch-action: manipulation;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* Allow text selection in inputs and contenteditable */
+  input,
+  textarea,
+  [contenteditable] {
+    -webkit-user-select: text;
+    user-select: text;
+  }
+
+  /* Allow text selection in main content areas */
+  p,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  span,
+  li,
+  td,
+  th,
+  label,
+  pre,
+  code {
+    -webkit-user-select: text;
+    user-select: text;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
+
+  button,
+  a {
+    touch-action: manipulation;
+  }
+
+  ::selection {
+    background: rgb(20 184 166 / 0.35);
+  }
+
+  /* Hide scrollbar but keep functionality (native app feel) */
+  ::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    background: transparent;
+  }
+
+  /* Standalone mode adjustments */
+  @media (display-mode: standalone) {
+    body {
+      padding-top: env(safe-area-inset-top);
+      padding-left: env(safe-area-inset-left);
+      padding-right: env(safe-area-inset-right);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      scroll-behavior: auto !important;
+      transition-duration: 0.001ms !important;
+    }
+  }
+}
+
+@layer components {
+  .pwa-toast {
+    position: fixed;
+    left: 50%;
+    bottom: calc(5.9rem + env(safe-area-inset-bottom));
+    z-index: 80;
+    display: flex;
+    min-height: 2.75rem;
+    max-width: calc(100vw - 2rem);
+    transform: translateX(-50%);
+    align-items: center;
+    gap: 0.6rem;
+    border-radius: 999px;
+    border: 1px solid rgb(38 38 38 / 0.9);
+    background: rgb(10 10 10 / 0.86);
+    padding: 0.45rem 0.55rem 0.45rem 0.85rem;
+    color: var(--color-foreground);
+    box-shadow: 0 24px 70px rgb(0 0 0 / 0.45);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+  }
+
+  .pwa-toast span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.8125rem;
+    font-weight: 600;
+  }
+
+  .pwa-toast button {
+    display: inline-flex;
+    min-height: 2rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    padding-inline: 0.7rem;
+    color: var(--color-background);
+    background: var(--color-foreground);
+    font-size: 0.75rem;
+    font-weight: 700;
+    transition:
+      transform 160ms ease,
+      opacity 160ms ease;
+  }
+
+  .pwa-toast button:active {
+    transform: scale(0.96);
+  }
+
+  .pwa-toast button[aria-label] {
+    width: 2rem;
+    padding-inline: 0;
+    color: var(--color-muted-foreground);
+    background: transparent;
+  }
+
+  @media (min-width: 1024px) {
+    .pwa-toast {
+      left: auto;
+      right: 1rem;
+      bottom: 1rem;
+      transform: none;
+    }
   }
 }

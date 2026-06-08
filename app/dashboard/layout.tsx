@@ -1,35 +1,37 @@
 "use client";
 
-import { Dock } from "@/components/ui/dock";
+import { PullToRefresh } from "@/components/pwa/pull-to-refresh";
 import {
-    Drawer,
-    DrawerContent,
-    DrawerTitle,
-    DrawerTrigger,
+  Drawer,
+  DrawerContent,
+  DrawerTitle,
+  DrawerTrigger,
 } from "@/components/ui/drawer";
+import { MobileBottomNav } from "@/components/ui/mobile-bottom-nav";
+import { useHaptic } from "@/lib/pwa-hooks";
 import {
-    Banknote,
-    BarChart3,
-    CalendarDays,
-    ChevronLeft,
-    ChevronRight,
-    Hotel,
-    IndianRupee,
-    LayoutDashboard,
-    LogOut,
-    Mail,
-    Menu,
-    MoreHorizontal,
-    PlusCircle,
-    Receipt,
-    ShoppingCart,
-    Smartphone,
-    Users,
-    X,
+  Banknote,
+  BarChart3,
+  CalendarDays,
+  ChevronLeft,
+  ChevronRight,
+  Hotel,
+  IndianRupee,
+  LayoutDashboard,
+  LogOut,
+  Mail,
+  Menu,
+  MoreHorizontal,
+  PlusCircle,
+  Receipt,
+  ShoppingCart,
+  Smartphone,
+  Users,
+  X,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -101,6 +103,48 @@ const dockItems = [
   },
 ];
 
+function LogoutForm({
+  collapsed,
+  className = "px-3 py-2 rounded-md",
+  iconClassName = "w-4 h-4",
+}: {
+  collapsed?: boolean;
+  className?: string;
+  iconClassName?: string;
+}) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  if (!mounted) {
+    return (
+      <button
+        disabled
+        className={`flex items-center gap-3 w-full text-sm text-muted-foreground opacity-50 cursor-not-allowed transition ${
+          collapsed ? "justify-center" : ""
+        } ${className}`}
+      >
+        <LogOut className={`${iconClassName} shrink-0`} />
+        {!collapsed && <span>Log out</span>}
+      </button>
+    );
+  }
+
+  return (
+    <form action="/api/auth" method="POST">
+      <input type="hidden" name="logout" value="true" />
+      <button
+        type="submit"
+        className={`flex items-center gap-3 w-full text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition ${
+          collapsed ? "justify-center" : ""
+        } ${className}`}
+      >
+        <LogOut className={`${iconClassName} shrink-0`} />
+        {!collapsed && <span>Log out</span>}
+      </button>
+    </form>
+  );
+}
+
 export default function DashboardLayout({
   children,
 }: Readonly<{
@@ -110,9 +154,15 @@ export default function DashboardLayout({
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const haptic = useHaptic();
+
+  const handleRefresh = useCallback(async () => {
+    haptic("medium");
+    window.location.reload();
+  }, [haptic]);
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex pb-20 lg:pb-0">
+    <div className="min-h-dvh bg-background text-foreground flex pb-[calc(5.5rem+env(safe-area-inset-bottom))] lg:pb-0">
       {/* Mobile overlay */}
       {mobileOpen && (
         <div
@@ -162,6 +212,7 @@ export default function DashboardLayout({
               <Link
                 key={item.href}
                 href={item.href}
+                onClick={() => haptic("light")}
                 className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition ${
                   isActive
                     ? "bg-teal-500/10 text-teal-400"
@@ -178,18 +229,7 @@ export default function DashboardLayout({
 
         {/* Footer */}
         <div className="shrink-0 border-t border-border p-3">
-          <form action="/api/auth" method="POST">
-            <input type="hidden" name="logout" value="true" />
-            <button
-              type="submit"
-              className={`flex items-center gap-3 w-full px-3 py-2 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition ${
-                collapsed ? "justify-center" : ""
-              }`}
-            >
-              <LogOut className="w-4 h-4 shrink-0" />
-              {!collapsed && <span>Log out</span>}
-            </button>
-          </form>
+          <LogoutForm collapsed={collapsed} />
         </div>
       </aside>
 
@@ -221,7 +261,10 @@ export default function DashboardLayout({
               <Link
                 key={item.href}
                 href={item.href}
-                onClick={() => setMobileOpen(false)}
+                onClick={() => {
+                  haptic("light");
+                  setMobileOpen(false);
+                }}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition ${
                   isActive
                     ? "bg-teal-500/10 text-teal-400"
@@ -236,25 +279,19 @@ export default function DashboardLayout({
         </nav>
 
         <div className="shrink-0 border-t border-border p-3">
-          <form action="/api/auth" method="POST">
-            <input type="hidden" name="logout" value="true" />
-            <button
-              type="submit"
-              className="flex items-center gap-3 w-full px-3 py-2.5 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition"
-            >
-              <LogOut className="w-4 h-4 shrink-0" />
-              <span>Log out</span>
-            </button>
-          </form>
+          <LogoutForm />
         </div>
       </aside>
 
       {/* Main content */}
       <div className="flex-1 min-w-0">
         {/* Top bar */}
-        <header className="h-14 border-b border-border flex items-center justify-between px-4 lg:px-6 sticky top-0 bg-background/95 backdrop-blur z-30">
+        <header className="h-[calc(3.5rem+env(safe-area-inset-top))] pt-[env(safe-area-inset-top)] border-b border-border flex items-center justify-between px-4 lg:h-14 lg:pt-0 lg:px-6 sticky top-0 bg-background/95 backdrop-blur z-30">
           <button
-            onClick={() => setMobileOpen(true)}
+            onClick={() => {
+              haptic("light");
+              setMobileOpen(true);
+            }}
             className="lg:hidden p-2 -ml-2 rounded-md hover:bg-muted transition"
           >
             <Menu className="w-5 h-5" />
@@ -267,18 +304,23 @@ export default function DashboardLayout({
           <div className="w-8" />
         </header>
 
-        <main className="p-3 md:p-4 lg:p-6 max-w-7xl mx-auto">{children}</main>
+        <main className="p-3 md:p-4 lg:p-6 max-w-7xl mx-auto">
+          <PullToRefresh onRefresh={handleRefresh}>{children}</PullToRefresh>
+        </main>
       </div>
 
-      {/* Mobile Dock */}
+      {/* Mobile Bottom Navigation */}
       <div className="lg:hidden">
-        <Dock items={dockItems} />
+        <MobileBottomNav
+          items={dockItems}
+          onItemClick={() => haptic("light")}
+        />
 
-        {/* More options drawer trigger - positioned above dock */}
+        {/* More options drawer trigger */}
         <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
           <DrawerTrigger asChild>
             <button
-              className="fixed bottom-20 right-4 z-50 w-10 h-10 rounded-full bg-background/80 backdrop-blur-xl border border-border/50 shadow-lg flex items-center justify-center text-muted-foreground hover:text-foreground transition"
+              className="fixed bottom-[calc(5.25rem+env(safe-area-inset-bottom))] right-4 z-50 w-10 h-10 rounded-full bg-background/80 backdrop-blur-xl border border-border/50 shadow-lg flex items-center justify-center text-muted-foreground hover:text-foreground transition"
               aria-label="More options"
             >
               <MoreHorizontal className="w-5 h-5" />
@@ -311,16 +353,10 @@ export default function DashboardLayout({
                   );
                 })}
               <div className="border-t border-border mt-4 pt-4">
-                <form action="/api/auth" method="POST">
-                  <input type="hidden" name="logout" value="true" />
-                  <button
-                    type="submit"
-                    className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition"
-                  >
-                    <LogOut className="w-5 h-5 shrink-0" />
-                    <span>Log out</span>
-                  </button>
-                </form>
+                <LogoutForm
+                  className="px-4 py-3 rounded-xl"
+                  iconClassName="w-5 h-5"
+                />
               </div>
             </div>
           </DrawerContent>

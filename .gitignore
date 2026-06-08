@@ -8,6 +8,8 @@ node_modules/
 out/
 dist/
 build/
+public/sw*
+public/swe-worker*
 
 # Environment variables
 .env

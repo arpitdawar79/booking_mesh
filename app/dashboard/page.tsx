@@ -3,19 +3,20 @@
 import { KpiCard } from "@/components/dashboard/kpi-card";
 import { ModuleCard } from "@/components/dashboard/module-card";
 import { StatCard } from "@/components/dashboard/stat-card";
+import { DashboardSkeleton } from "@/components/pwa/skeleton";
 import { formatDate } from "@/lib/utils";
 import {
-  AlertCircle,
-  Banknote,
-  BarChart3,
-  CalendarCheck,
-  CalendarDays,
-  ChevronRight,
-  ClipboardList,
-  IndianRupee,
-  Receipt,
-  ShoppingCart,
-  Users,
+    AlertCircle,
+    Banknote,
+    BarChart3,
+    CalendarCheck,
+    CalendarDays,
+    ChevronRight,
+    ClipboardList,
+    IndianRupee,
+    Receipt,
+    ShoppingCart,
+    Users,
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -82,7 +83,7 @@ export default function DashboardPage() {
   }, []);
 
   if (loading) {
-    return <div className="text-muted-foreground">Loading dashboard...</div>;
+    return <DashboardSkeleton />;
   }
 
   const totalRevenue =
