@@ -1,15 +1,16 @@
 "use client";
 
+import { formatDate } from "@/lib/utils";
 import {
-  Check,
-  Copy,
-  Download,
-  ExternalLink,
-  MessageCircle,
-  Printer,
-  Send,
-  Share2,
-  Smartphone,
+    Check,
+    Copy,
+    Download,
+    ExternalLink,
+    MessageCircle,
+    Printer,
+    Send,
+    Share2,
+    Smartphone,
 } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -30,6 +31,7 @@ interface Booking {
   nightCount: number;
   roomCount: number;
   roomType: string;
+  extraMattressCount: number;
   mealPlan: string;
   currency: string;
   totalAmount: number;
@@ -304,7 +306,7 @@ export default function BookingDetailPage() {
 
 *Guest:* ${booking.guestFullName}
 *Booking ID:* #${booking.bookingId}
-*Dates:* ${booking.checkInDate} → ${booking.checkOutDate} (${booking.nightCount} nights)
+*Dates:* ${formatDate(booking.checkInDate)} → ${formatDate(booking.checkOutDate)} (${booking.nightCount} nights)
 *Rooms:* ${booking.roomCount} × ${booking.roomType}
 *Guests:* ${booking.adultCount} adults${booking.childCount ? `, ${booking.childCount} children` : ""}
 
@@ -367,13 +369,13 @@ We look forward to hosting you!
       URL.revokeObjectURL(url);
     }
 
-    const text = `Booking confirmation #${booking.bookingId} for ${booking.guestFullName}. Dates: ${booking.checkInDate} to ${booking.checkOutDate} (${booking.nightCount} nights). Total: ${booking.currency} ${Number(booking.totalAmount).toLocaleString("en-IN")}. The Stream by Ekantah.`;
+    const text = `Booking confirmation #${booking.bookingId} for ${booking.guestFullName}. Dates: ${formatDate(booking.checkInDate)} to ${formatDate(booking.checkOutDate)} (${booking.nightCount} nights). Total: ${booking.currency} ${Number(booking.totalAmount).toLocaleString("en-IN")}. The Stream by Ekantah.`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
   }
 
   function handleWhatsAppToGuest() {
     if (!booking) return;
-    const text = `Hi ${booking.guestFirstName}, your booking at The Stream by Ekantah (#${booking.bookingId}) is confirmed. Check-in: ${booking.checkInDate}. We look forward to welcoming you!`;
+    const text = `Hi ${booking.guestFirstName}, your booking at The Stream by Ekantah (#${booking.bookingId}) is confirmed. Check-in: ${formatDate(booking.checkInDate)}. We look forward to welcoming you!`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
   }
 
@@ -400,7 +402,7 @@ We look forward to hosting you!
     }
 
     // Fallback to text-only share
-    const text = `Booking #${booking.bookingId} – ${booking.guestFullName}. Dates: ${booking.checkInDate} to ${booking.checkOutDate}. Total: ${booking.currency} ${Number(booking.totalAmount).toLocaleString("en-IN")}.`;
+    const text = `Booking #${booking.bookingId} – ${booking.guestFullName}. Dates: ${formatDate(booking.checkInDate)} to ${formatDate(booking.checkOutDate)}. Total: ${booking.currency} ${Number(booking.totalAmount).toLocaleString("en-IN")}.`;
     if (navigator.share) {
       navigator
         .share({ title: `Booking ${booking.bookingId}`, text })
@@ -418,7 +420,7 @@ We look forward to hosting you!
       return;
     }
     const subject = `Payment Reminder – Booking #${booking.bookingId}`;
-    const body = `Hi ${booking.guestFirstName},%0A%0AThis is a friendly reminder that your booking *#${booking.bookingId}* at *The Stream by Ekantah* has an outstanding balance of *${booking.currency} ${balance.toLocaleString("en-IN")}*.%0A%0ACheck-in: ${booking.checkInDate}%0ACheck-out: ${booking.checkOutDate}%0A%0APlease settle the balance before arrival. Reply for payment details.%0A%0AThank you!`;
+    const body = `Hi ${booking.guestFirstName},%0A%0AThis is a friendly reminder that your booking *#${booking.bookingId}* at *The Stream by Ekantah* has an outstanding balance of *${booking.currency} ${balance.toLocaleString("en-IN")}*.%0A%0ACheck-in: ${formatDate(booking.checkInDate)}%0ACheck-out: ${formatDate(booking.checkOutDate)}%0A%0APlease settle the balance before arrival. Reply for payment details.%0A%0AThank you!`;
     window.location.href = `mailto:${booking.guestEmail}?subject=${encodeURIComponent(subject)}&body=${body}`;
   }
 
@@ -531,17 +533,23 @@ We look forward to hosting you!
           <Section title="Stay">
             <Detail
               label="Check-in"
-              value={`${booking.checkInDate} after ${booking.checkInTime}`}
+              value={`${formatDate(booking.checkInDate)} after ${booking.checkInTime}`}
             />
             <Detail
               label="Check-out"
-              value={`${booking.checkOutDate} by ${booking.checkOutTime}`}
+              value={`${formatDate(booking.checkOutDate)} by ${booking.checkOutTime}`}
             />
             <Detail label="Nights" value={String(booking.nightCount)} />
             <Detail
               label="Rooms"
               value={`${booking.roomCount} × ${booking.roomType}`}
             />
+            {booking.extraMattressCount > 0 && (
+              <Detail
+                label="Extra Mattresses"
+                value={`${booking.extraMattressCount} room${booking.extraMattressCount > 1 ? "s" : ""}`}
+              />
+            )}
             <Detail label="Meal Plan" value={booking.mealPlan} />
           </Section>
 

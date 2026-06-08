@@ -18,6 +18,7 @@ import {
     type SalarySlipPdfData,
 } from "./pdf";
 import { prisma } from "./prisma";
+import { formatDate } from "./utils";
 
 function getPuppeteerLaunchOptions(): import("puppeteer").LaunchOptions {
   const executablePath =
@@ -448,6 +449,8 @@ export function formatWhatsAppMessage(
   const total = Number(booking.totalAmount).toLocaleString("en-IN");
   const paid = Number(booking.amountPaidOnline).toLocaleString("en-IN");
   const balance = Number(booking.balanceAmount).toLocaleString("en-IN");
+  const checkIn = formatDate(booking.checkInDate);
+  const checkOut = formatDate(booking.checkOutDate);
 
   switch (type) {
     case "booking_confirmation":
@@ -456,8 +459,8 @@ export function formatWhatsAppMessage(
         `Dear ${booking.guestFirstName},\n\n` +
         `Your stay at *The Stream by Ekantah* is confirmed!\n\n` +
         `*Booking ID:* #${booking.bookingId}\n` +
-        `*Check-in:* ${booking.checkInDate} at ${booking.checkInTime}\n` +
-        `*Check-out:* ${booking.checkOutDate} by ${booking.checkOutTime}\n` +
+        `*Check-in:* ${checkIn} at ${booking.checkInTime}\n` +
+        `*Check-out:* ${checkOut} by ${booking.checkOutTime}\n` +
         `*Nights:* ${booking.nightCount}\n` +
         `*Rooms:* ${booking.roomCount} \u00d7 ${booking.roomType}\n` +
         `*Guests:* ${booking.adultCount} adults${booking.childCount ? `, ${booking.childCount} children` : ""}\n\n` +
@@ -499,7 +502,7 @@ export function formatWhatsAppMessage(
         `*Arriving Tomorrow!* \n\n` +
         `Dear ${booking.guestFirstName},\n\n` +
         `Your stay at *The Stream by Ekantah* begins tomorrow!\n\n` +
-        `*Check-in:* ${booking.checkInDate} at ${booking.checkInTime}\n` +
+        `*Check-in:* ${checkIn} at ${booking.checkInTime}\n` +
         `*Booking ID:* #${booking.bookingId}\n\n` +
         `*Caretaker:* ${booking.caretakerNumber} (Ram)\n` +
         `*Parking:* ${booking.parkingDetails}\n\n` +
@@ -512,7 +515,7 @@ export function formatWhatsAppMessage(
         `*Thank You!* \n\n` +
         `Dear ${booking.guestFirstName},\n\n` +
         `Thank you for choosing *The Stream by Ekantah*.\n\n` +
-        `We hope you enjoyed your stay from *${booking.checkInDate}* to *${booking.checkOutDate}*.\n\n` +
+        `We hope you enjoyed your stay from *${checkIn}* to *${checkOut}*.\n\n` +
         `We'd love to see you again soon!`
       );
 

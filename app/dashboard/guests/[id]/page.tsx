@@ -1,6 +1,7 @@
 "use client";
 
 import { StatusBadge } from "@/components/ui/status-badge";
+import { formatDate } from "@/lib/utils";
 import {
     ArrowLeft,
     IndianRupee,
@@ -46,12 +47,6 @@ interface GuestDetail {
     status: string;
     payments: Array<{ amount: number; method: string; date: string | Date }>;
   }>;
-}
-
-function fmtDate(d: string | Date): string {
-  if (!d) return "";
-  if (typeof d === "string") return d.split("T")[0];
-  return d.toISOString().split("T")[0];
 }
 
 export default function GuestDetailPage() {
@@ -350,7 +345,7 @@ export default function GuestDetailPage() {
                       </Link>
                     </td>
                     <td className="px-4 py-3 text-muted-foreground">
-                      {fmtDate(b.checkInDate)} → {fmtDate(b.checkOutDate)}
+                      {formatDate(b.checkInDate)} → {formatDate(b.checkOutDate)}
                     </td>
                     <td className="px-4 py-3">{b.nightCount}</td>
                     <td className="px-4 py-3">{b.roomType}</td>

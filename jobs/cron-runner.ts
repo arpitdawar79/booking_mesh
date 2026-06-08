@@ -1,5 +1,6 @@
 import { renderAdminDigestHtml, sendEmail, sendRawEmail } from "@/lib/email";
 import { prisma } from "@/lib/prisma";
+import { formatDate } from "@/lib/utils";
 import {
   generatePdfFromHtml,
   sendBookingWhatsApp,
@@ -95,6 +96,7 @@ const adminDigestJob = cron.schedule(
           nightCount: true,
           roomCount: true,
           roomType: true,
+          extraMattressCount: true,
           mealPlan: true,
           adultCount: true,
           childCount: true,
@@ -123,6 +125,7 @@ const adminDigestJob = cron.schedule(
           nightCount: true,
           roomCount: true,
           roomType: true,
+          extraMattressCount: true,
           mealPlan: true,
           adultCount: true,
           childCount: true,
@@ -144,19 +147,14 @@ const adminDigestJob = cron.schedule(
           guestFullName: b.guestFullName,
           guestEmail: b.guestEmail,
           guestPhone: b.guestPhone,
-          checkInDate:
-            b.checkInDate instanceof Date
-              ? b.checkInDate.toISOString().split("T")[0]
-              : String(b.checkInDate),
-          checkOutDate:
-            b.checkOutDate instanceof Date
-              ? b.checkOutDate.toISOString().split("T")[0]
-              : String(b.checkOutDate),
+          checkInDate: formatDate(b.checkInDate),
+          checkOutDate: formatDate(b.checkOutDate),
           checkInTime: b.checkInTime,
           checkOutTime: b.checkOutTime,
           nightCount: b.nightCount,
           roomCount: b.roomCount,
           roomType: b.roomType,
+          extraMattressCount: b.extraMattressCount,
           mealPlan: b.mealPlan,
           adultCount: b.adultCount,
           childCount: b.childCount,
@@ -173,19 +171,14 @@ const adminDigestJob = cron.schedule(
           guestFullName: b.guestFullName,
           guestEmail: b.guestEmail,
           guestPhone: b.guestPhone,
-          checkInDate:
-            b.checkInDate instanceof Date
-              ? b.checkInDate.toISOString().split("T")[0]
-              : String(b.checkInDate),
-          checkOutDate:
-            b.checkOutDate instanceof Date
-              ? b.checkOutDate.toISOString().split("T")[0]
-              : String(b.checkOutDate),
+          checkInDate: formatDate(b.checkInDate),
+          checkOutDate: formatDate(b.checkOutDate),
           checkInTime: b.checkInTime,
           checkOutTime: b.checkOutTime,
           nightCount: b.nightCount,
           roomCount: b.roomCount,
           roomType: b.roomType,
+          extraMattressCount: b.extraMattressCount,
           mealPlan: b.mealPlan,
           adultCount: b.adultCount,
           childCount: b.childCount,

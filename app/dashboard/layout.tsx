@@ -22,9 +22,9 @@ import {
     MoreHorizontal,
     PlusCircle,
     Receipt,
+    ShoppingCart,
     Smartphone,
     Users,
-    Utensils,
     X,
 } from "lucide-react";
 import Link from "next/link";
@@ -32,9 +32,17 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 
 const navItems = [
-  { href: "/dashboard", label: "Bookings", icon: CalendarDays },
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/dashboard/bookings", label: "Bookings", icon: CalendarDays },
   { href: "/dashboard/new", label: "New Booking", icon: PlusCircle },
   { href: "/dashboard/guests", label: "Guests", icon: Users },
+  { href: "/dashboard/expenses", label: "Expenses", icon: Receipt },
+  {
+    href: "/dashboard/additional-sales",
+    label: "Additional Sales",
+    icon: ShoppingCart,
+  },
+  { href: "/dashboard/salary", label: "Salary & Payroll", icon: Banknote },
   { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
   {
     href: "/dashboard/analytics/revenue",
@@ -53,18 +61,16 @@ const navItems = [
   },
   { href: "/dashboard/templates", label: "Templates", icon: Mail },
   { href: "/dashboard/whatsapp", label: "WhatsApp Setup", icon: Smartphone },
-  { href: "/dashboard/expenses", label: "Expenses", icon: Receipt },
-  { href: "/dashboard/salary", label: "Salary & Payroll", icon: Banknote },
-  {
-    href: "/dashboard/restaurant-sales",
-    label: "Restaurant Sales",
-    icon: Utensils,
-  },
 ];
 
 const dockItems = [
   {
     href: "/dashboard",
+    label: "Dashboard",
+    icon: <LayoutDashboard className="w-5 h-5" />,
+  },
+  {
+    href: "/dashboard/bookings",
     label: "Bookings",
     icon: <CalendarDays className="w-5 h-5" />,
   },
@@ -89,9 +95,9 @@ const dockItems = [
     icon: <Banknote className="w-5 h-5" />,
   },
   {
-    href: "/dashboard/restaurant-sales",
+    href: "/dashboard/additional-sales",
     label: "Sales",
-    icon: <Utensils className="w-5 h-5" />,
+    icon: <ShoppingCart className="w-5 h-5" />,
   },
 ];
 

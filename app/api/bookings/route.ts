@@ -201,6 +201,7 @@ export async function POST(request: Request) {
       nightCount,
       roomCount: data.roomCount,
       roomType: data.roomType,
+      extraMattressCount: data.extraMattressCount,
       mealPlan: data.mealPlan,
       currency: data.currency,
       totalAmount,
@@ -369,6 +370,8 @@ export async function PATCH(request: Request) {
     updateData.checkOutTime = data.checkOutTime;
   if (data.roomCount !== undefined) updateData.roomCount = data.roomCount;
   if (data.roomType !== undefined) updateData.roomType = data.roomType;
+  if (data.extraMattressCount !== undefined)
+    updateData.extraMattressCount = data.extraMattressCount;
   if (data.mealPlan !== undefined) updateData.mealPlan = data.mealPlan;
   if (data.totalAmount !== undefined) updateData.totalAmount = data.totalAmount;
   if (data.amountPaidOnline !== undefined)

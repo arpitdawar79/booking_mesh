@@ -1,10 +1,11 @@
 import {
-  renderAdminDigestHtml,
-  sendEmail,
-  sendRawEmail,
-  type EmailType,
+    renderAdminDigestHtml,
+    sendEmail,
+    sendRawEmail,
+    type EmailType,
 } from "@/lib/email";
 import { prisma } from "@/lib/prisma";
+import { formatDate } from "@/lib/utils";
 
 // const TEST_EMAIL = "akshat.dawar8848@gmail.com";
 const TEST_EMAIL = "arpitdawar79@gmail.com";
@@ -66,13 +67,14 @@ async function main() {
         guestFullName: booking.guestFullName,
         guestEmail: booking.guestEmail,
         guestPhone: booking.guestPhone,
-        checkInDate: booking.checkInDate.toISOString().split("T")[0],
-        checkOutDate: booking.checkOutDate.toISOString().split("T")[0],
+        checkInDate: formatDate(booking.checkInDate),
+        checkOutDate: formatDate(booking.checkOutDate),
         checkInTime: booking.checkInTime,
         checkOutTime: booking.checkOutTime,
         nightCount: booking.nightCount,
         roomCount: booking.roomCount,
         roomType: booking.roomType,
+        extraMattressCount: booking.extraMattressCount,
         mealPlan: booking.mealPlan,
         adultCount: booking.adultCount,
         childCount: booking.childCount,
@@ -91,13 +93,14 @@ async function main() {
         guestFullName: booking.guestFullName,
         guestEmail: booking.guestEmail,
         guestPhone: booking.guestPhone,
-        checkInDate: booking.checkInDate.toISOString().split("T")[0],
-        checkOutDate: booking.checkOutDate.toISOString().split("T")[0],
+        checkInDate: formatDate(booking.checkInDate),
+        checkOutDate: formatDate(booking.checkOutDate),
         checkInTime: booking.checkInTime,
         checkOutTime: booking.checkOutTime,
         nightCount: booking.nightCount,
         roomCount: booking.roomCount,
         roomType: booking.roomType,
+        extraMattressCount: booking.extraMattressCount,
         mealPlan: booking.mealPlan,
         adultCount: booking.adultCount,
         childCount: booking.childCount,

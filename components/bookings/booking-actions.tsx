@@ -1,5 +1,6 @@
 "use client";
 
+import { formatDate } from "@/lib/utils";
 import { Copy, Eye, Mail, MessageCircle } from "lucide-react";
 import Link from "next/link";
 
@@ -22,12 +23,6 @@ export interface BookingActionsProps {
   onEmail: (id: string, email: string) => void;
   onWhatsApp: (b: BookingActionsProps) => void;
   size?: "sm" | "md";
-}
-
-function fmtDate(d: string | Date): string {
-  if (!d) return "";
-  if (typeof d === "string") return d.split("T")[0];
-  return d.toISOString().split("T")[0];
 }
 
 export function BookingActions({
@@ -53,7 +48,7 @@ export function BookingActions({
   const handleCopy = () => {
     const text = `
 Booking #${bookingId} – ${guestFullName}
-Dates: ${fmtDate(checkInDate)} → ${fmtDate(checkOutDate)}
+Dates: ${formatDate(checkInDate)} → ${formatDate(checkOutDate)}
 Nights: ${nightCount} | Rooms: ${roomCount} × ${roomType}
 Total: ₹${totalAmount} | Paid: ₹${amountPaidOnline} | Balance: ₹${balanceAmount}
 Status: ${status}
@@ -62,9 +57,27 @@ Status: ${status}
   };
 
   const handleWhatsApp = () => {
-    const text = `Booking confirmation #%23${bookingId} for ${guestFullName}. Dates: ${fmtDate(checkInDate)} to ${fmtDate(checkOutDate)} (${nightCount} nights). Total: ₹${totalAmount}. The Stream by Ekantah.`;
+    const text = `Booking confirmation #%23${bookingId} for ${guestFullName}. Dates: ${formatDate(checkInDate)} to ${formatDate(checkOutDate)} (${nightCount} nights). Total: ₹${totalAmount}. The Stream by Ekantah.`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
-    onWhatsApp({ id, bookingId, guestFullName, guestEmail, checkInDate, checkOutDate, nightCount, totalAmount, amountPaidOnline, balanceAmount, status, roomCount, roomType, copiedId, onCopy, onEmail, onWhatsApp });
+    onWhatsApp({
+      id,
+      bookingId,
+      guestFullName,
+      guestEmail,
+      checkInDate,
+      checkOutDate,
+      nightCount,
+      totalAmount,
+      amountPaidOnline,
+      balanceAmount,
+      status,
+      roomCount,
+      roomType,
+      copiedId,
+      onCopy,
+      onEmail,
+      onWhatsApp,
+    });
   };
 
   const iconClass = size === "sm" ? "w-3.5 h-3.5" : "w-4 h-4";

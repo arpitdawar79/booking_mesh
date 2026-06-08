@@ -4,20 +4,20 @@ import { Minus, TrendingDown, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
-    Area,
-    AreaChart,
-    Bar,
-    BarChart,
-    CartesianGrid,
-    Cell,
-    Line,
-    LineChart,
-    Pie,
-    PieChart,
-    ResponsiveContainer,
-    Tooltip,
-    XAxis,
-    YAxis,
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Line,
+  LineChart,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
 } from "recharts";
 
 const COLORS = [
@@ -65,6 +65,22 @@ interface AnalyticsData {
     guests: number;
     revenue: number;
   }>;
+  monthlyExpenses: Array<{ month: string; total: number }>;
+  monthlyAdditionalSales: Array<{
+    month: string;
+    total: number;
+  }>;
+  monthlySalaries: Array<{ month: string; total: number }>;
+  expenseCategories: Array<{ category: string; total: number }>;
+  topSaleTypes: Array<{
+    saleType: string;
+    revenue: number;
+  }>;
+  totals: {
+    expenses: number;
+    additionalSales: number;
+    salaries: number;
+  };
 }
 
 export default function AnalyticsPage() {
@@ -105,6 +121,38 @@ export default function AnalyticsPage() {
   const lastYearRev = data.lastYearMonthly.reduce((s, d) => s + d.revenue, 0);
   const revChange =
     lastYearRev > 0 ? ((currentRev - lastYearRev) / lastYearRev) * 100 : 0;
+
+  const totalExpenses = data.totals.expenses;
+  const totalAdditionalSales = data.totals.additionalSales;
+  const totalSalaries = data.totals.salaries;
+  const netProfit =
+    totalRevenue + totalAdditionalSales - totalExpenses - totalSalaries;
+
+  // Build unified P&L by month
+  const allMonths = new Set<string>();
+  data.monthly.forEach((d) => allMonths.add(d.month));
+  data.monthlyExpenses.forEach((d) => allMonths.add(d.month));
+  data.monthlyAdditionalSales.forEach((d) => allMonths.add(d.month));
+  data.monthlySalaries.forEach((d) => allMonths.add(d.month));
+  const pnlData = Array.from(allMonths)
+    .sort()
+    .map((month) => {
+      const rev = data.monthly.find((d) => d.month === month)?.revenue || 0;
+      const rs =
+        data.monthlyAdditionalSales.find((d) => d.month === month)?.total || 0;
+      const exp =
+        data.monthlyExpenses.find((d) => d.month === month)?.total || 0;
+      const sal =
+        data.monthlySalaries.find((d) => d.month === month)?.total || 0;
+      return {
+        month,
+        revenue: rev,
+        additionalSales: rs,
+        expenses: exp,
+        salaries: sal,
+        net: rev + rs - exp - sal,
+      };
+    });
 
   const formatMonth = (m: string) => {
     const [year, month] = m.split("-");
@@ -169,6 +217,34 @@ export default function AnalyticsPage() {
           value={formatCurrency(outstandingTotal)}
           change={null}
           suffix="to collect"
+        />
+      </div>
+
+      {/* Business KPI Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <KpiCard
+          label="Additional Sales"
+          value={formatCurrency(totalAdditionalSales)}
+          change={null}
+          suffix="this year"
+        />
+        <KpiCard
+          label="Total Expenses"
+          value={formatCurrency(totalExpenses)}
+          change={null}
+          suffix="this year"
+        />
+        <KpiCard
+          label="Salaries"
+          value={formatCurrency(totalSalaries)}
+          change={null}
+          suffix="this year"
+        />
+        <KpiCard
+          label="Net Profit"
+          value={formatCurrency(netProfit)}
+          change={null}
+          suffix={netProfit >= 0 ? "in profit" : "in loss"}
         />
       </div>
 
@@ -344,6 +420,186 @@ export default function AnalyticsPage() {
           </ResponsiveContainer>
         </ChartCard>
       </div>
+
+      {/* Business Charts Row */}
+      <div className="grid lg:grid-cols-2 gap-4 lg:gap-6">
+        <ChartCard
+          title="P&L Overview"
+          subtitle="Revenue vs Expenses & Salaries"
+        >
+          <ResponsiveContainer width="100%" height={220}>
+            <BarChart data={pnlData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+              <XAxis
+                dataKey="month"
+                tickFormatter={formatMonth}
+                stroke="#94a3b8"
+                fontSize={12}
+              />
+              <YAxis
+                tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}k`}
+                stroke="#94a3b8"
+                fontSize={12}
+              />
+              <Tooltip
+                contentStyle={{
+                  background: "#1e293b",
+                  border: "1px solid #334155",
+                  borderRadius: 8,
+                }}
+                formatter={(v: any, n: any) => [formatCurrency(Number(v)), n]}
+              />
+              <Bar
+                dataKey="revenue"
+                fill="#14b8a6"
+                radius={[4, 4, 0, 0]}
+                name="Revenue"
+              />
+              <Bar
+                dataKey="additionalSales"
+                fill="#f59e0b"
+                radius={[4, 4, 0, 0]}
+                name="Additional"
+              />
+              <Bar
+                dataKey="expenses"
+                fill="#ef4444"
+                radius={[4, 4, 0, 0]}
+                name="Expenses"
+              />
+              <Bar
+                dataKey="salaries"
+                fill="#8b5cf6"
+                radius={[4, 4, 0, 0]}
+                name="Salaries"
+              />
+              <Bar
+                dataKey="net"
+                fill="#3b82f6"
+                radius={[4, 4, 0, 0]}
+                name="Net"
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </ChartCard>
+
+        <ChartCard title="Expense Breakdown" subtitle="By category this year">
+          <ResponsiveContainer width="100%" height={200}>
+            <PieChart>
+              <Pie
+                data={data.expenseCategories}
+                dataKey="total"
+                nameKey="category"
+                cx="50%"
+                cy="50%"
+                innerRadius={60}
+                outerRadius={90}
+                paddingAngle={4}
+              >
+                {data.expenseCategories.map((_, i) => (
+                  <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip
+                contentStyle={{
+                  background: "#1e293b",
+                  border: "1px solid #334155",
+                  borderRadius: 8,
+                }}
+                formatter={(v: any) => formatCurrency(Number(v))}
+              />
+            </PieChart>
+          </ResponsiveContainer>
+          <div className="flex flex-wrap gap-3 justify-center mt-2">
+            {data.expenseCategories.map((d, i) => (
+              <div
+                key={d.category}
+                className="flex items-center gap-1.5 text-xs"
+              >
+                <span
+                  className="w-2.5 h-2.5 rounded-full"
+                  style={{ background: COLORS[i % COLORS.length] }}
+                />
+                <span className="text-muted-foreground">{d.category}</span>
+                <span className="font-medium">{formatCurrency(d.total)}</span>
+              </div>
+            ))}
+          </div>
+        </ChartCard>
+      </div>
+
+      {data.topSaleTypes.length > 0 && (
+        <div className="grid lg:grid-cols-2 gap-4 lg:gap-6">
+          <ChartCard
+            title="Additional Sales Trend"
+            subtitle="Monthly sales this year"
+          >
+            <ResponsiveContainer width="100%" height={220}>
+              <AreaChart data={data.monthlyAdditionalSales}>
+                <defs>
+                  <linearGradient id="rsGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                <XAxis
+                  dataKey="month"
+                  tickFormatter={formatMonth}
+                  stroke="#94a3b8"
+                  fontSize={12}
+                />
+                <YAxis
+                  tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}k`}
+                  stroke="#94a3b8"
+                  fontSize={12}
+                />
+                <Tooltip
+                  contentStyle={{
+                    background: "#1e293b",
+                    border: "1px solid #334155",
+                    borderRadius: 8,
+                  }}
+                  formatter={(v: any) => formatCurrency(Number(v))}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="total"
+                  stroke="#f59e0b"
+                  fill="url(#rsGrad)"
+                  strokeWidth={2}
+                  name="Sales"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </ChartCard>
+
+          <ChartCard title="Sale Types" subtitle="By revenue this year">
+            <div className="space-y-2 max-h-[200px] overflow-y-auto pr-1">
+              {data.topSaleTypes.map((item, i) => (
+                <div
+                  key={item.saleType}
+                  className="flex items-center justify-between text-sm border-b border-border pb-2 last:border-0"
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="w-5 h-5 rounded-full bg-amber-500/10 text-amber-400 flex items-center justify-center text-xs font-bold shrink-0">
+                      {i + 1}
+                    </span>
+                    <div className="min-w-0">
+                      <div className="font-medium truncate capitalize">
+                        {item.saleType.replace("_", " ")}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="font-medium text-right shrink-0">
+                    {formatCurrency(item.revenue)}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </ChartCard>
+        </div>
+      )}
 
       {/* Charts Row 3 */}
       <div className="grid lg:grid-cols-2 gap-4 lg:gap-6">

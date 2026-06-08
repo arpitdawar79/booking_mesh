@@ -50,6 +50,7 @@ model Booking {
   nightCount        Int           @default(1) @map("night_count")
   roomCount         Int           @default(1) @map("room_count")
   roomType          String        @default("Boutique Room") @map("room_type")
+  extraMattressCount Int          @default(0) @map("extra_mattress_count")
   mealPlan          String        @default("As per booking") @map("meal_plan")
   currency          String        @default("INR") @map("currency")
   totalAmount       Decimal       @default(0) @map("total_amount")
@@ -205,6 +206,17 @@ enum ExpenseCategory {
   misc
 }
 
+enum SaleType {
+  restaurant
+  activity
+  stay
+}
+
+enum GuestType {
+  outsider
+  hotel_guest
+}
+
 model Expense {
   id            String          @id @default(cuid())
   date          DateTime        @default(now())
@@ -221,20 +233,19 @@ model Expense {
   @@map("expenses")
 }
 
-model RestaurantSale {
+model AdditionalSale {
   id            String        @id @default(cuid())
   date          DateTime      @default(now())
-  itemName      String        @map("item_name")
-  quantity      Int           @default(1)
-  unitPrice     Decimal       @map("unit_price") @db.Decimal(10, 2)
-  totalAmount   Decimal       @map("total_amount") @db.Decimal(10, 2)
+  guestName     String        @map("guest_name")
+  saleType      SaleType      @default(restaurant) @map("sale_type")
+  guestType     GuestType     @default(outsider) @map("guest_type")
+  amount        Decimal       @db.Decimal(10, 2)
   paymentMethod PaymentMethod @default(cash) @map("payment_method")
-  recordedBy    String?       @map("recorded_by")
   notes         String?
   createdAt     DateTime      @default(now()) @map("created_at")
   updatedAt     DateTime      @updatedAt @map("updated_at")
 
-  @@map("restaurant_sales")
+  @@map("additional_sales")
 }
 
 model Employee {

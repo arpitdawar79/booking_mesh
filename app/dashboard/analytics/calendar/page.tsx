@@ -8,6 +8,8 @@ import {
     DoorOpen,
     IndianRupee,
     LogOutIcon,
+    Receipt,
+    ShoppingCart,
     Users,
 } from "lucide-react";
 import Link from "next/link";
@@ -20,7 +22,7 @@ interface DayData {
   revenue: number;
   bookings: number;
   checkins: number;
-  checkinRevenue: number;
+  checkinrevenue: number;
   checkouts: number;
 }
 
@@ -36,6 +38,8 @@ interface CalendarResponse {
     totalCheckouts: number;
     avgRooms: number;
     avgRevenue: number;
+    totalAdditionalSales: number;
+    totalExpenses: number;
   };
 }
 
@@ -170,7 +174,7 @@ export default function CalendarAnalyticsPage() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
         <SummaryCard
           icon={<BedDouble className="w-4 h-4 text-teal-400" />}
           label="Avg Rooms/Night"
@@ -194,6 +198,18 @@ export default function CalendarAnalyticsPage() {
           label="Check-ins"
           value={String(data.summary.totalCheckins)}
           sub={`Check-outs: ${data.summary.totalCheckouts}`}
+        />
+        <SummaryCard
+          icon={<ShoppingCart className="w-4 h-4 text-violet-400" />}
+          label="Additional Sales"
+          value={formatCurrency(data.summary.totalAdditionalSales)}
+          sub="For the month"
+        />
+        <SummaryCard
+          icon={<Receipt className="w-4 h-4 text-rose-400" />}
+          label="Expenses"
+          value={formatCurrency(data.summary.totalExpenses)}
+          sub="For the month"
         />
       </div>
 

@@ -36,6 +36,7 @@ export default function NewBookingPage() {
   const [roomAllocations, setRoomAllocations] = useState<RoomAllocation[]>([
     { id: "1", roomType: "Balcony Room", count: 1 },
   ]);
+  const [extraMattressCount, setExtraMattressCount] = useState<number>(0);
 
   const [mealPlan, setMealPlan] = useState<string[]>([]);
 
@@ -51,6 +52,12 @@ export default function NewBookingPage() {
       setRoomCountError("");
     }
   }, [roomAllocations, roomCount]);
+
+  useEffect(() => {
+    if (extraMattressCount > roomCount) {
+      setExtraMattressCount(roomCount);
+    }
+  }, [roomCount]);
 
   function handleCheckInChange(date: Date | null) {
     setCheckInDate(date);
@@ -124,6 +131,7 @@ export default function NewBookingPage() {
     data.roomType = roomAllocations
       .map((r) => `${r.count} ${r.roomType}`)
       .join(", ");
+    data.extraMattressCount = extraMattressCount;
     data.mealPlan =
       mealPlan.length > 0 ? mealPlan.join(", ") : "As per booking";
 
@@ -257,6 +265,25 @@ export default function NewBookingPage() {
               {roomCountOptions.map((n) => (
                 <option key={n} value={n}>
                   {n} Room{n > 1 ? "s" : ""}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              Extra Mattresses
+            </label>
+            <select
+              value={extraMattressCount}
+              onChange={(e) => setExtraMattressCount(Number(e.target.value))}
+              className="w-full rounded-xl border border-input bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            >
+              {Array.from({ length: roomCount + 1 }, (_, i) => i).map((n) => (
+                <option key={n} value={n}>
+                  {n === 0
+                    ? "None"
+                    : `${n} room${n > 1 ? "s" : ""} with extra mattress`}
                 </option>
               ))}
             </select>

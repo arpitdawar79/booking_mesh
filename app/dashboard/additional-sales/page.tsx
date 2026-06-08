@@ -10,20 +10,19 @@ import {
   PlusCircle,
   Search,
   Trash2,
-  Utensils,
+  ShoppingCart,
   X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
-interface RestaurantSale {
+interface AdditionalSale {
   id: string;
   date: string | Date;
-  itemName: string;
-  quantity: number;
-  unitPrice: number;
-  totalAmount: number;
+  guestName: string;
+  saleType: string;
+  guestType: string;
+  amount: number;
   paymentMethod: string;
-  recordedBy: string | null;
   notes: string | null;
   createdAt: string;
 }
@@ -38,15 +37,18 @@ function fmtCurrency(n: number): string {
   return `₹${Number(n).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
-export default function RestaurantSalesPage() {
-  const [sales, setSales] = useState<RestaurantSale[]>([]);
+function fmtLabel(key: string): string {
+  return key.replace(/_/g, " ");
+}
+
+export default function AdditionalSalesPage() {
+  const [sales, setSales] = useState<AdditionalSale[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [month, setMonth] = useState("");
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [totalAmount, setTotalAmount] = useState(0);
-  const [totalQuantity, setTotalQuantity] = useState(0);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const pageSize = 20;
@@ -63,13 +65,12 @@ export default function RestaurantSalesPage() {
     if (search.trim()) params.set("search", search.trim());
     if (month) params.set("month", month);
 
-    fetch(`/api/restaurant-sales?${params}`)
+    fetch(`/api/additional-sales?${params}`)
       .then((r) => r.json())
       .then((data) => {
         setSales(data.sales || []);
         setTotal(data.total || 0);
         setTotalAmount(data.summary?.totalAmount || 0);
-        setTotalQuantity(data.summary?.totalQuantity || 0);
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -77,7 +78,7 @@ export default function RestaurantSalesPage() {
 
   async function handleDelete(id: string) {
     if (!confirm("Delete this sale entry?")) return;
-    const res = await fetch(`/api/restaurant-sales?id=${id}`, { method: "DELETE" });
+    const res = await fetch(`/api/additional-sales?id=${id}`, { method: "DELETE" });
     if (res.ok) {
       setSales((prev) => prev.filter((s) => s.id !== id));
       setTotal((t) => t - 1);
@@ -90,8 +91,8 @@ export default function RestaurantSalesPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
-          <Utensils className="w-5 h-5 text-orange-400" />
-          Restaurant Sale Ledger
+          <ShoppingCart className="w-5 h-5 text-orange-400" />
+          Additional Sale Ledger
         </h1>
         <button
           onClick={() => {
@@ -139,7 +140,7 @@ export default function RestaurantSalesPage() {
       {/* Summary */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <SummaryCard icon={<ClipboardList className="w-5 h-5 text-teal-400" />} label="Total Entries" value={total} />
-        <SummaryCard icon={<IndianRupee className="w-5 h-5 text-emerald-400" />} label="Total Revenue" value={fmtCurrency(totalAmount)} />
+        <SummaryCard icon={<IndianRupee className="w-5 h-5 text-emerald-400" />} label="Total Amount" value={fmtCurrency(totalAmount)} />
         <SummaryCard icon={<CalendarDays className="w-5 h-5 text-blue-400" />} label="Period" value={month || "All time"} />
       </div>
 
@@ -156,13 +157,12 @@ export default function RestaurantSalesPage() {
             params.set("pageSize", String(pageSize));
             if (search.trim()) params.set("search", search.trim());
             if (month) params.set("month", month);
-            fetch(`/api/restaurant-sales?${params}`)
+            fetch(`/api/additional-sales?${params}`)
               .then((r) => r.json())
               .then((data) => {
                 setSales(data.sales || []);
                 setTotal(data.total || 0);
                 setTotalAmount(data.summary?.totalAmount || 0);
-                setTotalQuantity(data.summary?.totalQuantity || 0);
               });
           }}
         />
@@ -181,12 +181,12 @@ export default function RestaurantSalesPage() {
               <thead className="bg-muted/50">
                 <tr>
                   <th className="text-left px-4 py-3 font-medium">Date</th>
-                  <th className="text-left px-4 py-3 font-medium">Item</th>
-                  <th className="text-left px-4 py-3 font-medium">Qty</th>
-                  <th className="text-left px-4 py-3 font-medium">Unit Price</th>
-                  <th className="text-left px-4 py-3 font-medium">Total</th>
+                  <th className="text-left px-4 py-3 font-medium">Guest</th>
+                  <th className="text-left px-4 py-3 font-medium">Sale Type</th>
+                  <th className="text-left px-4 py-3 font-medium">Guest Type</th>
+                  <th className="text-left px-4 py-3 font-medium">Amount</th>
                   <th className="text-left px-4 py-3 font-medium">Method</th>
-                  <th className="text-left px-4 py-3 font-medium">Recorded By</th>
+                  <th className="text-left px-4 py-3 font-medium">Notes</th>
                   <th className="text-left px-4 py-3 font-medium">Actions</th>
                 </tr>
               </thead>
@@ -194,12 +194,12 @@ export default function RestaurantSalesPage() {
                 {sales.map((s) => (
                   <tr key={s.id} className="hover:bg-muted/30">
                     <td className="px-4 py-3 text-muted-foreground">{fmtDate(s.date)}</td>
-                    <td className="px-4 py-3">{s.itemName}</td>
-                    <td className="px-4 py-3">{s.quantity}</td>
-                    <td className="px-4 py-3">{fmtCurrency(Number(s.unitPrice))}</td>
-                    <td className="px-4 py-3 font-medium">{fmtCurrency(Number(s.totalAmount))}</td>
-                    <td className="px-4 py-3 text-muted-foreground capitalize">{s.paymentMethod.replace("_", " ")}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{s.recordedBy || "—"}</td>
+                    <td className="px-4 py-3">{s.guestName}</td>
+                    <td className="px-4 py-3 capitalize">{fmtLabel(s.saleType)}</td>
+                    <td className="px-4 py-3 capitalize">{fmtLabel(s.guestType)}</td>
+                    <td className="px-4 py-3 font-medium">{fmtCurrency(Number(s.amount))}</td>
+                    <td className="px-4 py-3 text-muted-foreground uppercase">{s.paymentMethod}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{s.notes || "—"}</td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1">
                         <button
@@ -249,30 +249,28 @@ function SaleForm({ editingId, onClose, onSaved }: { editingId: string | null; o
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState<Record<string, string>>({
     date: new Date().toISOString().split("T")[0],
-    itemName: "",
-    quantity: "1",
-    unitPrice: "",
-    totalAmount: "",
+    guestName: "",
+    saleType: "restaurant",
+    guestType: "outsider",
+    amount: "",
     paymentMethod: "cash",
-    recordedBy: "",
     notes: "",
   });
 
   useEffect(() => {
     if (editingId) {
-      fetch(`/api/restaurant-sales?id=${editingId}`)
+      fetch(`/api/additional-sales?id=${editingId}`)
         .then((r) => r.json())
         .then((data) => {
           const s = data.sale;
           if (s) {
             setFormData({
               date: fmtDate(s.date),
-              itemName: s.itemName,
-              quantity: String(s.quantity),
-              unitPrice: String(s.unitPrice),
-              totalAmount: String(s.totalAmount),
+              guestName: s.guestName,
+              saleType: s.saleType,
+              guestType: s.guestType,
+              amount: String(s.amount),
               paymentMethod: s.paymentMethod,
-              recordedBy: s.recordedBy || "",
               notes: s.notes || "",
             });
           }
@@ -280,23 +278,17 @@ function SaleForm({ editingId, onClose, onSaved }: { editingId: string | null; o
     }
   }, [editingId]);
 
-  // Auto-compute totalAmount
-  const computedTotal = (Number(formData.quantity) || 0) * (Number(formData.unitPrice) || 0);
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
 
-    const total = computedTotal;
-
     const payload: Record<string, unknown> = {
       date: formData.date,
-      itemName: formData.itemName,
-      quantity: Number(formData.quantity),
-      unitPrice: Number(formData.unitPrice),
-      totalAmount: total,
+      guestName: formData.guestName,
+      saleType: formData.saleType,
+      guestType: formData.guestType,
+      amount: Number(formData.amount),
       paymentMethod: formData.paymentMethod,
-      recordedBy: formData.recordedBy || undefined,
       notes: formData.notes || undefined,
     };
 
@@ -304,7 +296,7 @@ function SaleForm({ editingId, onClose, onSaved }: { editingId: string | null; o
       payload.id = editingId;
     }
 
-    const res = await fetch("/api/restaurant-sales", {
+    const res = await fetch("/api/additional-sales", {
       method: editingId ? "PATCH" : "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
@@ -338,45 +330,50 @@ function SaleForm({ editingId, onClose, onSaved }: { editingId: string | null; o
           />
         </div>
         <div>
-          <label className="block text-xs font-medium mb-1">Item Name <span className="text-red-400">*</span></label>
+          <label className="block text-xs font-medium mb-1">Guest Name <span className="text-red-400">*</span></label>
           <input
             type="text"
             required
-            value={formData.itemName}
-            onChange={(e) => setFormData((p) => ({ ...p, itemName: e.target.value }))}
+            value={formData.guestName}
+            onChange={(e) => setFormData((p) => ({ ...p, guestName: e.target.value }))}
             className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
           />
         </div>
         <div>
-          <label className="block text-xs font-medium mb-1">Quantity <span className="text-red-400">*</span></label>
-          <input
-            type="number"
+          <label className="block text-xs font-medium mb-1">Sale Type <span className="text-red-400">*</span></label>
+          <select
             required
-            min={1}
-            value={formData.quantity}
-            onChange={(e) => setFormData((p) => ({ ...p, quantity: e.target.value }))}
+            value={formData.saleType}
+            onChange={(e) => setFormData((p) => ({ ...p, saleType: e.target.value }))}
             className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-          />
+          >
+            <option value="restaurant">Restaurant</option>
+            <option value="activity">Activity</option>
+            <option value="stay">Stay</option>
+          </select>
         </div>
         <div>
-          <label className="block text-xs font-medium mb-1">Unit Price <span className="text-red-400">*</span></label>
+          <label className="block text-xs font-medium mb-1">Guest Type <span className="text-red-400">*</span></label>
+          <select
+            required
+            value={formData.guestType}
+            onChange={(e) => setFormData((p) => ({ ...p, guestType: e.target.value }))}
+            className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+          >
+            <option value="outsider">Outsider</option>
+            <option value="hotel_guest">Hotel Guest</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs font-medium mb-1">Amount <span className="text-red-400">*</span></label>
           <input
             type="number"
             required
             min={0}
             step="0.01"
-            value={formData.unitPrice}
-            onChange={(e) => setFormData((p) => ({ ...p, unitPrice: e.target.value }))}
+            value={formData.amount}
+            onChange={(e) => setFormData((p) => ({ ...p, amount: e.target.value }))}
             className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-          />
-        </div>
-        <div>
-          <label className="block text-xs font-medium mb-1">Total Amount</label>
-          <input
-            type="text"
-            readOnly
-            value={computedTotal > 0 ? fmtCurrency(computedTotal) : "—"}
-            className="w-full rounded-lg border border-border bg-muted/30 px-3 py-2 text-sm text-muted-foreground"
           />
         </div>
         <div>
@@ -388,20 +385,9 @@ function SaleForm({ editingId, onClose, onSaved }: { editingId: string | null; o
           >
             <option value="cash">Cash</option>
             <option value="upi">UPI</option>
-            <option value="card">Card</option>
-            <option value="bank_transfer">Bank Transfer</option>
           </select>
         </div>
-        <div>
-          <label className="block text-xs font-medium mb-1">Recorded By</label>
-          <input
-            type="text"
-            value={formData.recordedBy}
-            onChange={(e) => setFormData((p) => ({ ...p, recordedBy: e.target.value }))}
-            className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-          />
-        </div>
-        <div className="sm:col-span-2">
+        <div className="sm:col-span-2 lg:col-span-3">
           <label className="block text-xs font-medium mb-1">Notes</label>
           <input
             type="text"

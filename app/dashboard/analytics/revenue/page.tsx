@@ -4,18 +4,18 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import {
-    Area,
-    AreaChart,
-    Bar,
-    BarChart,
-    CartesianGrid,
-    Cell,
-    Pie,
-    PieChart,
-    ResponsiveContainer,
-    Tooltip,
-    XAxis,
-    YAxis,
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
 } from "recharts";
 
 const COLORS = [
@@ -55,6 +55,22 @@ interface AnalyticsData {
     revenue: number;
     nights: number;
   }>;
+  monthlyExpenses: Array<{ month: string; total: number }>;
+  monthlyAdditionalSales: Array<{
+    month: string;
+    total: number;
+  }>;
+  monthlySalaries: Array<{ month: string; total: number }>;
+  expenseCategories: Array<{ category: string; total: number }>;
+  topSaleTypes: Array<{
+    saleType: string;
+    revenue: number;
+  }>;
+  totals: {
+    expenses: number;
+    additionalSales: number;
+    salaries: number;
+  };
 }
 
 export default function RevenueReportPage() {
@@ -107,6 +123,38 @@ export default function RevenueReportPage() {
   const collectionRate =
     totalRevenue > 0 ? (collected / totalRevenue) * 100 : 0;
 
+  const totalAdditionalSales = data.totals.additionalSales;
+  const totalExpenses = data.totals.expenses;
+  const totalSalaries = data.totals.salaries;
+  const netProfit =
+    totalRevenue + totalAdditionalSales - totalExpenses - totalSalaries;
+
+  // Build unified P&L by month
+  const allMonths = new Set<string>();
+  data.monthly.forEach((d) => allMonths.add(d.month));
+  data.monthlyExpenses.forEach((d) => allMonths.add(d.month));
+  data.monthlyAdditionalSales.forEach((d) => allMonths.add(d.month));
+  data.monthlySalaries.forEach((d) => allMonths.add(d.month));
+  const pnlTable = Array.from(allMonths)
+    .sort()
+    .map((month) => {
+      const rev = data.monthly.find((d) => d.month === month)?.revenue || 0;
+      const rs =
+        data.monthlyAdditionalSales.find((d) => d.month === month)?.total || 0;
+      const exp =
+        data.monthlyExpenses.find((d) => d.month === month)?.total || 0;
+      const sal =
+        data.monthlySalaries.find((d) => d.month === month)?.total || 0;
+      return {
+        month,
+        revenue: rev,
+        additionalSales: rs,
+        expenses: exp,
+        salaries: sal,
+        net: rev + rs - exp - sal,
+      };
+    });
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -132,6 +180,17 @@ export default function RevenueReportPage() {
         <Kpi label="Collected" value={formatCurrency(collected)} />
         <Kpi label="Outstanding" value={formatCurrency(totalOutstanding)} />
         <Kpi label="Collection Rate" value={`${collectionRate.toFixed(1)}%`} />
+      </div>
+
+      {/* Business KPIs */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <Kpi
+          label="Additional Sales"
+          value={formatCurrency(totalAdditionalSales)}
+        />
+        <Kpi label="Total Expenses" value={formatCurrency(totalExpenses)} />
+        <Kpi label="Salaries" value={formatCurrency(totalSalaries)} />
+        <Kpi label="Net Profit" value={formatCurrency(netProfit)} />
       </div>
 
       {/* Monthly Revenue Table */}
@@ -255,6 +314,56 @@ export default function RevenueReportPage() {
             </BarChart>
           </ResponsiveContainer>
         </ChartCard>
+      </div>
+
+      {/* P&L Table */}
+      <div className="rounded-xl border border-border overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead className="bg-muted/50">
+            <tr>
+              <th className="text-left px-4 py-3 font-medium">Month</th>
+              <th className="text-right px-4 py-3 font-medium">Revenue</th>
+              <th className="text-right px-4 py-3 font-medium">Additional</th>
+              <th className="text-right px-4 py-3 font-medium">Total In</th>
+              <th className="text-right px-4 py-3 font-medium">Expenses</th>
+              <th className="text-right px-4 py-3 font-medium">Salaries</th>
+              <th className="text-right px-4 py-3 font-medium">Total Out</th>
+              <th className="text-right px-4 py-3 font-medium">Net</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border">
+            {pnlTable.map((row) => (
+              <tr key={row.month} className="hover:bg-muted/20">
+                <td className="px-4 py-3 font-mono text-xs">
+                  {formatMonth(row.month)}
+                </td>
+                <td className="px-4 py-3 text-right">
+                  {formatCurrency(row.revenue)}
+                </td>
+                <td className="px-4 py-3 text-right">
+                  {formatCurrency(row.additionalSales)}
+                </td>
+                <td className="px-4 py-3 text-right font-medium">
+                  {formatCurrency(row.revenue + row.additionalSales)}
+                </td>
+                <td className="px-4 py-3 text-right text-red-400">
+                  {formatCurrency(row.expenses)}
+                </td>
+                <td className="px-4 py-3 text-right text-red-400">
+                  {formatCurrency(row.salaries)}
+                </td>
+                <td className="px-4 py-3 text-right font-medium text-red-400">
+                  {formatCurrency(row.expenses + row.salaries)}
+                </td>
+                <td
+                  className={`px-4 py-3 text-right font-medium ${row.net >= 0 ? "text-green-400" : "text-red-400"}`}
+                >
+                  {formatCurrency(row.net)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
 
       {/* YoY Comparison */}

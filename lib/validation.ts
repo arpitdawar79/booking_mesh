@@ -16,6 +16,7 @@ export const bookingCreateSchema = z.object({
   checkOutTime: z.string().default("10:00 AM"),
   roomCount: z.coerce.number().int().min(1).default(1),
   roomType: z.string().default("Boutique Room"),
+  extraMattressCount: z.coerce.number().int().min(0).default(0),
   mealPlan: z.string().default("As per booking"),
   currency: z.string().default("INR"),
   totalAmount: z.coerce.number().min(0),
@@ -49,6 +50,7 @@ export const bookingUpdateSchema = z.object({
   checkOutTime: z.string().optional(),
   roomCount: z.coerce.number().int().min(1).optional(),
   roomType: z.string().optional(),
+  extraMattressCount: z.coerce.number().int().min(0).optional(),
   mealPlan: z.string().optional(),
   totalAmount: z.coerce.number().min(0).optional(),
   amountPaidOnline: z.coerce.number().min(0).optional(),
@@ -183,37 +185,29 @@ export const expenseUpdateSchema = z.object({
   notes: z.string().optional(),
 });
 
-export const restaurantSaleCreateSchema = z.object({
+export const additionalSaleCreateSchema = z.object({
   date: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format (yyyy-MM-dd)"),
-  itemName: z.string().min(1, "Item name is required"),
-  quantity: z.coerce
-    .number()
-    .int()
-    .min(1, "Quantity must be at least 1")
-    .default(1),
-  unitPrice: z.coerce.number().min(0, "Unit price must be positive"),
-  totalAmount: z.coerce.number().min(0, "Total amount must be positive"),
-  paymentMethod: z
-    .enum(["upi", "card", "cash", "bank_transfer"])
-    .default("cash"),
-  recordedBy: z.string().optional(),
+  guestName: z.string().min(1, "Guest name is required"),
+  saleType: z.enum(["restaurant", "activity", "stay"]).default("restaurant"),
+  guestType: z.enum(["outsider", "hotel_guest"]).default("outsider"),
+  amount: z.coerce.number().min(0, "Amount must be positive"),
+  paymentMethod: z.enum(["upi", "cash"]).default("cash"),
   notes: z.string().optional(),
 });
 
-export const restaurantSaleUpdateSchema = z.object({
+export const additionalSaleUpdateSchema = z.object({
   id: z.string().min(1),
   date: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/)
     .optional(),
-  itemName: z.string().min(1).optional(),
-  quantity: z.coerce.number().int().min(1).optional(),
-  unitPrice: z.coerce.number().min(0).optional(),
-  totalAmount: z.coerce.number().min(0).optional(),
-  paymentMethod: z.enum(["upi", "card", "cash", "bank_transfer"]).optional(),
-  recordedBy: z.string().optional(),
+  guestName: z.string().min(1).optional(),
+  saleType: z.enum(["restaurant", "activity", "stay"]).optional(),
+  guestType: z.enum(["outsider", "hotel_guest"]).optional(),
+  amount: z.coerce.number().min(0).optional(),
+  paymentMethod: z.enum(["upi", "cash"]).optional(),
   notes: z.string().optional(),
 });
 
@@ -223,11 +217,11 @@ export type GuestCreateInput = z.infer<typeof guestCreateSchema>;
 export type PaymentCreateInput = z.infer<typeof paymentCreateSchema>;
 export type ExpenseCreateInput = z.infer<typeof expenseCreateSchema>;
 export type ExpenseUpdateInput = z.infer<typeof expenseUpdateSchema>;
-export type RestaurantSaleCreateInput = z.infer<
-  typeof restaurantSaleCreateSchema
+export type AdditionalSaleCreateInput = z.infer<
+  typeof additionalSaleCreateSchema
 >;
-export type RestaurantSaleUpdateInput = z.infer<
-  typeof restaurantSaleUpdateSchema
+export type AdditionalSaleUpdateInput = z.infer<
+  typeof additionalSaleUpdateSchema
 >;
 
 export const employeeCreateSchema = z.object({

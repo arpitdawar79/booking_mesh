@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { restaurantSaleCreateSchema, restaurantSaleUpdateSchema } from "@/lib/validation";
+import { additionalSaleCreateSchema, additionalSaleUpdateSchema } from "@/lib/validation";
 import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
@@ -11,7 +11,7 @@ export async function GET(request: Request) {
   const pageSize = Math.min(100, Math.max(1, Number(searchParams.get("pageSize") || "20")));
 
   if (id) {
-    const sale = await prisma.restaurantSale.findUnique({ where: { id } });
+    const sale = await prisma.additionalSale.findUnique({ where: { id } });
     if (!sale) {
       return NextResponse.json({ error: "Sale not found" }, { status: 404 });
     }
@@ -28,24 +28,23 @@ export async function GET(request: Request) {
   if (search.trim()) {
     const q = search.trim();
     where.OR = [
-      { itemName: { contains: q, mode: "insensitive" } },
+      { guestName: { contains: q, mode: "insensitive" } },
       { notes: { contains: q, mode: "insensitive" } },
-      { recordedBy: { contains: q, mode: "insensitive" } },
     ];
   }
 
   const [sales, total] = await Promise.all([
-    prisma.restaurantSale.findMany({
+    prisma.additionalSale.findMany({
       where,
       orderBy: { date: "desc" },
       skip: (page - 1) * pageSize,
       take: pageSize,
     }),
-    prisma.restaurantSale.count({ where }),
+    prisma.additionalSale.count({ where }),
   ]);
 
-  const summary = await prisma.restaurantSale.aggregate({
-    _sum: { totalAmount: true, quantity: true },
+  const summary = await prisma.additionalSale.aggregate({
+    _sum: { amount: true },
     where,
   });
 
@@ -56,15 +55,14 @@ export async function GET(request: Request) {
     pageSize,
     totalPages: Math.ceil(total / pageSize),
     summary: {
-      totalAmount: Number(summary._sum?.totalAmount || 0),
-      totalQuantity: Number(summary._sum?.quantity || 0),
+      totalAmount: Number(summary._sum?.amount || 0),
     },
   });
 }
 
 export async function POST(request: Request) {
   const body = await request.json().catch(() => ({}));
-  const parsed = restaurantSaleCreateSchema.safeParse(body);
+  const parsed = additionalSaleCreateSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(
       {
@@ -76,19 +74,15 @@ export async function POST(request: Request) {
   }
 
   const data = parsed.data;
-  // Auto-compute totalAmount if it doesn't match quantity * unitPrice
-  const computedTotal = Number(data.unitPrice) * data.quantity;
-  const totalAmount = Math.abs(Number(data.totalAmount) - computedTotal) < 0.01 ? data.totalAmount : computedTotal;
 
-  const sale = await prisma.restaurantSale.create({
+  const sale = await prisma.additionalSale.create({
     data: {
       date: new Date(data.date),
-      itemName: data.itemName,
-      quantity: data.quantity,
-      unitPrice: data.unitPrice,
-      totalAmount,
+      guestName: data.guestName,
+      saleType: data.saleType,
+      guestType: data.guestType,
+      amount: data.amount,
       paymentMethod: data.paymentMethod,
-      recordedBy: data.recordedBy || null,
       notes: data.notes || null,
     },
   });
@@ -98,7 +92,7 @@ export async function POST(request: Request) {
 
 export async function PATCH(request: Request) {
   const body = await request.json().catch(() => ({}));
-  const parsed = restaurantSaleUpdateSchema.safeParse(body);
+  const parsed = additionalSaleUpdateSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(
       {
@@ -110,26 +104,21 @@ export async function PATCH(request: Request) {
   }
 
   const data = parsed.data;
-  const existing = await prisma.restaurantSale.findUnique({ where: { id: data.id } });
+  const existing = await prisma.additionalSale.findUnique({ where: { id: data.id } });
   if (!existing) {
     return NextResponse.json({ error: "Sale not found" }, { status: 404 });
   }
 
   const updateData: Record<string, unknown> = {};
   if (data.date !== undefined) updateData.date = new Date(data.date);
-  if (data.itemName !== undefined) updateData.itemName = data.itemName;
-  if (data.quantity !== undefined) updateData.quantity = data.quantity;
-  if (data.unitPrice !== undefined) updateData.unitPrice = data.unitPrice;
+  if (data.guestName !== undefined) updateData.guestName = data.guestName;
+  if (data.saleType !== undefined) updateData.saleType = data.saleType;
+  if (data.guestType !== undefined) updateData.guestType = data.guestType;
+  if (data.amount !== undefined) updateData.amount = data.amount;
   if (data.paymentMethod !== undefined) updateData.paymentMethod = data.paymentMethod;
-  if (data.recordedBy !== undefined) updateData.recordedBy = data.recordedBy || null;
   if (data.notes !== undefined) updateData.notes = data.notes || null;
 
-  // Recompute totalAmount if quantity or unitPrice changed
-  const qty = (updateData.quantity as number) ?? existing.quantity;
-  const price = (updateData.unitPrice as number) ?? Number(existing.unitPrice);
-  updateData.totalAmount = Number(qty) * Number(price);
-
-  const sale = await prisma.restaurantSale.update({
+  const sale = await prisma.additionalSale.update({
     where: { id: data.id },
     data: updateData,
   });
@@ -144,6 +133,6 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: "ID required" }, { status: 400 });
   }
 
-  await prisma.restaurantSale.delete({ where: { id } });
+  await prisma.additionalSale.delete({ where: { id } });
   return NextResponse.json({ success: true });
 }

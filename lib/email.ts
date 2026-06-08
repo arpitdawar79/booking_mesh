@@ -1,5 +1,6 @@
 import nodemailer from "nodemailer";
 import React from "react";
+import { formatDate } from "./utils";
 
 import { AdminDailyDigestEmail } from "@/emails/admin-daily-digest-email";
 import { BookingConfirmationEmail } from "@/emails/booking-confirmation-email";
@@ -69,15 +70,10 @@ function generateUpiQrUrl(booking: Booking): string | undefined {
   return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upiString)}`;
 }
 
-function formatDate(date: Date | string): string {
-  if (date instanceof Date) return date.toISOString().split("T")[0];
-  return String(date);
-}
-
 function bookingToProps(booking: Booking) {
   return {
     bookingId: booking.bookingId,
-    bookingDate: booking.bookingDate.toISOString().split("T")[0],
+    bookingDate: formatDate(booking.bookingDate),
     guestFirstName: booking.guestFirstName,
     guestFullName: booking.guestFullName,
     guestEmail: booking.guestEmail,
@@ -90,6 +86,7 @@ function bookingToProps(booking: Booking) {
     nightCount: String(booking.nightCount),
     roomCount: String(booking.roomCount),
     roomType: booking.roomType,
+    extraMattressCount: String(booking.extraMattressCount),
     mealPlan: booking.mealPlan,
     currency: booking.currency,
     totalBookingAmount: formatAmount(booking.totalAmount),
@@ -225,6 +222,7 @@ export async function renderAdminDigestHtml(
     nightCount: number;
     roomCount: number;
     roomType: string;
+    extraMattressCount: number;
     mealPlan: string;
     adultCount: number;
     childCount: number;
@@ -248,6 +246,7 @@ export async function renderAdminDigestHtml(
     nightCount: number;
     roomCount: number;
     roomType: string;
+    extraMattressCount: number;
     mealPlan: string;
     adultCount: number;
     childCount: number;

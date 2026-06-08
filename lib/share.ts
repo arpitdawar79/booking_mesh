@@ -1,17 +1,20 @@
 import type { Booking } from "@prisma/client";
+import { formatDate } from "./utils";
 
 export function formatBookingSummary(booking: Booking): string {
   const currency = booking.currency || "INR";
   const total = Number(booking.totalAmount).toLocaleString("en-IN");
   const paid = Number(booking.amountPaidOnline).toLocaleString("en-IN");
   const balance = Number(booking.balanceAmount).toLocaleString("en-IN");
+  const checkIn = formatDate(booking.checkInDate);
+  const checkOut = formatDate(booking.checkOutDate);
 
   return `
 *Booking Confirmation – The Stream by Ekantah*
 
 *Guest:* ${booking.guestFullName}
 *Booking ID:* #${booking.bookingId}
-*Dates:* ${booking.checkInDate} → ${booking.checkOutDate} (${booking.nightCount} nights)
+*Dates:* ${checkIn} → ${checkOut} (${booking.nightCount} nights)
 *Rooms:* ${booking.roomCount} × ${booking.roomType}
 *Guests:* ${booking.adultCount} adults${booking.childCount ? `, ${booking.childCount} children` : ""}
 
@@ -35,14 +38,16 @@ We look forward to hosting you!
 export function formatPaymentReminder(booking: Booking): string {
   const currency = booking.currency || "INR";
   const balance = Number(booking.balanceAmount).toLocaleString("en-IN");
+  const checkIn = formatDate(booking.checkInDate);
+  const checkOut = formatDate(booking.checkOutDate);
 
   return `
 Hi ${booking.guestFirstName},
 
 This is a friendly reminder that your booking *#${booking.bookingId}* at *The Stream by Ekantah* has an outstanding balance of *${currency} ${balance}*.
 
-Check-in: ${booking.checkInDate}
-Check-out: ${booking.checkOutDate}
+Check-in: ${checkIn}
+Check-out: ${checkOut}
 
 Please settle the balance before arrival. Reply to this message for payment details.\n\nCaretaker: ${booking.caretakerNumber} (Ram)
 

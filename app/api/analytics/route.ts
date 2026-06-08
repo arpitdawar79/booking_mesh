@@ -155,6 +155,91 @@ export async function GET() {
     ORDER BY date ASC
   `;
 
+  // Monthly expenses
+  const monthlyExpenses = await prisma.$queryRaw<
+    Array<{ month: string; total: number }>
+  >`
+    SELECT 
+      TO_CHAR(date, 'YYYY-MM') as month,
+      COALESCE(SUM(amount), 0) as total
+    FROM expenses
+    WHERE date >= ${startOfYear}
+      AND date < ${endOfYear}
+    GROUP BY TO_CHAR(date, 'YYYY-MM')
+    ORDER BY month ASC
+  `;
+
+  // Monthly additional sales
+  const monthlyAdditionalSales = await prisma.$queryRaw<
+    Array<{ month: string; total: number }>
+  >`
+    SELECT 
+      TO_CHAR(date, 'YYYY-MM') as month,
+      COALESCE(SUM(amount), 0) as total
+    FROM additional_sales
+    WHERE date >= ${startOfYear}
+      AND date < ${endOfYear}
+    GROUP BY TO_CHAR(date, 'YYYY-MM')
+    ORDER BY month ASC
+  `;
+
+  // Monthly salaries
+  const monthlySalaries = await prisma.$queryRaw<
+    Array<{ month: string; total: number }>
+  >`
+    SELECT 
+      CONCAT(year, '-', LPAD(month::text, 2, '0')) as month,
+      COALESCE(SUM(net_salary), 0) as total
+    FROM salary_slips
+    WHERE year = ${currentYear}
+    GROUP BY year, month
+    ORDER BY year ASC, month ASC
+  `;
+
+  // Expense category breakdown (current year)
+  const expenseCategories = await prisma.$queryRaw<
+    Array<{ category: string; total: number }>
+  >`
+    SELECT 
+      category,
+      COALESCE(SUM(amount), 0) as total
+    FROM expenses
+    WHERE date >= ${startOfYear}
+      AND date < ${endOfYear}
+    GROUP BY category
+    ORDER BY total DESC
+  `;
+
+  // Top sale types (current year)
+  const topSaleTypes = await prisma.$queryRaw<
+    Array<{ sale_type: string; revenue: number }>
+  >`
+    SELECT 
+      sale_type,
+      COALESCE(SUM(amount), 0) as revenue
+    FROM additional_sales
+    WHERE date >= ${startOfYear}
+      AND date < ${endOfYear}
+    GROUP BY sale_type
+    ORDER BY revenue DESC
+  `;
+
+  // Total expenses, additional sales, salaries (all-time/current year for quick KPIs)
+  const totalExpensesAgg = await prisma.expense.aggregate({
+    _sum: { amount: true },
+    where: { date: { gte: startOfYear, lt: endOfYear } },
+  });
+
+  const totalAdditionalSalesAgg = await prisma.additionalSale.aggregate({
+    _sum: { amount: true },
+    where: { date: { gte: startOfYear, lt: endOfYear } },
+  });
+
+  const totalSalariesAgg = await prisma.salarySlip.aggregate({
+    _sum: { netSalary: true },
+    where: { year: currentYear },
+  });
+
   return NextResponse.json({
     monthly: monthlyData.map(
       (d: {
@@ -243,5 +328,40 @@ export async function GET() {
         revenue: Number(d.revenue),
       }),
     ),
+    monthlyExpenses: monthlyExpenses.map(
+      (d: { month: string; total: number }) => ({
+        month: d.month,
+        total: Number(d.total),
+      }),
+    ),
+    monthlyAdditionalSales: monthlyAdditionalSales.map(
+      (d: { month: string; total: number }) => ({
+        month: d.month,
+        total: Number(d.total),
+      }),
+    ),
+    monthlySalaries: monthlySalaries.map(
+      (d: { month: string; total: number }) => ({
+        month: d.month,
+        total: Number(d.total),
+      }),
+    ),
+    expenseCategories: expenseCategories.map(
+      (d: { category: string; total: number }) => ({
+        category: d.category,
+        total: Number(d.total),
+      }),
+    ),
+    topSaleTypes: topSaleTypes.map(
+      (d: { sale_type: string; revenue: number }) => ({
+        saleType: d.sale_type,
+        revenue: Number(d.revenue),
+      }),
+    ),
+    totals: {
+      expenses: Number(totalExpensesAgg._sum?.amount || 0),
+      additionalSales: Number(totalAdditionalSalesAgg._sum?.amount || 0),
+      salaries: Number(totalSalariesAgg._sum?.netSalary || 0),
+    },
   });
 }
