@@ -9,8 +9,6 @@ import {
     Copy,
     Eye,
     IndianRupee,
-    Mail,
-    MessageCircle,
     PlusCircle,
     Search,
     TrendingUp,
@@ -114,42 +112,9 @@ export default function BookingsPage() {
       });
   }, [page, pageSize, filter, search]);
 
-  async function handleQuickEmail(booking: Booking) {
-    if (!booking.guestEmail) {
-      alert("No guest email on file. Open the booking to send manually.");
-      return;
-    }
-    const res = await fetch("/api/send-email", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        bookingId: booking.id,
-        type: "booking_confirmation",
-        to: [booking.guestEmail],
-      }),
-    });
-    const json = await res.json();
-    alert(json.success ? "Email sent!" : json.error || "Failed to send.");
-  }
-
   function handleCopy(bookingId: string) {
     setCopiedId(bookingId);
     setTimeout(() => setCopiedId(null), 2000);
-  }
-
-  async function handleWhatsApp(booking: Booking) {
-    const text = `Booking confirmation #%23${booking.bookingId} for ${booking.guestFullName}. Dates: ${formatDate(booking.checkInDate)} to ${formatDate(booking.checkOutDate)} (${booking.nightCount} nights). Total: ₹${booking.totalAmount}. The Stream by Ekantah.`;
-    const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
-    window.open(url, "_blank");
-  }
-
-  function handleDownloadPdf(booking: Booking) {
-    const w = window.open(`/dashboard/booking/${booking.id}?pdf=1`, "_blank");
-    if (w) {
-      setTimeout(() => {
-        w.print();
-      }, 800);
-    }
   }
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
@@ -308,20 +273,6 @@ export default function BookingsPage() {
                       <Eye className="w-4 h-4" />
                     </Link>
                     <button
-                      onClick={() => handleQuickEmail(b)}
-                      className="p-1.5 rounded-md hover:bg-muted transition"
-                      title="Send Confirmation Email"
-                    >
-                      <Mail className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => handleWhatsApp(b)}
-                      className="p-1.5 rounded-md hover:bg-muted transition"
-                      title="Share on WhatsApp"
-                    >
-                      <MessageCircle className="w-4 h-4" />
-                    </button>
-                    <button
                       onClick={() => handleCopy(b.id)}
                       className="p-1.5 rounded-md hover:bg-muted transition min-w-[40px]"
                       title="Copy Summary"
@@ -398,20 +349,6 @@ export default function BookingsPage() {
                         >
                           <Eye className="w-4 h-4" />
                         </Link>
-                        <button
-                          onClick={() => handleQuickEmail(b)}
-                          className="p-1.5 rounded-md hover:bg-muted transition"
-                          title="Send Confirmation Email"
-                        >
-                          <Mail className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleWhatsApp(b)}
-                          className="p-1.5 rounded-md hover:bg-muted transition"
-                          title="Share on WhatsApp"
-                        >
-                          <MessageCircle className="w-4 h-4" />
-                        </button>
                         <button
                           onClick={() => handleCopy(b.id)}
                           className="p-1.5 rounded-md hover:bg-muted transition"

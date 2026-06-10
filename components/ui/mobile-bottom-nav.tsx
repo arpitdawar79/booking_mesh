@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -25,14 +26,15 @@ export function MobileBottomNav({
     <nav
       className={cn(
         "fixed bottom-0 left-0 right-0 z-50",
-        "bg-background/90 backdrop-blur-xl border-t border-border",
+        "bg-background/80 backdrop-blur-2xl border-t border-border/50",
         "lg:hidden",
         "pb-[env(safe-area-inset-bottom)]",
+        "shadow-2xl shadow-black/40",
         className,
       )}
       aria-label="Mobile navigation"
     >
-      <div className="flex items-center justify-around h-16 px-2">
+      <div className="flex items-center justify-around h-16 px-4">
         {items.map((item) => (
           <NavButton key={item.href} {...item} onClick={onItemClick} />
         ))}
@@ -55,12 +57,13 @@ function NavButton({
       href={href}
       onClick={onClick}
       className={cn(
-        "flex flex-col items-center justify-center gap-0.5",
-        "min-w-14 h-full px-1 rounded-lg",
+        "relative flex flex-col items-center justify-center gap-1",
+        "min-w-14 h-14 px-1 rounded-xl",
         "select-none",
-        "transition-colors duration-150",
-        "active:opacity-70",
-        isActive ? "text-teal-400" : "text-muted-foreground",
+        "transition-colors duration-200",
+        isActive
+          ? "text-teal-400"
+          : "text-muted-foreground hover:text-foreground",
       )}
       style={{
         WebkitTapHighlightColor: "transparent",
@@ -68,13 +71,31 @@ function NavButton({
       }}
       aria-current={isActive ? "page" : undefined}
     >
-      <span className="relative flex items-center justify-center w-6 h-6">
+      {/* Morphed Background Active Pill */}
+      {isActive && (
+        <motion.div
+          layoutId="activeBottomNavTab"
+          className="absolute inset-x-1.5 inset-y-1 rounded-2xl bg-teal-500/10 border border-teal-500/15 -z-10"
+          transition={{ type: "spring", stiffness: 380, damping: 30 }}
+        />
+      )}
+
+      {/* Active Tab Glow Dome */}
+      {isActive && (
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-1 bg-teal-400 blur-sm rounded-full" />
+      )}
+
+      <motion.span
+        animate={isActive ? { scale: 1.15 } : { scale: 1 }}
+        transition={{ type: "spring", stiffness: 400, damping: 20 }}
+        className="relative flex items-center justify-center w-6 h-6"
+      >
         {icon}
-        {isActive && (
-          <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-teal-400" />
-        )}
+      </motion.span>
+
+      <span className="text-[9px] font-bold tracking-tight uppercase leading-none">
+        {label}
       </span>
-      <span className="text-[10px] font-medium leading-none">{label}</span>
     </Link>
   );
 }

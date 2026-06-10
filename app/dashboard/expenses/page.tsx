@@ -1,19 +1,21 @@
 "use client";
 
 import { Pagination } from "@/components/ui/pagination";
+import { SlideOver } from "@/components/ui/slide-over";
+import { useToast } from "@/components/ui/toast";
 import {
-  ArrowLeft,
-  CalendarDays,
-  ClipboardList,
-  IndianRupee,
-  Pencil,
-  PlusCircle,
-  Receipt,
-  Search,
-  Trash2,
-  X,
+    CalendarDays,
+    ClipboardList,
+    IndianRupee,
+    Pencil,
+    PlusCircle,
+    Receipt,
+    Search,
+    Trash2,
+    X,
+    Zap,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 interface Expense {
   id: string;
@@ -39,7 +41,10 @@ const CATEGORY_LABELS: Record<string, string> = {
   misc: "Miscellaneous",
 };
 
-const CATEGORY_OPTIONS = Object.entries(CATEGORY_LABELS).map(([value, label]) => ({ value, label }));
+const CATEGORY_OPTIONS = Object.entries(CATEGORY_LABELS).map(
+  ([value, label]) => ({ value, label }),
+);
+const PAYMENT_OPTIONS = ["cash", "upi", "card", "bank_transfer"];
 
 function fmtDate(d: string | Date): string {
   if (!d) return "";
@@ -48,10 +53,11 @@ function fmtDate(d: string | Date): string {
 }
 
 function fmtCurrency(n: number): string {
-  return `₹${Number(n).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return `\u20b9${Number(n).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 export default function ExpensesPage() {
+  const { success, error } = useToast();
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -60,15 +66,16 @@ export default function ExpensesPage() {
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [totalAmount, setTotalAmount] = useState(0);
-  const [showForm, setShowForm] = useState(false);
+  const [slideOpen, setSlideOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [shortcutLabel, setShortcutLabel] = useState("Ctrl+E");
   const pageSize = 20;
 
   useEffect(() => {
-    setPage(1);
-  }, [search, category, month]);
+    setShortcutLabel(navigator.platform.includes("Mac") ? "⌘E" : "Ctrl+E");
+  }, []);
 
-  useEffect(() => {
+  const loadData = useCallback(() => {
     setLoading(true);
     const params = new URLSearchParams();
     params.set("page", String(page));
@@ -86,18 +93,62 @@ export default function ExpensesPage() {
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, [page, pageSize, search, category, month]);
+  }, [page, search, category, month]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [search, category, month]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("action") === "add") {
+      setSlideOpen(true);
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }, []);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "e") {
+        e.preventDefault();
+        setEditingId(null);
+        setSlideOpen(true);
+      }
+      if (e.key === "Escape" && slideOpen) {
+        setSlideOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [slideOpen]);
 
   async function handleDelete(id: string) {
     if (!confirm("Delete this expense?")) return;
     const res = await fetch(`/api/expenses?id=${id}`, { method: "DELETE" });
     if (res.ok) {
+      success("Expense deleted");
       setExpenses((prev) => prev.filter((e) => e.id !== id));
       setTotal((t) => t - 1);
+    } else {
+      error("Failed to delete expense");
     }
   }
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
+
+  function openAdd() {
+    setEditingId(null);
+    setSlideOpen(true);
+  }
+
+  function openEdit(id: string) {
+    setEditingId(id);
+    setSlideOpen(true);
+  }
 
   return (
     <div className="space-y-6">
@@ -107,18 +158,17 @@ export default function ExpensesPage() {
           Expense Ledger
         </h1>
         <button
-          onClick={() => {
-            setEditingId(null);
-            setShowForm(true);
-          }}
+          onClick={openAdd}
           className="rounded-lg bg-foreground text-background px-4 py-1.5 text-xs font-semibold hover:opacity-90 active:scale-[0.98] transition flex items-center gap-1 self-start"
         >
           <PlusCircle className="w-3.5 h-3.5" />
           Add Expense
+          <span className="hidden sm:inline ml-1 text-[10px] opacity-70">
+            {shortcutLabel}
+          </span>
         </button>
       </div>
 
-      {/* Filters */}
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative">
           <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
@@ -162,38 +212,40 @@ export default function ExpensesPage() {
         )}
       </div>
 
-      {/* Summary */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <SummaryCard icon={<ClipboardList className="w-5 h-5 text-teal-400" />} label="Total Entries" value={total} />
-        <SummaryCard icon={<IndianRupee className="w-5 h-5 text-emerald-400" />} label="Total Amount" value={fmtCurrency(totalAmount)} />
-        <SummaryCard icon={<CalendarDays className="w-5 h-5 text-blue-400" />} label="Period" value={month || "All time"} />
+        <SummaryCard
+          icon={<ClipboardList className="w-5 h-5 text-teal-400" />}
+          label="Total Entries"
+          value={total}
+        />
+        <SummaryCard
+          icon={<IndianRupee className="w-5 h-5 text-emerald-400" />}
+          label="Total Amount"
+          value={fmtCurrency(totalAmount)}
+        />
+        <SummaryCard
+          icon={<CalendarDays className="w-5 h-5 text-blue-400" />}
+          label="Period"
+          value={month || "All time"}
+        />
       </div>
 
-      {showForm && (
+      <SlideOver
+        open={slideOpen}
+        onClose={() => setSlideOpen(false)}
+        title={editingId ? "Edit Expense" : "Add Expense"}
+      >
         <ExpenseForm
           editingId={editingId}
-          onClose={() => setShowForm(false)}
           onSaved={() => {
-            setShowForm(false);
+            setSlideOpen(false);
             setEditingId(null);
             setPage(1);
-            // trigger reload
-            const params = new URLSearchParams();
-            params.set("page", String(1));
-            params.set("pageSize", String(pageSize));
-            if (search.trim()) params.set("search", search.trim());
-            if (category) params.set("category", category);
-            if (month) params.set("month", month);
-            fetch(`/api/expenses?${params}`)
-              .then((r) => r.json())
-              .then((data) => {
-                setExpenses(data.expenses || []);
-                setTotal(data.total || 0);
-                setTotalAmount(data.summary?.totalAmount || 0);
-              });
+            loadData();
           }}
+          onClose={() => setSlideOpen(false)}
         />
-      )}
+      </SlideOver>
 
       {loading && expenses.length === 0 ? (
         <div className="text-muted-foreground">Loading expenses...</div>
@@ -209,33 +261,42 @@ export default function ExpensesPage() {
                 <tr>
                   <th className="text-left px-4 py-3 font-medium">Date</th>
                   <th className="text-left px-4 py-3 font-medium">Category</th>
-                  <th className="text-left px-4 py-3 font-medium">Description</th>
+                  <th className="text-left px-4 py-3 font-medium">
+                    Description
+                  </th>
                   <th className="text-left px-4 py-3 font-medium">Amount</th>
                   <th className="text-left px-4 py-3 font-medium">Method</th>
-                  <th className="text-left px-4 py-3 font-medium">Recorded By</th>
+                  <th className="text-left px-4 py-3 font-medium">
+                    Recorded By
+                  </th>
                   <th className="text-left px-4 py-3 font-medium">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
                 {expenses.map((e) => (
                   <tr key={e.id} className="hover:bg-muted/30">
-                    <td className="px-4 py-3 text-muted-foreground">{fmtDate(e.date)}</td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      {fmtDate(e.date)}
+                    </td>
                     <td className="px-4 py-3">
                       <span className="rounded-full bg-muted px-2 py-0.5 text-xs">
                         {CATEGORY_LABELS[e.category] || e.category}
                       </span>
                     </td>
                     <td className="px-4 py-3">{e.description}</td>
-                    <td className="px-4 py-3 font-medium">{fmtCurrency(Number(e.amount))}</td>
-                    <td className="px-4 py-3 text-muted-foreground capitalize">{e.paymentMethod.replace("_", " ")}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{e.recordedBy || "—"}</td>
+                    <td className="px-4 py-3 font-medium">
+                      {fmtCurrency(Number(e.amount))}
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground capitalize">
+                      {e.paymentMethod.replace("_", " ")}
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      {e.recordedBy || "—"}
+                    </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1">
                         <button
-                          onClick={() => {
-                            setEditingId(e.id);
-                            setShowForm(true);
-                          }}
+                          onClick={() => openEdit(e.id)}
                           className="p-1.5 rounded-md hover:bg-muted transition"
                           title="Edit"
                         >
@@ -255,26 +316,50 @@ export default function ExpensesPage() {
               </tbody>
             </table>
           </div>
-          <Pagination page={page} totalPages={totalPages} total={total} onPageChange={setPage} />
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            total={total}
+            onPageChange={setPage}
+          />
         </>
       )}
     </div>
   );
 }
 
-function SummaryCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string | number }) {
+function SummaryCard({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string | number;
+}) {
   return (
     <div className="rounded-lg border border-border p-4 space-y-2">
       <div className="flex items-center gap-2">
         {icon}
-        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{label}</span>
+        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+          {label}
+        </span>
       </div>
       <div className="text-xl font-bold">{value}</div>
     </div>
   );
 }
 
-function ExpenseForm({ editingId, onClose, onSaved }: { editingId: string | null; onClose: () => void; onSaved: () => void }) {
+function ExpenseForm({
+  editingId,
+  onSaved,
+  onClose,
+}: {
+  editingId: string | null;
+  onSaved: () => void;
+  onClose: () => void;
+}) {
+  const { success, error } = useToast();
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState<Record<string, string>>({
     date: new Date().toISOString().split("T")[0],
@@ -306,7 +391,28 @@ function ExpenseForm({ editingId, onClose, onSaved }: { editingId: string | null
             });
           }
         });
+    } else {
+      setFormData({
+        date: new Date().toISOString().split("T")[0],
+        category: "misc",
+        description: "",
+        amount: "",
+        paymentMethod: "cash",
+        recordedBy: "",
+        receiptUrl: "",
+        notes: "",
+      });
     }
+  }, [editingId]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const el = document.getElementById(
+        "expense-description",
+      ) as HTMLInputElement | null;
+      el?.focus();
+    }, 150);
+    return () => clearTimeout(timer);
   }, [editingId]);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -324,9 +430,7 @@ function ExpenseForm({ editingId, onClose, onSaved }: { editingId: string | null
       notes: formData.notes || undefined,
     };
 
-    if (editingId) {
-      payload.id = editingId;
-    }
+    if (editingId) payload.id = editingId;
 
     const res = await fetch("/api/expenses", {
       method: editingId ? "PATCH" : "POST",
@@ -336,38 +440,40 @@ function ExpenseForm({ editingId, onClose, onSaved }: { editingId: string | null
 
     setSaving(false);
     if (res.ok) {
+      success(editingId ? "Expense updated" : "Expense added");
       onSaved();
     } else {
-      alert("Failed to save expense.");
+      error("Failed to save expense");
     }
   }
 
+  const update = (key: string, value: string) =>
+    setFormData((p) => ({ ...p, [key]: value }));
+
   return (
-    <div className="rounded-xl border border-border p-4 sm:p-6 space-y-4 bg-muted/10">
-      <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold">{editingId ? "Edit Expense" : "Add Expense"}</h2>
-        <button onClick={onClose} className="p-1 rounded-md hover:bg-muted transition">
-          <ArrowLeft className="w-4 h-4" />
-        </button>
-      </div>
-      <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-xs font-medium mb-1">Date <span className="text-red-400">*</span></label>
+          <label className="block text-xs font-medium mb-1">
+            Date <span className="text-red-400">*</span>
+          </label>
           <input
             type="date"
             required
             value={formData.date}
-            onChange={(e) => setFormData((p) => ({ ...p, date: e.target.value }))}
-            className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            onChange={(e) => update("date", e.target.value)}
+            className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
           />
         </div>
         <div>
-          <label className="block text-xs font-medium mb-1">Category <span className="text-red-400">*</span></label>
+          <label className="block text-xs font-medium mb-1">
+            Category <span className="text-red-400">*</span>
+          </label>
           <select
             required
             value={formData.category}
-            onChange={(e) => setFormData((p) => ({ ...p, category: e.target.value }))}
-            className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            onChange={(e) => update("category", e.target.value)}
+            className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
           >
             {CATEGORY_OPTIONS.map((c) => (
               <option key={c.value} value={c.value}>
@@ -377,47 +483,58 @@ function ExpenseForm({ editingId, onClose, onSaved }: { editingId: string | null
           </select>
         </div>
         <div>
-          <label className="block text-xs font-medium mb-1">Amount <span className="text-red-400">*</span></label>
+          <label className="block text-xs font-medium mb-1">
+            Amount <span className="text-red-400">*</span>
+          </label>
           <input
             type="number"
             required
             min={0}
             step="0.01"
             value={formData.amount}
-            onChange={(e) => setFormData((p) => ({ ...p, amount: e.target.value }))}
-            className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-          />
-        </div>
-        <div className="sm:col-span-2 lg:col-span-1">
-          <label className="block text-xs font-medium mb-1">Description <span className="text-red-400">*</span></label>
-          <input
-            type="text"
-            required
-            value={formData.description}
-            onChange={(e) => setFormData((p) => ({ ...p, description: e.target.value }))}
-            className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            onChange={(e) => update("amount", e.target.value)}
+            className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
           />
         </div>
         <div>
-          <label className="block text-xs font-medium mb-1">Payment Method</label>
+          <label className="block text-xs font-medium mb-1">
+            Payment Method
+          </label>
           <select
             value={formData.paymentMethod}
-            onChange={(e) => setFormData((p) => ({ ...p, paymentMethod: e.target.value }))}
-            className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            onChange={(e) => update("paymentMethod", e.target.value)}
+            className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
           >
-            <option value="cash">Cash</option>
-            <option value="upi">UPI</option>
-            <option value="card">Card</option>
-            <option value="bank_transfer">Bank Transfer</option>
+            {PAYMENT_OPTIONS.map((m) => (
+              <option key={m} value={m}>
+                {m.replace("_", " ")}
+              </option>
+            ))}
           </select>
         </div>
+      </div>
+      <div>
+        <label className="block text-xs font-medium mb-1">
+          Description <span className="text-red-400">*</span>
+        </label>
+        <input
+          id="expense-description"
+          type="text"
+          required
+          value={formData.description}
+          onChange={(e) => update("description", e.target.value)}
+          className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+          placeholder="What was this expense for?"
+        />
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="block text-xs font-medium mb-1">Recorded By</label>
           <input
             type="text"
             value={formData.recordedBy}
-            onChange={(e) => setFormData((p) => ({ ...p, recordedBy: e.target.value }))}
-            className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            onChange={(e) => update("recordedBy", e.target.value)}
+            className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
           />
         </div>
         <div>
@@ -425,36 +542,38 @@ function ExpenseForm({ editingId, onClose, onSaved }: { editingId: string | null
           <input
             type="url"
             value={formData.receiptUrl}
-            onChange={(e) => setFormData((p) => ({ ...p, receiptUrl: e.target.value }))}
-            className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            onChange={(e) => update("receiptUrl", e.target.value)}
+            className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
           />
         </div>
-        <div className="sm:col-span-2 lg:col-span-2">
-          <label className="block text-xs font-medium mb-1">Notes</label>
-          <input
-            type="text"
-            value={formData.notes}
-            onChange={(e) => setFormData((p) => ({ ...p, notes: e.target.value }))}
-            className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-          />
-        </div>
-        <div className="flex items-end gap-2">
-          <button
-            type="submit"
-            disabled={saving}
-            className="rounded-lg bg-foreground text-background px-4 py-2 text-xs font-semibold hover:opacity-90 disabled:opacity-50 active:scale-[0.98] transition"
-          >
-            {saving ? "Saving..." : editingId ? "Update" : "Save"}
-          </button>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-lg border border-border px-4 py-2 text-xs font-medium hover:bg-muted transition"
-          >
-            Cancel
-          </button>
-        </div>
-      </form>
-    </div>
+      </div>
+      <div>
+        <label className="block text-xs font-medium mb-1">Notes</label>
+        <input
+          type="text"
+          value={formData.notes}
+          onChange={(e) => update("notes", e.target.value)}
+          className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+          placeholder="Optional notes..."
+        />
+      </div>
+      <div className="flex items-center gap-2 pt-2">
+        <button
+          type="submit"
+          disabled={saving}
+          className="flex items-center gap-1.5 rounded-lg bg-foreground text-background px-4 py-2 text-xs font-semibold hover:opacity-90 disabled:opacity-50 active:scale-[0.98] transition"
+        >
+          <Zap className="w-3.5 h-3.5" />
+          {saving ? "Saving..." : editingId ? "Update" : "Save"}
+        </button>
+        <button
+          type="button"
+          onClick={onClose}
+          className="rounded-lg border border-border px-4 py-2 text-xs font-medium hover:bg-muted transition"
+        >
+          Cancel
+        </button>
+      </div>
+    </form>
   );
 }

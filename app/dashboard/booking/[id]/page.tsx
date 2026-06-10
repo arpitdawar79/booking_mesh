@@ -7,9 +7,8 @@ import {
     Download,
     ExternalLink,
     MessageCircle,
+    Pencil,
     Printer,
-    Send,
-    Share2,
     Smartphone,
 } from "lucide-react";
 import { useParams } from "next/navigation";
@@ -88,6 +87,9 @@ export default function BookingDetailPage() {
     isConnected: boolean;
     qrCode: string | null;
   } | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState<Partial<Booking>>({});
+  const [savingEdit, setSavingEdit] = useState(false);
 
   useEffect(() => {
     fetch(`/api/bookings?id=${id}`)
@@ -334,98 +336,49 @@ We look forward to hosting you!
     }
   }
 
-  async function handleWhatsAppShare() {
+  function startEdit() {
     if (!booking) return;
-
-    // Try native file share first (on mobile this shows WhatsApp as an option)
-    const blob = await generatePdfBlob();
-    if (blob) {
-      const file = new File([blob], `Booking_${booking.bookingId}.pdf`, {
-        type: "application/pdf",
-      });
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        try {
-          await navigator.share({
-            title: `Booking ${booking.bookingId}`,
-            text: `Booking confirmation for ${booking.guestFullName}`,
-            files: [file],
-          });
-          return;
-        } catch {
-          // user cancelled or share failed — fall through to text-only
-        }
-      }
-    }
-
-    // Fallback: download PDF + open WhatsApp with text
-    if (blob) {
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `Booking_${booking.bookingId}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }
-
-    const text = `Booking confirmation #${booking.bookingId} for ${booking.guestFullName}. Dates: ${formatDate(booking.checkInDate)} to ${formatDate(booking.checkOutDate)} (${booking.nightCount} nights). Total: ${booking.currency} ${Number(booking.totalAmount).toLocaleString("en-IN")}. The Stream by Ekantah.`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
+    setEditForm({
+      guestFullName: booking.guestFullName,
+      guestEmail: booking.guestEmail || "",
+      guestPhone: booking.guestPhone || "",
+      checkInDate: booking.checkInDate,
+      checkOutDate: booking.checkOutDate,
+      roomCount: booking.roomCount,
+      roomType: booking.roomType,
+      totalAmount: booking.totalAmount,
+      amountPaidOnline: booking.amountPaidOnline,
+      status: booking.status,
+      paymentStatus: booking.paymentStatus,
+      specialRequests: booking.specialRequests,
+    });
+    setIsEditing(true);
   }
 
-  function handleWhatsAppToGuest() {
-    if (!booking) return;
-    const text = `Hi ${booking.guestFirstName}, your booking at The Stream by Ekantah (#${booking.bookingId}) is confirmed. Check-in: ${formatDate(booking.checkInDate)}. We look forward to welcoming you!`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
+  function cancelEdit() {
+    setIsEditing(false);
+    setEditForm({});
   }
 
-  async function handleNativeShare() {
-    if (!booking) return;
-    const blob = await generatePdfBlob();
-    if (blob) {
-      const file = new File([blob], `Booking_${booking.bookingId}.pdf`, {
-        type: "application/pdf",
-      });
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        try {
-          await navigator.share({
-            title: `Booking ${booking.bookingId}`,
-            text: `Booking confirmation for ${booking.guestFullName}`,
-            files: [file],
-          });
-          return;
-        } catch {
-          // user cancelled
-          return;
-        }
-      }
-    }
-
-    // Fallback to text-only share
-    const text = `Booking #${booking.bookingId} – ${booking.guestFullName}. Dates: ${formatDate(booking.checkInDate)} to ${formatDate(booking.checkOutDate)}. Total: ${booking.currency} ${Number(booking.totalAmount).toLocaleString("en-IN")}.`;
-    if (navigator.share) {
-      navigator
-        .share({ title: `Booking ${booking.bookingId}`, text })
-        .catch(() => {});
+  async function handleEditSave(e: React.FormEvent) {
+    e.preventDefault();
+    if (!booking || !editForm) return;
+    setSavingEdit(true);
+    const res = await fetch("/api/bookings", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: booking.id, ...editForm }),
+    });
+    const json = await res.json();
+    setSavingEdit(false);
+    if (json.booking) {
+      setBooking(json.booking);
+      setIsEditing(false);
+      setEditForm({});
+      alert("Booking updated successfully.");
     } else {
-      alert("Native sharing not supported on this device.");
+      alert(json.error || "Failed to update booking.");
     }
-  }
-
-  function handlePaymentReminder() {
-    if (!booking) return;
-    if (!booking.guestEmail) {
-      alert("No guest email on file.");
-      return;
-    }
-    const balance = Number(booking.balanceAmount);
-    if (balance <= 0) {
-      alert("No outstanding balance.");
-      return;
-    }
-    const subject = `Payment Reminder – Booking #${booking.bookingId}`;
-    const body = `Hi ${booking.guestFirstName},%0A%0AThis is a friendly reminder that your booking *#${booking.bookingId}* at *The Stream by Ekantah* has an outstanding balance of *${booking.currency} ${balance.toLocaleString("en-IN")}*.%0A%0ACheck-in: ${formatDate(booking.checkInDate)}%0ACheck-out: ${formatDate(booking.checkOutDate)}%0A%0APlease settle the balance before arrival. Reply for payment details.%0A%0AThank you!`;
-    window.location.href = `mailto:${booking.guestEmail}?subject=${encodeURIComponent(subject)}&body=${body}`;
   }
 
   if (loading) return <div className="text-muted-foreground">Loading...</div>;
@@ -442,14 +395,24 @@ We look forward to hosting you!
           </h1>
           <div className="flex items-center gap-2 shrink-0">
             {booking.status === "confirmed" && (
-              <button
-                type="button"
-                onClick={handleCancel}
-                disabled={cancelling}
-                className="rounded-lg border border-red-500/50 text-red-400 px-3 py-1.5 text-xs font-medium hover:bg-red-900/20 disabled:opacity-50 whitespace-nowrap"
-              >
-                {cancelling ? "Cancelling..." : "Cancel"}
-              </button>
+              <>
+                <button
+                  type="button"
+                  onClick={startEdit}
+                  className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium hover:bg-muted transition flex items-center gap-1 whitespace-nowrap"
+                >
+                  <Pencil className="w-3 h-3" />
+                  Edit
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCancel}
+                  disabled={cancelling}
+                  className="rounded-lg border border-red-500/50 text-red-400 px-3 py-1.5 text-xs font-medium hover:bg-red-900/20 disabled:opacity-50 whitespace-nowrap"
+                >
+                  {cancelling ? "Cancelling..." : "Cancel"}
+                </button>
+              </>
             )}
             <span
               className={`rounded-full px-2.5 py-1 text-[11px] font-medium ${
@@ -506,16 +469,6 @@ We look forward to hosting you!
               onClick={handleCopySummary}
             />
             <ActionButton
-              icon={<Share2 className="w-4 h-4" />}
-              label="Native Share"
-              onClick={handleNativeShare}
-            />
-            <ActionButton
-              icon={<Send className="w-4 h-4" />}
-              label="Payment Reminder"
-              onClick={handlePaymentReminder}
-            />
-            <ActionButton
               icon={<ExternalLink className="w-4 h-4" />}
               label="Open Map"
               onClick={() => window.open(booking.mapLink, "_blank")}
@@ -523,81 +476,276 @@ We look forward to hosting you!
           </div>
         </div>
 
-        <div className="rounded-xl border border-border p-4 sm:p-6 space-y-4 text-sm">
-          <Section title="Guest">
-            <Detail label="Name" value={booking.guestFullName} />
-            <Detail label="Email" value={booking.guestEmail} />
-            <Detail label="Phone" value={booking.guestPhone || "—"} />
-            <Detail
-              label="Guests"
-              value={`${booking.adultCount} adults, ${booking.childCount} children`}
-            />
-          </Section>
+        {isEditing ? (
+          <form
+            onSubmit={handleEditSave}
+            className="rounded-xl border border-border p-4 sm:p-6 space-y-5 text-sm"
+          >
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-semibold">Edit Booking</h2>
+              <button
+                type="button"
+                onClick={cancelEdit}
+                className="text-xs text-muted-foreground hover:text-foreground"
+              >
+                Cancel
+              </button>
+            </div>
 
-          <Section title="Stay">
-            <Detail
-              label="Check-in"
-              value={`${formatDate(booking.checkInDate)} after ${booking.checkInTime}`}
-            />
-            <Detail
-              label="Check-out"
-              value={`${formatDate(booking.checkOutDate)} by ${booking.checkOutTime}`}
-            />
-            <Detail label="Nights" value={String(booking.nightCount)} />
-            <Detail
-              label="Rooms"
-              value={`${booking.roomCount} × ${booking.roomType}`}
-            />
-            {booking.extraMattressCount > 0 && (
+            <div className="space-y-3">
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Guest
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <EditField
+                  label="Full Name"
+                  value={editForm.guestFullName || ""}
+                  onChange={(v) =>
+                    setEditForm((prev) => ({ ...prev, guestFullName: v }))
+                  }
+                />
+                <EditField
+                  label="Email"
+                  value={editForm.guestEmail || ""}
+                  onChange={(v) =>
+                    setEditForm((prev) => ({ ...prev, guestEmail: v }))
+                  }
+                />
+                <EditField
+                  label="Phone"
+                  value={editForm.guestPhone || ""}
+                  onChange={(v) =>
+                    setEditForm((prev) => ({ ...prev, guestPhone: v }))
+                  }
+                />
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Stay
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <EditField
+                  label="Check-in Date"
+                  type="date"
+                  value={editForm.checkInDate || ""}
+                  onChange={(v) =>
+                    setEditForm((prev) => ({ ...prev, checkInDate: v }))
+                  }
+                />
+                <EditField
+                  label="Check-out Date"
+                  type="date"
+                  value={editForm.checkOutDate || ""}
+                  onChange={(v) =>
+                    setEditForm((prev) => ({ ...prev, checkOutDate: v }))
+                  }
+                />
+                <EditField
+                  label="Room Count"
+                  type="number"
+                  value={String(editForm.roomCount || 1)}
+                  onChange={(v) =>
+                    setEditForm((prev) => ({
+                      ...prev,
+                      roomCount: Number(v),
+                    }))
+                  }
+                />
+                <EditField
+                  label="Room Type"
+                  value={editForm.roomType || ""}
+                  onChange={(v) =>
+                    setEditForm((prev) => ({ ...prev, roomType: v }))
+                  }
+                />
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Payment
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <EditField
+                  label="Total Amount"
+                  type="number"
+                  value={String(editForm.totalAmount || 0)}
+                  onChange={(v) =>
+                    setEditForm((prev) => ({
+                      ...prev,
+                      totalAmount: Number(v),
+                    }))
+                  }
+                />
+                <EditField
+                  label="Paid Online"
+                  type="number"
+                  value={String(editForm.amountPaidOnline || 0)}
+                  onChange={(v) =>
+                    setEditForm((prev) => ({
+                      ...prev,
+                      amountPaidOnline: Number(v),
+                    }))
+                  }
+                />
+                <div>
+                  <label className="block text-xs font-medium mb-1">
+                    Status
+                  </label>
+                  <select
+                    value={editForm.status || ""}
+                    onChange={(e) =>
+                      setEditForm((prev) => ({
+                        ...prev,
+                        status: e.target.value,
+                      }))
+                    }
+                    className="w-full rounded-lg border border-input bg-background px-2 py-1.5 text-sm"
+                  >
+                    <option value="confirmed">confirmed</option>
+                    <option value="cancelled">cancelled</option>
+                    <option value="completed">completed</option>
+                    <option value="archived">archived</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium mb-1">
+                    Payment Status
+                  </label>
+                  <select
+                    value={editForm.paymentStatus || ""}
+                    onChange={(e) =>
+                      setEditForm((prev) => ({
+                        ...prev,
+                        paymentStatus: e.target.value,
+                      }))
+                    }
+                    className="w-full rounded-lg border border-input bg-background px-2 py-1.5 text-sm"
+                  >
+                    <option value="pending">pending</option>
+                    <option value="partially_paid">partially_paid</option>
+                    <option value="paid_in_full">paid_in_full</option>
+                    <option value="refunded">refunded</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Notes
+              </h3>
+              <div>
+                <label className="block text-xs font-medium mb-1">
+                  Special Requests / Loss of Pay Note
+                </label>
+                <textarea
+                  value={editForm.specialRequests || ""}
+                  onChange={(e) =>
+                    setEditForm((prev) => ({
+                      ...prev,
+                      specialRequests: e.target.value,
+                    }))
+                  }
+                  rows={3}
+                  className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm"
+                  placeholder="e.g. Guest stayed 3 of 5 days. Adjusted total to 3 days rate."
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <button
+                type="submit"
+                disabled={savingEdit}
+                className="flex-1 rounded-lg bg-foreground text-background px-4 py-2 text-sm font-semibold hover:opacity-90 disabled:opacity-50"
+              >
+                {savingEdit ? "Saving..." : "Save Changes"}
+              </button>
+            </div>
+          </form>
+        ) : (
+          <div className="rounded-xl border border-border p-4 sm:p-6 space-y-4 text-sm">
+            <Section title="Guest">
+              <Detail label="Name" value={booking.guestFullName} />
+              <Detail label="Email" value={booking.guestEmail} />
+              <Detail label="Phone" value={booking.guestPhone || "—"} />
               <Detail
-                label="Extra Mattresses"
-                value={`${booking.extraMattressCount} room${booking.extraMattressCount > 1 ? "s" : ""}`}
+                label="Guests"
+                value={`${booking.adultCount} adults, ${booking.childCount} children`}
               />
-            )}
-            <Detail label="Meal Plan" value={booking.mealPlan} />
-          </Section>
+            </Section>
 
-          <Section title="Payment">
-            <Detail
-              label="Total"
-              value={`${booking.currency} ${Number(booking.totalAmount).toLocaleString("en-IN")}`}
-            />
-            <Detail
-              label="Paid Online"
-              value={`${booking.currency} ${Number(booking.amountPaidOnline).toLocaleString("en-IN")}`}
-            />
-            <Detail
-              label="Balance"
-              value={`${booking.currency} ${Number(booking.balanceAmount).toLocaleString("en-IN")}`}
-            />
-            <Detail label="Status" value={booking.paymentStatus} />
-          </Section>
+            <Section title="Stay">
+              <Detail
+                label="Check-in"
+                value={`${formatDate(booking.checkInDate)} after ${booking.checkInTime}`}
+              />
+              <Detail
+                label="Check-out"
+                value={`${formatDate(booking.checkOutDate)} by ${booking.checkOutTime}`}
+              />
+              <Detail label="Nights" value={String(booking.nightCount)} />
+              <Detail
+                label="Rooms"
+                value={`${booking.roomCount} × ${booking.roomType}`}
+              />
+              {booking.extraMattressCount > 0 && (
+                <Detail
+                  label="Extra Mattresses"
+                  value={`${booking.extraMattressCount} room${booking.extraMattressCount > 1 ? "s" : ""}`}
+                />
+              )}
+              <Detail label="Meal Plan" value={booking.mealPlan} />
+            </Section>
 
-          <Section title="Property">
-            <Detail label="Address" value={booking.propertyAddress} />
-            <Detail label="Phone" value={booking.propertyPhone} />
-            <Detail label="Email" value={booking.propertyEmail} />
-            <Detail label="Care Taker" value={booking.caretakerNumber} />
-            <Detail label="Parking" value={booking.parkingDetails} />
-            <Detail
-              label="Map"
-              value={
-                <a
-                  href={booking.mapLink}
-                  target="_blank"
-                  className="underline text-muted-foreground hover:text-foreground"
-                >
-                  Open Map
-                </a>
-              }
-            />
-          </Section>
+            <Section title="Payment">
+              <Detail
+                label="Total"
+                value={`${booking.currency} ${Number(booking.totalAmount).toLocaleString("en-IN")}`}
+              />
+              <Detail
+                label="Paid Online"
+                value={`${booking.currency} ${Number(booking.amountPaidOnline).toLocaleString("en-IN")}`}
+              />
+              <Detail
+                label="Balance"
+                value={`${booking.currency} ${Number(booking.balanceAmount).toLocaleString("en-IN")}`}
+              />
+              <Detail label="Status" value={booking.paymentStatus} />
+            </Section>
 
-          <Section title="Policies">
-            <Detail label="Cancellation" value={booking.cancellationPolicy} />
-            <Detail label="Special Requests" value={booking.specialRequests} />
-          </Section>
-        </div>
+            <Section title="Property">
+              <Detail label="Address" value={booking.propertyAddress} />
+              <Detail label="Phone" value={booking.propertyPhone} />
+              <Detail label="Email" value={booking.propertyEmail} />
+              <Detail label="Care Taker" value={booking.caretakerNumber} />
+              <Detail label="Parking" value={booking.parkingDetails} />
+              <Detail
+                label="Map"
+                value={
+                  <a
+                    href={booking.mapLink}
+                    target="_blank"
+                    className="underline text-muted-foreground hover:text-foreground"
+                  >
+                    Open Map
+                  </a>
+                }
+              />
+            </Section>
+
+            <Section title="Policies">
+              <Detail label="Cancellation" value={booking.cancellationPolicy} />
+              <Detail
+                label="Special Requests"
+                value={booking.specialRequests}
+              />
+            </Section>
+          </div>
+        )}
 
         <div className="rounded-lg border border-border p-6">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-4">
@@ -832,5 +980,29 @@ function ActionButton({
       {icon}
       <span className="text-[11px]">{label}</span>
     </button>
+  );
+}
+
+function EditField({
+  label,
+  type = "text",
+  value,
+  onChange,
+}: {
+  label: string;
+  type?: string;
+  value: string;
+  onChange: (val: string) => void;
+}) {
+  return (
+    <div>
+      <label className="block text-xs font-medium mb-1">{label}</label>
+      <input
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full rounded-lg border border-input bg-background px-2 py-1.5 text-sm"
+      />
+    </div>
   );
 }

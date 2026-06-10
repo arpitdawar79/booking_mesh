@@ -1,19 +1,21 @@
 "use client";
 
 import { Pagination } from "@/components/ui/pagination";
+import { SlideOver } from "@/components/ui/slide-over";
+import { useToast } from "@/components/ui/toast";
 import {
-  ArrowLeft,
-  CalendarDays,
-  ClipboardList,
-  IndianRupee,
-  Pencil,
-  PlusCircle,
-  Search,
-  Trash2,
-  ShoppingCart,
-  X,
+    CalendarDays,
+    ClipboardList,
+    IndianRupee,
+    Pencil,
+    PlusCircle,
+    Search,
+    ShoppingCart,
+    Trash2,
+    X,
+    Zap,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 interface AdditionalSale {
   id: string;
@@ -34,14 +36,28 @@ function fmtDate(d: string | Date): string {
 }
 
 function fmtCurrency(n: number): string {
-  return `₹${Number(n).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return `\u20b9${Number(n).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 function fmtLabel(key: string): string {
   return key.replace(/_/g, " ");
 }
 
+const SALE_TYPE_OPTIONS = [
+  { value: "restaurant", label: "Restaurant" },
+  { value: "activity", label: "Activity" },
+  { value: "stay", label: "Stay" },
+];
+
+const GUEST_TYPE_OPTIONS = [
+  { value: "outsider", label: "Outsider" },
+  { value: "hotel_guest", label: "Hotel Guest" },
+];
+
+const PAYMENT_OPTIONS = ["cash", "upi"];
+
 export default function AdditionalSalesPage() {
+  const { success, error } = useToast();
   const [sales, setSales] = useState<AdditionalSale[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -49,15 +65,16 @@ export default function AdditionalSalesPage() {
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [totalAmount, setTotalAmount] = useState(0);
-  const [showForm, setShowForm] = useState(false);
+  const [slideOpen, setSlideOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [shortcutLabel, setShortcutLabel] = useState("Ctrl+S");
   const pageSize = 20;
 
   useEffect(() => {
-    setPage(1);
-  }, [search, month]);
+    setShortcutLabel(navigator.platform.includes("Mac") ? "⌘S" : "Ctrl+S");
+  }, []);
 
-  useEffect(() => {
+  const loadData = useCallback(() => {
     setLoading(true);
     const params = new URLSearchParams();
     params.set("page", String(page));
@@ -74,18 +91,64 @@ export default function AdditionalSalesPage() {
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, [page, pageSize, search, month]);
+  }, [page, search, month]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [search, month]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("action") === "add") {
+      setSlideOpen(true);
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }, []);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "s") {
+        e.preventDefault();
+        setEditingId(null);
+        setSlideOpen(true);
+      }
+      if (e.key === "Escape" && slideOpen) {
+        setSlideOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [slideOpen]);
 
   async function handleDelete(id: string) {
     if (!confirm("Delete this sale entry?")) return;
-    const res = await fetch(`/api/additional-sales?id=${id}`, { method: "DELETE" });
+    const res = await fetch(`/api/additional-sales?id=${id}`, {
+      method: "DELETE",
+    });
     if (res.ok) {
+      success("Sale deleted");
       setSales((prev) => prev.filter((s) => s.id !== id));
       setTotal((t) => t - 1);
+    } else {
+      error("Failed to delete sale");
     }
   }
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
+
+  function openAdd() {
+    setEditingId(null);
+    setSlideOpen(true);
+  }
+
+  function openEdit(id: string) {
+    setEditingId(id);
+    setSlideOpen(true);
+  }
 
   return (
     <div className="space-y-6">
@@ -95,18 +158,17 @@ export default function AdditionalSalesPage() {
           Additional Sale Ledger
         </h1>
         <button
-          onClick={() => {
-            setEditingId(null);
-            setShowForm(true);
-          }}
+          onClick={openAdd}
           className="rounded-lg bg-foreground text-background px-4 py-1.5 text-xs font-semibold hover:opacity-90 active:scale-[0.98] transition flex items-center gap-1 self-start"
         >
           <PlusCircle className="w-3.5 h-3.5" />
           Add Sale
+          <span className="hidden sm:inline ml-1 text-[10px] opacity-70">
+            {shortcutLabel}
+          </span>
         </button>
       </div>
 
-      {/* Filters */}
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative">
           <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
@@ -137,36 +199,40 @@ export default function AdditionalSalesPage() {
         )}
       </div>
 
-      {/* Summary */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <SummaryCard icon={<ClipboardList className="w-5 h-5 text-teal-400" />} label="Total Entries" value={total} />
-        <SummaryCard icon={<IndianRupee className="w-5 h-5 text-emerald-400" />} label="Total Amount" value={fmtCurrency(totalAmount)} />
-        <SummaryCard icon={<CalendarDays className="w-5 h-5 text-blue-400" />} label="Period" value={month || "All time"} />
+        <SummaryCard
+          icon={<ClipboardList className="w-5 h-5 text-teal-400" />}
+          label="Total Entries"
+          value={total}
+        />
+        <SummaryCard
+          icon={<IndianRupee className="w-5 h-5 text-emerald-400" />}
+          label="Total Amount"
+          value={fmtCurrency(totalAmount)}
+        />
+        <SummaryCard
+          icon={<CalendarDays className="w-5 h-5 text-blue-400" />}
+          label="Period"
+          value={month || "All time"}
+        />
       </div>
 
-      {showForm && (
+      <SlideOver
+        open={slideOpen}
+        onClose={() => setSlideOpen(false)}
+        title={editingId ? "Edit Sale" : "Add Sale"}
+      >
         <SaleForm
           editingId={editingId}
-          onClose={() => setShowForm(false)}
           onSaved={() => {
-            setShowForm(false);
+            setSlideOpen(false);
             setEditingId(null);
             setPage(1);
-            const params = new URLSearchParams();
-            params.set("page", String(1));
-            params.set("pageSize", String(pageSize));
-            if (search.trim()) params.set("search", search.trim());
-            if (month) params.set("month", month);
-            fetch(`/api/additional-sales?${params}`)
-              .then((r) => r.json())
-              .then((data) => {
-                setSales(data.sales || []);
-                setTotal(data.total || 0);
-                setTotalAmount(data.summary?.totalAmount || 0);
-              });
+            loadData();
           }}
+          onClose={() => setSlideOpen(false)}
         />
-      )}
+      </SlideOver>
 
       {loading && sales.length === 0 ? (
         <div className="text-muted-foreground">Loading sales...</div>
@@ -183,7 +249,9 @@ export default function AdditionalSalesPage() {
                   <th className="text-left px-4 py-3 font-medium">Date</th>
                   <th className="text-left px-4 py-3 font-medium">Guest</th>
                   <th className="text-left px-4 py-3 font-medium">Sale Type</th>
-                  <th className="text-left px-4 py-3 font-medium">Guest Type</th>
+                  <th className="text-left px-4 py-3 font-medium">
+                    Guest Type
+                  </th>
                   <th className="text-left px-4 py-3 font-medium">Amount</th>
                   <th className="text-left px-4 py-3 font-medium">Method</th>
                   <th className="text-left px-4 py-3 font-medium">Notes</th>
@@ -193,20 +261,29 @@ export default function AdditionalSalesPage() {
               <tbody className="divide-y divide-border">
                 {sales.map((s) => (
                   <tr key={s.id} className="hover:bg-muted/30">
-                    <td className="px-4 py-3 text-muted-foreground">{fmtDate(s.date)}</td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      {fmtDate(s.date)}
+                    </td>
                     <td className="px-4 py-3">{s.guestName}</td>
-                    <td className="px-4 py-3 capitalize">{fmtLabel(s.saleType)}</td>
-                    <td className="px-4 py-3 capitalize">{fmtLabel(s.guestType)}</td>
-                    <td className="px-4 py-3 font-medium">{fmtCurrency(Number(s.amount))}</td>
-                    <td className="px-4 py-3 text-muted-foreground uppercase">{s.paymentMethod}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{s.notes || "—"}</td>
+                    <td className="px-4 py-3 capitalize">
+                      {fmtLabel(s.saleType)}
+                    </td>
+                    <td className="px-4 py-3 capitalize">
+                      {fmtLabel(s.guestType)}
+                    </td>
+                    <td className="px-4 py-3 font-medium">
+                      {fmtCurrency(Number(s.amount))}
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground uppercase">
+                      {s.paymentMethod}
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      {s.notes || "—"}
+                    </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1">
                         <button
-                          onClick={() => {
-                            setEditingId(s.id);
-                            setShowForm(true);
-                          }}
+                          onClick={() => openEdit(s.id)}
                           className="p-1.5 rounded-md hover:bg-muted transition"
                           title="Edit"
                         >
@@ -226,26 +303,50 @@ export default function AdditionalSalesPage() {
               </tbody>
             </table>
           </div>
-          <Pagination page={page} totalPages={totalPages} total={total} onPageChange={setPage} />
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            total={total}
+            onPageChange={setPage}
+          />
         </>
       )}
     </div>
   );
 }
 
-function SummaryCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string | number }) {
+function SummaryCard({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string | number;
+}) {
   return (
     <div className="rounded-lg border border-border p-4 space-y-2">
       <div className="flex items-center gap-2">
         {icon}
-        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{label}</span>
+        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+          {label}
+        </span>
       </div>
       <div className="text-xl font-bold">{value}</div>
     </div>
   );
 }
 
-function SaleForm({ editingId, onClose, onSaved }: { editingId: string | null; onClose: () => void; onSaved: () => void }) {
+function SaleForm({
+  editingId,
+  onSaved,
+  onClose,
+}: {
+  editingId: string | null;
+  onSaved: () => void;
+  onClose: () => void;
+}) {
+  const { success, error } = useToast();
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState<Record<string, string>>({
     date: new Date().toISOString().split("T")[0],
@@ -275,7 +376,27 @@ function SaleForm({ editingId, onClose, onSaved }: { editingId: string | null; o
             });
           }
         });
+    } else {
+      setFormData({
+        date: new Date().toISOString().split("T")[0],
+        guestName: "",
+        saleType: "restaurant",
+        guestType: "outsider",
+        amount: "",
+        paymentMethod: "cash",
+        notes: "",
+      });
     }
+  }, [editingId]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const el = document.getElementById(
+        "sale-guest",
+      ) as HTMLInputElement | null;
+      el?.focus();
+    }, 150);
+    return () => clearTimeout(timer);
   }, [editingId]);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -292,9 +413,7 @@ function SaleForm({ editingId, onClose, onSaved }: { editingId: string | null; o
       notes: formData.notes || undefined,
     };
 
-    if (editingId) {
-      payload.id = editingId;
-    }
+    if (editingId) payload.id = editingId;
 
     const res = await fetch("/api/additional-sales", {
       method: editingId ? "PATCH" : "POST",
@@ -304,115 +423,137 @@ function SaleForm({ editingId, onClose, onSaved }: { editingId: string | null; o
 
     setSaving(false);
     if (res.ok) {
+      success(editingId ? "Sale updated" : "Sale added");
       onSaved();
     } else {
-      alert("Failed to save sale.");
+      error("Failed to save sale");
     }
   }
 
+  const update = (key: string, value: string) =>
+    setFormData((p) => ({ ...p, [key]: value }));
+
   return (
-    <div className="rounded-xl border border-border p-4 sm:p-6 space-y-4 bg-muted/10">
-      <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold">{editingId ? "Edit Sale" : "Add Sale"}</h2>
-        <button onClick={onClose} className="p-1 rounded-md hover:bg-muted transition">
-          <ArrowLeft className="w-4 h-4" />
-        </button>
-      </div>
-      <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-xs font-medium mb-1">Date <span className="text-red-400">*</span></label>
+          <label className="block text-xs font-medium mb-1">
+            Date <span className="text-red-400">*</span>
+          </label>
           <input
             type="date"
             required
             value={formData.date}
-            onChange={(e) => setFormData((p) => ({ ...p, date: e.target.value }))}
-            className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            onChange={(e) => update("date", e.target.value)}
+            className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
           />
         </div>
         <div>
-          <label className="block text-xs font-medium mb-1">Guest Name <span className="text-red-400">*</span></label>
+          <label className="block text-xs font-medium mb-1">
+            Guest Name <span className="text-red-400">*</span>
+          </label>
           <input
+            id="sale-guest"
             type="text"
             required
             value={formData.guestName}
-            onChange={(e) => setFormData((p) => ({ ...p, guestName: e.target.value }))}
-            className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            onChange={(e) => update("guestName", e.target.value)}
+            className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            placeholder="Who is this for?"
           />
         </div>
         <div>
-          <label className="block text-xs font-medium mb-1">Sale Type <span className="text-red-400">*</span></label>
+          <label className="block text-xs font-medium mb-1">
+            Sale Type <span className="text-red-400">*</span>
+          </label>
           <select
             required
             value={formData.saleType}
-            onChange={(e) => setFormData((p) => ({ ...p, saleType: e.target.value }))}
-            className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            onChange={(e) => update("saleType", e.target.value)}
+            className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
           >
-            <option value="restaurant">Restaurant</option>
-            <option value="activity">Activity</option>
-            <option value="stay">Stay</option>
+            {SALE_TYPE_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
           </select>
         </div>
         <div>
-          <label className="block text-xs font-medium mb-1">Guest Type <span className="text-red-400">*</span></label>
+          <label className="block text-xs font-medium mb-1">
+            Guest Type <span className="text-red-400">*</span>
+          </label>
           <select
             required
             value={formData.guestType}
-            onChange={(e) => setFormData((p) => ({ ...p, guestType: e.target.value }))}
-            className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            onChange={(e) => update("guestType", e.target.value)}
+            className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
           >
-            <option value="outsider">Outsider</option>
-            <option value="hotel_guest">Hotel Guest</option>
+            {GUEST_TYPE_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
           </select>
         </div>
         <div>
-          <label className="block text-xs font-medium mb-1">Amount <span className="text-red-400">*</span></label>
+          <label className="block text-xs font-medium mb-1">
+            Amount <span className="text-red-400">*</span>
+          </label>
           <input
             type="number"
             required
             min={0}
             step="0.01"
             value={formData.amount}
-            onChange={(e) => setFormData((p) => ({ ...p, amount: e.target.value }))}
-            className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            onChange={(e) => update("amount", e.target.value)}
+            className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
           />
         </div>
         <div>
-          <label className="block text-xs font-medium mb-1">Payment Method</label>
+          <label className="block text-xs font-medium mb-1">
+            Payment Method
+          </label>
           <select
             value={formData.paymentMethod}
-            onChange={(e) => setFormData((p) => ({ ...p, paymentMethod: e.target.value }))}
-            className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            onChange={(e) => update("paymentMethod", e.target.value)}
+            className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
           >
-            <option value="cash">Cash</option>
-            <option value="upi">UPI</option>
+            {PAYMENT_OPTIONS.map((m) => (
+              <option key={m} value={m}>
+                {m.toUpperCase()}
+              </option>
+            ))}
           </select>
         </div>
-        <div className="sm:col-span-2 lg:col-span-3">
-          <label className="block text-xs font-medium mb-1">Notes</label>
-          <input
-            type="text"
-            value={formData.notes}
-            onChange={(e) => setFormData((p) => ({ ...p, notes: e.target.value }))}
-            className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-          />
-        </div>
-        <div className="flex items-end gap-2">
-          <button
-            type="submit"
-            disabled={saving}
-            className="rounded-lg bg-foreground text-background px-4 py-2 text-xs font-semibold hover:opacity-90 disabled:opacity-50 active:scale-[0.98] transition"
-          >
-            {saving ? "Saving..." : editingId ? "Update" : "Save"}
-          </button>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-lg border border-border px-4 py-2 text-xs font-medium hover:bg-muted transition"
-          >
-            Cancel
-          </button>
-        </div>
-      </form>
-    </div>
+      </div>
+      <div>
+        <label className="block text-xs font-medium mb-1">Notes</label>
+        <input
+          type="text"
+          value={formData.notes}
+          onChange={(e) => update("notes", e.target.value)}
+          className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+          placeholder="Optional notes..."
+        />
+      </div>
+      <div className="flex items-center gap-2 pt-2">
+        <button
+          type="submit"
+          disabled={saving}
+          className="flex items-center gap-1.5 rounded-lg bg-foreground text-background px-4 py-2 text-xs font-semibold hover:opacity-90 disabled:opacity-50 active:scale-[0.98] transition"
+        >
+          <Zap className="w-3.5 h-3.5" />
+          {saving ? "Saving..." : editingId ? "Update" : "Save"}
+        </button>
+        <button
+          type="button"
+          onClick={onClose}
+          className="rounded-lg border border-border px-4 py-2 text-xs font-medium hover:bg-muted transition"
+        >
+          Cancel
+        </button>
+      </div>
+    </form>
   );
 }
