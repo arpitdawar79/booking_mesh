@@ -26,18 +26,19 @@ export function MobileBottomNav({
     <nav
       className={cn(
         "fixed bottom-0 left-0 right-0 z-50",
-        "bg-background/80 backdrop-blur-2xl border-t border-border/50",
         "lg:hidden",
         "pb-[env(safe-area-inset-bottom)]",
-        "shadow-2xl shadow-black/40",
         className,
       )}
       aria-label="Mobile navigation"
     >
-      <div className="flex items-center justify-around h-16 px-4">
-        {items.map((item) => (
-          <NavButton key={item.href} {...item} onClick={onItemClick} />
-        ))}
+      {/* Floating dock-style container */}
+      <div className="mx-3 mb-3">
+        <div className="flex items-center justify-around h-15 px-2 rounded-3xl bg-background/70 backdrop-blur-3xl border border-border/40 shadow-[0_8px_40px_-4px_rgba(0,0,0,0.5)]">
+          {items.map((item) => (
+            <NavButton key={item.href} {...item} onClick={onItemClick} />
+          ))}
+        </div>
       </div>
     </nav>
   );

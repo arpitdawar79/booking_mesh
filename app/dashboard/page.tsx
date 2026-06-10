@@ -3,20 +3,22 @@
 import { KpiCard } from "@/components/dashboard/kpi-card";
 import { ModuleCard } from "@/components/dashboard/module-card";
 import { StatCard } from "@/components/dashboard/stat-card";
+import { NumberTicker } from "@/components/magicui/number-ticker";
 import { DashboardSkeleton } from "@/components/pwa/skeleton";
 import { formatDate } from "@/lib/utils";
+import { motion } from "framer-motion";
 import {
-    AlertCircle,
-    Banknote,
-    BarChart3,
-    CalendarCheck,
-    CalendarDays,
-    ChevronRight,
-    ClipboardList,
-    IndianRupee,
-    Receipt,
-    ShoppingCart,
-    Users,
+  AlertCircle,
+  Banknote,
+  BarChart3,
+  CalendarCheck,
+  ChevronRight,
+  ClipboardList,
+  IndianRupee,
+  Receipt,
+  ShoppingCart,
+  TrendingUp,
+  Users
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -99,111 +101,191 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold">Dashboard Overview</h1>
-        <p className="text-sm text-muted-foreground mt-1">
+      {/* Header with TextReveal */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+          Dashboard Overview
+        </h1>
+        <p className="text-sm text-muted-foreground/80 mt-1.5 font-medium">
           Quick summary across bookings, revenue, expenses, and payroll.
         </p>
-      </div>
+      </motion.div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      {/* KPI Row with NumberTicker */}
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.1 }}
+        className="grid grid-cols-2 lg:grid-cols-4 gap-3"
+      >
         <KpiCard
           label="Total Revenue"
-          value={formatCurrency(totalRevenue)}
+          value={
+            <NumberTicker
+              value={totalRevenue}
+              prefix="₹"
+              className="text-2xl sm:text-3xl font-extrabold tracking-tight text-emerald-400"
+            />
+          }
           change={null}
           suffix="bookings"
           icon={<IndianRupee className="w-5 h-5 text-emerald-400" />}
         />
         <KpiCard
           label="Additional Sales"
-          value={formatCurrency(totalAdditionalSales)}
+          value={
+            <NumberTicker
+              value={totalAdditionalSales}
+              prefix="₹"
+              className="text-2xl sm:text-3xl font-extrabold tracking-tight text-orange-400"
+            />
+          }
           change={null}
           suffix="this year"
           icon={<ShoppingCart className="w-5 h-5 text-orange-400" />}
         />
         <KpiCard
           label="Total Expenses"
-          value={formatCurrency(totalExpenses)}
+          value={
+            <NumberTicker
+              value={totalExpenses}
+              prefix="₹"
+              className="text-2xl sm:text-3xl font-extrabold tracking-tight text-rose-400"
+            />
+          }
           change={null}
           suffix="this year"
           icon={<Receipt className="w-5 h-5 text-rose-400" />}
         />
         <KpiCard
           label="Net Profit / Loss"
-          value={formatCurrency(netProfit)}
+          value={
+            <NumberTicker
+              value={netProfit}
+              prefix="₹"
+              className={`text-2xl sm:text-3xl font-extrabold tracking-tight ${netProfit >= 0 ? "text-emerald-400" : "text-rose-400"}`}
+            />
+          }
           change={null}
           suffix={netProfit >= 0 ? "in profit" : "in loss"}
           icon={<BarChart3 className="w-5 h-5 text-blue-400" />}
           accent={netProfit >= 0 ? "text-emerald-400" : "text-rose-400"}
         />
-      </div>
+      </motion.div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      {/* Stats Row */}
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+        className="grid grid-cols-2 lg:grid-cols-4 gap-3"
+      >
         <StatCard
           icon={<CalendarCheck className="w-5 h-5 text-teal-400" />}
           label="Total Bookings"
-          value={bookingStats?.counts.total || 0}
+          value={
+            <NumberTicker
+              value={bookingStats?.counts.total || 0}
+              className="text-2xl sm:text-3xl font-extrabold tracking-tight"
+            />
+          }
           sub={`+${bookingStats?.counts.thisMonth || 0} this month`}
         />
         <StatCard
           icon={<Users className="w-5 h-5 text-blue-400" />}
           label="Confirmed"
-          value={bookingStats?.counts.confirmed || 0}
+          value={
+            <NumberTicker
+              value={bookingStats?.counts.confirmed || 0}
+              className="text-2xl sm:text-3xl font-extrabold tracking-tight"
+            />
+          }
           sub={`${bookingStats?.occupancy.totalNights || 0} nights booked`}
         />
         <StatCard
           icon={<Banknote className="w-5 h-5 text-violet-400" />}
           label="Salaries"
-          value={formatCurrency(totalSalaries)}
+          value={
+            <NumberTicker
+              value={totalSalaries}
+              prefix="₹"
+              className="text-2xl sm:text-3xl font-extrabold tracking-tight"
+            />
+          }
           sub="payroll this year"
         />
         <StatCard
           icon={<AlertCircle className="w-5 h-5 text-amber-400" />}
           label="Outstanding"
-          value={formatCurrency(bookingStats?.revenue.outstanding || 0)}
+          value={
+            <NumberTicker
+              value={bookingStats?.revenue.outstanding || 0}
+              prefix="₹"
+              className="text-2xl sm:text-3xl font-extrabold tracking-tight"
+            />
+          }
           sub="to collect"
         />
-      </div>
+      </motion.div>
 
+      {/* Upcoming Check-ins */}
       {bookingStats && bookingStats.upcomingCheckins.length > 0 && (
-        <div className="rounded-xl border border-border p-4 space-y-3">
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+          className="rounded-2xl border border-border/60 bg-card/20 backdrop-blur-xl p-4 space-y-3"
+        >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <CalendarDays className="w-4 h-4 text-teal-400" />
-              <h2 className="text-sm font-semibold">Upcoming Check-ins</h2>
+              <div className="p-1.5 rounded-lg bg-teal-500/10 border border-teal-500/15">
+                <TrendingUp className="w-4 h-4 text-teal-400" />
+              </div>
+              <h2 className="text-sm font-bold">Upcoming Check-ins</h2>
             </div>
             <Link
               href="/dashboard/bookings"
-              className="text-xs text-teal-400 hover:underline flex items-center gap-0.5"
+              className="text-xs font-semibold text-teal-400 hover:text-teal-300 flex items-center gap-0.5 transition-colors"
             >
               View all <ChevronRight className="w-3 h-3" />
             </Link>
           </div>
-          <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 snap-x snap-mandatory">
+          <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 snap-x snap-mandatory scrollbar-hide">
             {bookingStats.upcomingCheckins.map((u) => (
               <Link
                 key={u.id}
                 href={`/dashboard/booking/${u.id}`}
-                className="min-w-[180px] snap-start rounded-xl border border-border bg-muted/20 p-3 hover:bg-muted/40 transition"
+                className="min-w-[180px] snap-start rounded-xl border border-border/50 bg-muted/10 p-3 hover:bg-muted/30 hover:border-teal-500/20 transition-all duration-300"
               >
-                <div className="text-xs text-muted-foreground">
+                <div className="text-[11px] font-medium text-teal-400 mb-1">
                   {formatDate(u.checkInDate)}
                 </div>
-                <div className="font-medium text-sm truncate">
+                <div className="font-semibold text-sm truncate">
                   {u.guestFullName}
                 </div>
-                <div className="text-xs mt-1">
+                <div className="text-xs text-muted-foreground/70 mt-1 font-medium">
                   {u.nightCount} nights · ₹
                   {Number(u.totalAmount).toLocaleString("en-IN")}
                 </div>
               </Link>
             ))}
           </div>
-        </div>
+        </motion.div>
       )}
 
-      <div>
-        <h2 className="text-sm font-semibold mb-3">Modules</h2>
+      {/* Modules Grid */}
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.4 }}
+      >
+        <h2 className="text-sm font-bold mb-3 uppercase tracking-wider text-muted-foreground/60">
+          Modules
+        </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           <ModuleCard
             href="/dashboard/bookings"
@@ -242,43 +324,59 @@ export default function DashboardPage() {
             description="Deep dive into revenue, occupancy & P&L."
           />
         </div>
-      </div>
+      </motion.div>
 
+      {/* Top Guests */}
       {analytics && analytics.topGuests.length > 0 && (
-        <div className="rounded-xl border border-border p-4 space-y-3">
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.5 }}
+          className="rounded-2xl border border-border/60 bg-card/20 backdrop-blur-xl p-4 space-y-3"
+        >
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold">Top Guests</h2>
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 rounded-lg bg-violet-500/10 border border-violet-500/15">
+                <Users className="w-4 h-4 text-violet-400" />
+              </div>
+              <h2 className="text-sm font-bold">Top Guests</h2>
+            </div>
             <Link
               href="/dashboard/guests"
-              className="text-xs text-teal-400 hover:underline flex items-center gap-0.5"
+              className="text-xs font-semibold text-teal-400 hover:text-teal-300 flex items-center gap-0.5 transition-colors"
             >
               View all <ChevronRight className="w-3 h-3" />
             </Link>
           </div>
-          <div className="space-y-2">
+          <div className="space-y-1">
             {analytics.topGuests.slice(0, 5).map((g, i) => (
-              <div
+              <motion.div
                 key={g.email}
-                className="flex items-center justify-between text-sm border-b border-border pb-2 last:border-0"
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.6 + i * 0.05 }}
+                className="flex items-center justify-between text-sm border-b border-border/40 py-2.5 last:border-0 hover:bg-muted/10 px-2 -mx-2 rounded-lg transition-colors"
               >
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="w-5 h-5 rounded-full bg-teal-500/10 text-teal-400 flex items-center justify-center text-xs font-bold shrink-0">
+                <div className="flex items-center gap-3 min-w-0">
+                  <span className="w-6 h-6 rounded-lg bg-teal-500/10 text-teal-400 flex items-center justify-center text-[10px] font-bold shrink-0">
                     {i + 1}
                   </span>
                   <div className="min-w-0">
-                    <div className="font-medium truncate">{g.name}</div>
-                    <div className="text-xs text-muted-foreground">
+                    <div className="font-semibold text-sm truncate">
+                      {g.name}
+                    </div>
+                    <div className="text-xs text-muted-foreground/70 font-medium">
                       {g.bookings} bookings · {g.nights} nights
                     </div>
                   </div>
                 </div>
-                <div className="font-medium text-right shrink-0">
+                <div className="font-bold text-right shrink-0 text-emerald-400 text-sm">
                   {formatCurrency(g.revenue)}
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
-        </div>
+        </motion.div>
       )}
     </div>
   );

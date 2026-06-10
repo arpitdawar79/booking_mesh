@@ -2,7 +2,8 @@
 
 import { useHaptic, useNetworkState } from "@/lib/pwa-hooks";
 import { SerwistProvider, useSerwist } from "@serwist/turbopack/react";
-import { RefreshCw, WifiOff } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { CloudOff, RefreshCw, Wifi } from "lucide-react";
 import { useEffect, useState } from "react";
 import { InstallPrompt } from "./install-prompt";
 
@@ -10,6 +11,7 @@ function PWAStatus() {
   const { serwist } = useSerwist();
   const { online } = useNetworkState();
   const [updateReady, setUpdateReady] = useState(false);
+  const [showOnline, setShowOnline] = useState(false);
   const haptic = useHaptic();
 
   useEffect(() => {
@@ -30,34 +32,68 @@ function PWAStatus() {
     };
   }, [serwist, haptic]);
 
-  if (!online) {
-    return (
-      <div className="pwa-toast" role="status">
-        <WifiOff className="h-4 w-4" />
-        <span>Offline</span>
-      </div>
-    );
-  }
+  useEffect(() => {
+    if (online) {
+      setShowOnline(true);
+      const t = setTimeout(() => setShowOnline(false), 2500);
+      return () => clearTimeout(t);
+    }
+  }, [online]);
 
-  if (updateReady) {
-    return (
-      <div className="pwa-toast pwa-toast-action" role="status">
-        <RefreshCw className="h-4 w-4" />
-        <span>Update ready</span>
-        <button
-          type="button"
-          onClick={() => {
-            haptic("medium");
-            serwist?.messageSkipWaiting();
-          }}
+  return (
+    <AnimatePresence>
+      {!online && (
+        <motion.div
+          initial={{ opacity: 0, y: 50, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 50, scale: 0.95 }}
+          transition={{ type: "spring", stiffness: 300, damping: 25 }}
+          className="pwa-toast"
+          role="status"
         >
-          Refresh
-        </button>
-      </div>
-    );
-  }
+          <CloudOff className="h-4 w-4 text-amber-400" />
+          <span>You're offline</span>
+        </motion.div>
+      )}
 
-  return null;
+      {online && showOnline && (
+        <motion.div
+          initial={{ opacity: 0, y: 50, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 50, scale: 0.95 }}
+          transition={{ type: "spring", stiffness: 300, damping: 25 }}
+          className="pwa-toast"
+          role="status"
+        >
+          <Wifi className="h-4 w-4 text-emerald-400" />
+          <span>Back online</span>
+        </motion.div>
+      )}
+
+      {updateReady && (
+        <motion.div
+          initial={{ opacity: 0, y: 50, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 50, scale: 0.95 }}
+          transition={{ type: "spring", stiffness: 300, damping: 25 }}
+          className="pwa-toast pwa-toast-action"
+          role="status"
+        >
+          <RefreshCw className="h-4 w-4 animate-spin" />
+          <span>Update ready</span>
+          <button
+            type="button"
+            onClick={() => {
+              haptic("medium");
+              serwist?.messageSkipWaiting();
+            }}
+          >
+            Refresh
+          </button>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
 }
 
 export function PWAShell({ children }: { children: React.ReactNode }) {

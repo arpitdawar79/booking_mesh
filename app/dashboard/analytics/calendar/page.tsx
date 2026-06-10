@@ -1,16 +1,17 @@
 "use client";
 
+import { motion } from "framer-motion";
 import {
-    ArrowLeft,
-    BedDouble,
-    ChevronLeft,
-    ChevronRight,
-    DoorOpen,
-    IndianRupee,
-    LogOutIcon,
-    Receipt,
-    ShoppingCart,
-    Users,
+  ArrowLeft,
+  BedDouble,
+  ChevronLeft,
+  ChevronRight,
+  DoorOpen,
+  IndianRupee,
+  LogOutIcon,
+  Receipt,
+  ShoppingCart,
+  Users,
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -119,12 +120,37 @@ export default function CalendarAnalyticsPage() {
   }
 
   if (loading) {
-    return <div className="text-muted-foreground">Loading calendar...</div>;
+    return (
+      <div className="space-y-6">
+        <div className="space-y-2">
+          <div className="h-8 w-48 bg-muted/30 rounded-lg animate-pulse" />
+          <div className="h-4 w-64 bg-muted/30 rounded-lg animate-pulse" />
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div
+              key={i}
+              className="rounded-2xl border border-border/60 bg-card/10 backdrop-blur-xl p-4 h-24 animate-pulse"
+            />
+          ))}
+        </div>
+        <div className="rounded-2xl border border-border/60 bg-card/10 backdrop-blur-xl h-96 animate-pulse" />
+      </div>
+    );
   }
 
   if (!data) {
     return (
-      <div className="text-muted-foreground">Failed to load calendar data.</div>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.97 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="rounded-2xl border border-border/60 bg-card/20 backdrop-blur-xl p-10 text-center"
+      >
+        <div className="text-4xl mb-3">⚠️</div>
+        <p className="text-sm text-muted-foreground font-medium">
+          Failed to load calendar data.
+        </p>
+      </motion.div>
     );
   }
 
@@ -133,17 +159,24 @@ export default function CalendarAnalyticsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+      >
         <div className="flex items-center gap-3">
           <Link
             href="/dashboard/analytics"
-            className="p-2 -ml-2 rounded-md hover:bg-muted transition"
+            className="p-2 -ml-2 rounded-xl hover:bg-muted/50 transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
-            <h1 className="text-2xl font-bold">Occupancy Calendar</h1>
-            <p className="text-sm text-muted-foreground">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+              Occupancy Calendar
+            </h1>
+            <p className="text-sm text-muted-foreground/80 font-medium">
               Daily rooms, guests, and revenue breakdown.
             </p>
           </div>
@@ -151,30 +184,35 @@ export default function CalendarAnalyticsPage() {
         <div className="flex items-center gap-2">
           <button
             onClick={goPrevMonth}
-            className="p-2 rounded-md border border-border hover:bg-muted transition"
+            className="p-2 rounded-xl border border-border/60 bg-card/20 backdrop-blur-xl hover:bg-muted/50 hover:border-teal-500/20 transition-all"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
-          <div className="px-4 py-2 rounded-md border border-border font-semibold min-w-[160px] text-center">
+          <div className="px-4 py-2 rounded-xl border border-border/60 bg-card/20 backdrop-blur-xl font-bold min-w-[160px] text-center text-sm">
             {MONTH_NAMES[month - 1]} {year}
           </div>
           <button
             onClick={goNextMonth}
-            className="p-2 rounded-md border border-border hover:bg-muted transition"
+            className="p-2 rounded-xl border border-border/60 bg-card/20 backdrop-blur-xl hover:bg-muted/50 hover:border-teal-500/20 transition-all"
           >
             <ChevronRight className="w-4 h-4" />
           </button>
           <button
             onClick={goToday}
-            className="px-3 py-2 rounded-md border border-border text-sm font-medium hover:bg-muted transition"
+            className="px-3 py-2 rounded-xl border border-border/60 bg-card/20 backdrop-blur-xl text-sm font-bold hover:bg-muted/50 hover:border-teal-500/20 transition-all"
           >
             Today
           </button>
         </div>
-      </div>
+      </motion.div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.1 }}
+        className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3"
+      >
         <SummaryCard
           icon={<BedDouble className="w-4 h-4 text-teal-400" />}
           label="Avg Rooms/Night"
@@ -211,16 +249,21 @@ export default function CalendarAnalyticsPage() {
           value={formatCurrency(data.summary.totalExpenses)}
           sub="For the month"
         />
-      </div>
+      </motion.div>
 
       {/* Calendar Grid */}
-      <div className="rounded-xl border border-border overflow-hidden">
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+        className="rounded-2xl border border-border/60 overflow-hidden bg-card/10 backdrop-blur-xl"
+      >
         {/* Weekday headers */}
-        <div className="grid grid-cols-7 bg-muted/50 border-b border-border">
+        <div className="grid grid-cols-7 bg-muted/30 border-b border-border/50">
           {WEEKDAYS.map((day) => (
             <div
               key={day}
-              className="px-1 py-1.5 text-[10px] sm:text-xs font-semibold text-muted-foreground text-center uppercase tracking-wide"
+              className="px-1 py-2 text-[10px] sm:text-xs font-bold text-muted-foreground/60 text-center uppercase tracking-widest"
             >
               {day.slice(0, 3)}
             </div>
@@ -264,11 +307,18 @@ export default function CalendarAnalyticsPage() {
                   >
                     {dayNum}
                   </span>
-                  {day.checkins > 0 && (
-                    <span className="text-[9px] sm:text-[10px] font-medium text-amber-400 bg-amber-500/10 px-1 py-0.5 rounded">
-                      +{day.checkins}
-                    </span>
-                  )}
+                  <div className="flex items-center gap-1">
+                    {day.checkins > 0 && (
+                      <span className="text-[9px] sm:text-[10px] font-medium text-amber-400 bg-amber-500/10 px-1 py-0.5 rounded">
+                        +{day.checkins}
+                      </span>
+                    )}
+                    {day.checkouts > 0 && day.rooms === 0 && (
+                      <span className="text-[9px] sm:text-[10px] font-medium text-rose-400 bg-rose-500/10 px-1 py-0.5 rounded">
+                        out
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 {day.rooms > 0 && (
@@ -294,7 +344,7 @@ export default function CalendarAnalyticsPage() {
                       </span>
                     </div>
                     {day.checkouts > 0 && (
-                      <div className="flex items-center gap-1 text-[9px] sm:text-[10px] text-muted-foreground">
+                      <div className="flex items-center gap-1 text-[9px] sm:text-[10px] text-rose-400">
                         <LogOutIcon className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                         <span>{day.checkouts} out</span>
                       </div>
@@ -303,15 +353,25 @@ export default function CalendarAnalyticsPage() {
                 )}
 
                 {day.rooms === 0 && (
-                  <div className="mt-auto text-[9px] sm:text-[10px] text-muted-foreground italic hidden sm:block">
-                    No bookings
+                  <div className="mt-auto space-y-0.5 sm:space-y-1">
+                    {day.checkouts > 0 && (
+                      <div className="flex items-center gap-1 text-[9px] sm:text-[10px] text-rose-400">
+                        <LogOutIcon className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                        <span>{day.checkouts} out</span>
+                      </div>
+                    )}
+                    {day.checkouts === 0 && (
+                      <div className="text-[9px] sm:text-[10px] text-muted-foreground italic hidden sm:block">
+                        No bookings
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
             );
           })}
         </div>
-      </div>
+      </motion.div>
 
       {/* Legend */}
       <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-[10px] sm:text-xs text-muted-foreground">
@@ -354,15 +414,26 @@ function SummaryCard({
   sub: string;
 }) {
   return (
-    <div className="rounded-xl border border-border p-3 sm:p-4 space-y-1 sm:space-y-2">
-      <div className="flex items-center gap-2">
-        {icon}
-        <span className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wide truncate">
-          {label}
-        </span>
+    <motion.div
+      whileHover={{ y: -3, scale: 1.01 }}
+      transition={{ type: "spring", stiffness: 350, damping: 25 }}
+      className="relative rounded-2xl border border-border/60 bg-card/20 backdrop-blur-xl p-3 sm:p-4 space-y-1 sm:space-y-2 overflow-hidden group hover:border-teal-500/20 transition-colors"
+    >
+      <div className="absolute -inset-px bg-linear-to-br from-teal-500/[0.07] via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+      <div className="relative z-10">
+        <div className="flex items-center gap-2">
+          {icon}
+          <span className="text-[10px] sm:text-xs font-bold text-muted-foreground/60 uppercase tracking-widest truncate">
+            {label}
+          </span>
+        </div>
+        <div className="text-lg sm:text-xl font-black tracking-tight">
+          {value}
+        </div>
+        <div className="text-[10px] sm:text-xs text-muted-foreground/70 font-medium">
+          {sub}
+        </div>
       </div>
-      <div className="text-lg sm:text-xl font-bold">{value}</div>
-      <div className="text-[10px] sm:text-xs text-muted-foreground">{sub}</div>
-    </div>
+    </motion.div>
   );
 }

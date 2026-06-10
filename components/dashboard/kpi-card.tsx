@@ -12,7 +12,7 @@ export function KpiCard({
   accent,
 }: {
   label: string;
-  value: string;
+  value: React.ReactNode;
   change: number | null;
   suffix: string;
   icon: React.ReactNode;
@@ -20,29 +20,27 @@ export function KpiCard({
 }) {
   return (
     <motion.div
-      whileHover={{ y: -4, scale: 1.01 }}
-      transition={{ type: "spring", stiffness: 350, damping: 25 }}
-      className="relative rounded-2xl border border-border/80 bg-card/40 backdrop-blur-xl p-5 space-y-3 overflow-hidden shadow-sm group hover:border-teal-500/20 hover:shadow-lg hover:shadow-teal-500/2"
+      whileHover={{ y: -5, scale: 1.02 }}
+      transition={{ type: "spring", stiffness: 400, damping: 22 }}
+      className="relative rounded-2xl border border-border/60 bg-card/25 backdrop-blur-xl p-5 space-y-3 overflow-hidden shadow-sm group hover:border-teal-500/25 hover:shadow-lg hover:shadow-teal-500/5"
     >
       {/* Premium ambient glow */}
-      <div className="absolute -inset-px bg-linear-to-br from-teal-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-      <div className="absolute top-[-40px] left-1/2 -translate-x-1/2 w-[120px] h-[40px] bg-teal-500/15 blur-[25px] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+      <div className="absolute -inset-px bg-linear-to-br from-teal-500/[0.07] via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+      <div className="absolute top-[-40px] left-1/2 -translate-x-1/2 w-[120px] h-[40px] bg-teal-500/10 blur-[30px] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+      {/* Subtle corner highlight */}
+      <div className="absolute top-0 right-0 w-20 h-20 bg-linear-to-bl from-teal-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none rounded-tr-2xl" />
 
       <div className="flex items-center gap-2.5 relative z-10">
-        <div className="p-2.5 rounded-xl bg-muted/30 border border-border/50 group-hover:scale-110 group-hover:border-teal-500/20 transition-all duration-300">
+        <div className="p-2.5 rounded-xl bg-muted/20 border border-border/40 group-hover:scale-110 group-hover:bg-teal-500/10 group-hover:border-teal-500/20 transition-all duration-300">
           {icon}
         </div>
-        <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
+        <span className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-[0.15em]">
           {label}
         </span>
       </div>
 
-      <div className="space-y-1 relative z-10">
-        <div
-          className={`text-2xl sm:text-3xl font-extrabold tracking-tight ${accent || "text-foreground"}`}
-        >
-          {value}
-        </div>
+      <div className="space-y-1.5 relative z-10">
+        <div className={accent || "text-foreground"}>{value}</div>
 
         {change !== null && (
           <div className="flex items-center gap-1.5 text-xs font-semibold">

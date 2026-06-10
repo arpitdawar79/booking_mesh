@@ -1,23 +1,24 @@
 "use client";
 
+import { motion } from "framer-motion";
 import { Minus, TrendingDown, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
-  Area,
-  AreaChart,
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  Line,
-  LineChart,
-  Pie,
-  PieChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
+    Area,
+    AreaChart,
+    Bar,
+    BarChart,
+    CartesianGrid,
+    Cell,
+    Line,
+    LineChart,
+    Pie,
+    PieChart,
+    ResponsiveContainer,
+    Tooltip,
+    XAxis,
+    YAxis,
 } from "recharts";
 
 const COLORS = [
@@ -98,11 +99,43 @@ export default function AnalyticsPage() {
   }, []);
 
   if (loading) {
-    return <div className="text-muted-foreground">Loading analytics...</div>;
+    return (
+      <div className="space-y-8">
+        <div className="space-y-2">
+          <div className="h-8 w-48 bg-muted/30 rounded-lg animate-pulse" />
+          <div className="h-4 w-72 bg-muted/30 rounded-lg animate-pulse" />
+        </div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div
+              key={i}
+              className="rounded-2xl border border-border/60 bg-card/10 backdrop-blur-xl p-5 space-y-3 h-28 animate-pulse"
+            />
+          ))}
+        </div>
+        <div className="grid lg:grid-cols-2 gap-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div
+              key={i}
+              className="rounded-2xl border border-border/60 bg-card/10 backdrop-blur-xl p-5 h-64 animate-pulse"
+            />
+          ))}
+        </div>
+      </div>
+    );
   }
   if (!data) {
     return (
-      <div className="text-muted-foreground">Failed to load analytics.</div>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.97 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="rounded-2xl border border-border/60 bg-card/20 backdrop-blur-xl p-10 text-center"
+      >
+        <div className="text-4xl mb-3">⚠️</div>
+        <p className="text-sm text-muted-foreground font-medium">
+          Failed to load analytics.
+        </p>
+      </motion.div>
     );
   }
 
@@ -169,31 +202,43 @@ export default function AnalyticsPage() {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+      >
         <div>
-          <h1 className="text-2xl font-bold">Analytics Overview</h1>
-          <p className="text-sm text-muted-foreground mt-1">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+            Analytics Overview
+          </h1>
+          <p className="text-sm text-muted-foreground/80 mt-1.5 font-medium">
             Insights into bookings, revenue, and occupancy.
           </p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex gap-2 flex-wrap">
           <Link
             href="/dashboard/analytics/revenue"
-            className="rounded-md border border-border px-4 py-2 text-sm font-medium hover:bg-muted transition"
+            className="rounded-xl border border-border/60 bg-card/20 backdrop-blur-xl px-4 py-2.5 text-sm font-bold hover:bg-muted/50 hover:border-teal-500/20 transition-all"
           >
             Revenue Report →
           </Link>
           <Link
             href="/dashboard/analytics/occupancy"
-            className="rounded-md border border-border px-4 py-2 text-sm font-medium hover:bg-muted transition"
+            className="rounded-xl border border-border/60 bg-card/20 backdrop-blur-xl px-4 py-2.5 text-sm font-bold hover:bg-muted/50 hover:border-teal-500/20 transition-all"
           >
             Occupancy Report →
           </Link>
         </div>
-      </div>
+      </motion.div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.1 }}
+        className="grid grid-cols-2 lg:grid-cols-4 gap-3"
+      >
         <KpiCard
           label="Total Revenue"
           value={formatCurrency(totalRevenue)}
@@ -218,10 +263,15 @@ export default function AnalyticsPage() {
           change={null}
           suffix="to collect"
         />
-      </div>
+      </motion.div>
 
       {/* Business KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+        className="grid grid-cols-2 lg:grid-cols-4 gap-3"
+      >
         <KpiCard
           label="Additional Sales"
           value={formatCurrency(totalAdditionalSales)}
@@ -246,10 +296,15 @@ export default function AnalyticsPage() {
           change={null}
           suffix={netProfit >= 0 ? "in profit" : "in loss"}
         />
-      </div>
+      </motion.div>
 
       {/* Charts Row 1 */}
-      <div className="grid lg:grid-cols-2 gap-4 lg:gap-6">
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.3 }}
+        className="grid lg:grid-cols-2 gap-4 lg:gap-6"
+      >
         <ChartCard title="Monthly Revenue" subtitle="Revenue trend this year">
           <ResponsiveContainer width="100%" height={220}>
             <AreaChart data={data.monthly}>
@@ -313,10 +368,15 @@ export default function AnalyticsPage() {
             </BarChart>
           </ResponsiveContainer>
         </ChartCard>
-      </div>
+      </motion.div>
 
       {/* Charts Row 2 */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.4 }}
+        className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6"
+      >
         <ChartCard title="Payment Status" subtitle="Booking distribution">
           <ResponsiveContainer width="100%" height={200}>
             <PieChart>
@@ -419,10 +479,15 @@ export default function AnalyticsPage() {
             </BarChart>
           </ResponsiveContainer>
         </ChartCard>
-      </div>
+      </motion.div>
 
       {/* Business Charts Row */}
-      <div className="grid lg:grid-cols-2 gap-4 lg:gap-6">
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.5 }}
+        className="grid lg:grid-cols-2 gap-4 lg:gap-6"
+      >
         <ChartCard
           title="P&L Overview"
           subtitle="Revenue vs Expenses & Salaries"
@@ -526,10 +591,15 @@ export default function AnalyticsPage() {
             ))}
           </div>
         </ChartCard>
-      </div>
+      </motion.div>
 
       {data.topSaleTypes.length > 0 && (
-        <div className="grid lg:grid-cols-2 gap-4 lg:gap-6">
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.55 }}
+          className="grid lg:grid-cols-2 gap-4 lg:gap-6"
+        >
           <ChartCard
             title="Additional Sales Trend"
             subtitle="Monthly sales this year"
@@ -598,11 +668,16 @@ export default function AnalyticsPage() {
               ))}
             </div>
           </ChartCard>
-        </div>
+        </motion.div>
       )}
 
       {/* Charts Row 3 */}
-      <div className="grid lg:grid-cols-2 gap-4 lg:gap-6">
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.6 }}
+        className="grid lg:grid-cols-2 gap-4 lg:gap-6"
+      >
         <ChartCard title="Weekly Booking Trend" subtitle="Last 12 weeks">
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={data.weeklyTrend}>
@@ -669,54 +744,65 @@ export default function AnalyticsPage() {
             ))}
           </div>
         </ChartCard>
-      </div>
+      </motion.div>
 
       {/* Upcoming Occupancy */}
-      <ChartCard
-        title="Upcoming Occupancy (Next 90 Days)"
-        subtitle="Projected check-ins"
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.65 }}
       >
-        <ResponsiveContainer width="100%" height={220}>
-          <AreaChart data={data.upcomingOccupancy}>
-            <defs>
-              <linearGradient id="occGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
-                <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-              </linearGradient>
-            </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-            <XAxis dataKey="date" stroke="#94a3b8" fontSize={11} interval={6} />
-            <YAxis stroke="#94a3b8" fontSize={12} />
-            <Tooltip
-              contentStyle={{
-                background: "#1e293b",
-                border: "1px solid #334155",
-                borderRadius: 8,
-              }}
-              formatter={(v: any, n: any) => [
-                n === "revenue" ? formatCurrency(Number(v)) : v,
-                n,
-              ]}
-            />
-            <Area
-              type="monotone"
-              dataKey="rooms"
-              stroke="#3b82f6"
-              fill="url(#occGrad)"
-              strokeWidth={2}
-              name="Rooms"
-            />
-            <Line
-              type="monotone"
-              dataKey="guests"
-              stroke="#f59e0b"
-              strokeWidth={2}
-              dot={false}
-              name="Guests"
-            />
-          </AreaChart>
-        </ResponsiveContainer>
-      </ChartCard>
+        <ChartCard
+          title="Upcoming Occupancy (Next 90 Days)"
+          subtitle="Projected check-ins"
+        >
+          <ResponsiveContainer width="100%" height={220}>
+            <AreaChart data={data.upcomingOccupancy}>
+              <defs>
+                <linearGradient id="occGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+              <XAxis
+                dataKey="date"
+                stroke="#94a3b8"
+                fontSize={11}
+                interval={6}
+              />
+              <YAxis stroke="#94a3b8" fontSize={12} />
+              <Tooltip
+                contentStyle={{
+                  background: "#1e293b",
+                  border: "1px solid #334155",
+                  borderRadius: 8,
+                }}
+                formatter={(v: any, n: any) => [
+                  n === "revenue" ? formatCurrency(Number(v)) : v,
+                  n,
+                ]}
+              />
+              <Area
+                type="monotone"
+                dataKey="rooms"
+                stroke="#3b82f6"
+                fill="url(#occGrad)"
+                strokeWidth={2}
+                name="Rooms"
+              />
+              <Line
+                type="monotone"
+                dataKey="guests"
+                stroke="#f59e0b"
+                strokeWidth={2}
+                dot={false}
+                name="Guests"
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </ChartCard>
+      </motion.div>
     </div>
   );
 }
@@ -733,40 +819,48 @@ function KpiCard({
   suffix: string;
 }) {
   return (
-    <div className="rounded-lg border border-border p-4 space-y-2">
-      <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-        {label}
-      </div>
-      <div className="text-2xl font-bold">{value}</div>
-      {change !== null && (
-        <div className="flex items-center gap-1 text-xs">
-          {change > 0 ? (
-            <>
-              <TrendingUp className="w-3.5 h-3.5 text-green-400" />
-              <span className="text-green-400 font-medium">
-                +{change.toFixed(1)}%
+    <motion.div
+      whileHover={{ y: -4, scale: 1.01 }}
+      transition={{ type: "spring", stiffness: 350, damping: 25 }}
+      className="relative rounded-2xl border border-border/60 bg-card/20 backdrop-blur-xl p-5 space-y-2 overflow-hidden shadow-sm group hover:border-teal-500/20 hover:shadow-lg hover:shadow-teal-500/5"
+    >
+      <div className="absolute -inset-px bg-linear-to-br from-teal-500/[0.07] via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+      <div className="relative z-10">
+        <div className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-[0.15em]">
+          {label}
+        </div>
+        <div className="text-xl sm:text-2xl font-black tracking-tight">
+          {value}
+        </div>
+        {change !== null && (
+          <div className="flex items-center gap-1.5 text-xs font-semibold pt-1">
+            {change > 0 ? (
+              <span className="inline-flex items-center gap-1 text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                <TrendingUp className="w-3.5 h-3.5" />+{change.toFixed(1)}%
               </span>
-            </>
-          ) : change < 0 ? (
-            <>
-              <TrendingDown className="w-3.5 h-3.5 text-red-400" />
-              <span className="text-red-400 font-medium">
+            ) : change < 0 ? (
+              <span className="inline-flex items-center gap-1 text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded-full">
+                <TrendingDown className="w-3.5 h-3.5" />
                 {change.toFixed(1)}%
               </span>
-            </>
-          ) : (
-            <>
-              <Minus className="w-3.5 h-3.5 text-muted-foreground" />
-              <span className="text-muted-foreground">0%</span>
-            </>
-          )}
-          <span className="text-muted-foreground ml-1">{suffix}</span>
-        </div>
-      )}
-      {change === null && (
-        <div className="text-xs text-muted-foreground">{suffix}</div>
-      )}
-    </div>
+            ) : (
+              <span className="inline-flex items-center gap-1 text-muted-foreground bg-muted/40 px-2 py-0.5 rounded-full">
+                <Minus className="w-3.5 h-3.5" />
+                0%
+              </span>
+            )}
+            <span className="text-muted-foreground/70 font-medium ml-0.5">
+              {suffix}
+            </span>
+          </div>
+        )}
+        {change === null && (
+          <div className="text-xs text-muted-foreground/70 font-medium">
+            {suffix}
+          </div>
+        )}
+      </div>
+    </motion.div>
   );
 }
 
@@ -780,10 +874,12 @@ function ChartCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-lg border border-border p-5 space-y-4">
+    <div className="rounded-2xl border border-border/60 bg-card/15 backdrop-blur-xl p-4 sm:p-5 space-y-4 hover:border-teal-500/10 transition-colors">
       <div>
-        <h3 className="font-semibold">{title}</h3>
-        <p className="text-xs text-muted-foreground">{subtitle}</p>
+        <h3 className="font-bold text-sm sm:text-base">{title}</h3>
+        <p className="text-xs text-muted-foreground/70 font-medium">
+          {subtitle}
+        </p>
       </div>
       {children}
     </div>

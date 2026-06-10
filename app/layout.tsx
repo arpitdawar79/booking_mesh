@@ -1,10 +1,21 @@
 import { PWAShell } from "@/components/pwa/pwa-shell";
 import type { Metadata, Viewport } from "next";
 import { ViewTransitions } from "next-view-transitions";
-import { Inter } from "next/font/google";
+import { Outfit, Space_Mono } from "next/font/google";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"] });
+const outfit = Outfit({
+  subsets: ["latin"],
+  variable: "--font-outfit",
+  weight: ["300", "400", "500", "600", "700", "800", "900"],
+});
+
+const spaceMono = Space_Mono({
+  subsets: ["latin"],
+  variable: "--font-space-mono",
+  weight: ["400", "700"],
+});
+
 const APP_NAME = "The Stream by Ekantah";
 const APP_TITLE = "The Stream Dashboard";
 const APP_DESCRIPTION =
@@ -81,7 +92,7 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="/" />
       </head>
       <body
-        className={`${inter.className} min-h-screen bg-background text-foreground overflow-x-hidden`}
+        className={`${outfit.variable} ${spaceMono.variable} font-sans min-h-screen bg-background text-foreground overflow-x-hidden`}
       >
         <ViewTransitions>
           <PWAShell>{children}</PWAShell>

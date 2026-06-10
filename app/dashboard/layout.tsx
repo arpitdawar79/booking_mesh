@@ -332,21 +332,27 @@ export default function DashboardLayout({
         {/* Main content */}
         <div className="flex-1 min-w-0">
           {/* Top bar */}
-          <header className="h-[calc(3.5rem+env(safe-area-inset-top))] pt-[env(safe-area-inset-top)] border-b border-border/40 flex items-center justify-between px-5 lg:h-14 lg:pt-0 lg:px-6 sticky top-0 bg-background/80 backdrop-blur-2xl z-30 shadow-xs shadow-black/5">
+          <header className="h-[calc(3.5rem+env(safe-area-inset-top))] pt-[env(safe-area-inset-top)] border-b border-border/40 flex items-center justify-between px-5 lg:h-14 lg:pt-0 lg:px-6 sticky top-0 bg-background/60 backdrop-blur-3xl z-30">
             <button
               onClick={() => {
                 haptic("light");
                 setMobileOpen(true);
               }}
-              className="lg:hidden p-2 -ml-2 rounded-xl hover:bg-muted/80 transition-colors"
+              className="lg:hidden p-2 -ml-2 rounded-xl hover:bg-muted/80 active:scale-95 transition-all"
             >
-              <Menu className="w-5 h-5 text-muted-foreground hover:text-foreground" />
+              <Menu className="w-5 h-5 text-muted-foreground hover:text-foreground transition-colors" />
             </button>
-            <div className="text-sm font-bold text-foreground/90 uppercase tracking-wider">
+            <motion.div
+              key={pathname}
+              initial={{ opacity: 0, y: -5 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+              className="text-sm font-bold text-foreground/90 uppercase tracking-wider"
+            >
               {navItems.find(
                 (n) => pathname === n.href || pathname.startsWith(n.href + "/"),
               )?.label || "Dashboard"}
-            </div>
+            </motion.div>
             <div className="w-8" />
           </header>
 

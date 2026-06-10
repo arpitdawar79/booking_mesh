@@ -1,5 +1,6 @@
 "use client";
 
+import { motion } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -109,10 +110,43 @@ export default function RevenueReportPage() {
 
   if (loading)
     return (
-      <div className="text-muted-foreground">Loading revenue report...</div>
+      <div className="space-y-8">
+        <div className="space-y-2">
+          <div className="h-8 w-48 bg-muted/30 rounded-lg animate-pulse" />
+          <div className="h-4 w-64 bg-muted/30 rounded-lg animate-pulse" />
+        </div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div
+              key={i}
+              className="rounded-2xl border border-border/60 bg-card/10 backdrop-blur-xl p-4 h-24 animate-pulse"
+            />
+          ))}
+        </div>
+        <div className="rounded-2xl border border-border/60 bg-card/10 backdrop-blur-xl h-64 animate-pulse" />
+        <div className="grid md:grid-cols-2 gap-4">
+          {Array.from({ length: 2 }).map((_, i) => (
+            <div
+              key={i}
+              className="rounded-2xl border border-border/60 bg-card/10 backdrop-blur-xl h-64 animate-pulse"
+            />
+          ))}
+        </div>
+      </div>
     );
   if (!data)
-    return <div className="text-muted-foreground">Failed to load.</div>;
+    return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.97 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="rounded-2xl border border-border/60 bg-card/20 backdrop-blur-xl p-10 text-center"
+      >
+        <div className="text-4xl mb-3">⚠️</div>
+        <p className="text-sm text-muted-foreground font-medium">
+          Failed to load.
+        </p>
+      </motion.div>
+    );
 
   const totalRevenue = data.monthly.reduce((s, d) => s + d.revenue, 0);
   const totalOutstanding = data.paymentStatus.reduce(
@@ -157,33 +191,50 @@ export default function RevenueReportPage() {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+      >
         <div className="flex items-center gap-3">
           <Link
             href="/dashboard/analytics"
-            className="p-2 -ml-2 rounded-md hover:bg-muted transition"
+            className="p-2 -ml-2 rounded-xl hover:bg-muted/50 transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
-            <h1 className="text-2xl font-bold">Revenue Report</h1>
-            <p className="text-sm text-muted-foreground">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+              Revenue Report
+            </h1>
+            <p className="text-sm text-muted-foreground/80 font-medium">
               Detailed revenue breakdown and collection status.
             </p>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.1 }}
+        className="grid grid-cols-2 lg:grid-cols-4 gap-3"
+      >
         <Kpi label="Total Revenue" value={formatCurrency(totalRevenue)} />
         <Kpi label="Collected" value={formatCurrency(collected)} />
         <Kpi label="Outstanding" value={formatCurrency(totalOutstanding)} />
         <Kpi label="Collection Rate" value={`${collectionRate.toFixed(1)}%`} />
-      </div>
+      </motion.div>
 
       {/* Business KPIs */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.15 }}
+        className="grid grid-cols-2 lg:grid-cols-4 gap-3"
+      >
         <Kpi
           label="Additional Sales"
           value={formatCurrency(totalAdditionalSales)}
@@ -191,44 +242,72 @@ export default function RevenueReportPage() {
         <Kpi label="Total Expenses" value={formatCurrency(totalExpenses)} />
         <Kpi label="Salaries" value={formatCurrency(totalSalaries)} />
         <Kpi label="Net Profit" value={formatCurrency(netProfit)} />
-      </div>
+      </motion.div>
 
       {/* Monthly Revenue Table */}
-      <div className="rounded-xl border border-border overflow-x-auto">
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+        className="rounded-2xl border border-border/60 bg-card/10 backdrop-blur-xl overflow-x-auto"
+      >
         <table className="w-full text-sm">
-          <thead className="bg-muted/50">
+          <thead className="bg-muted/30">
             <tr>
-              <th className="text-left px-4 py-3 font-medium">Month</th>
-              <th className="text-right px-4 py-3 font-medium">Revenue</th>
-              <th className="text-right px-4 py-3 font-medium">Bookings</th>
-              <th className="text-right px-4 py-3 font-medium">Nights</th>
-              <th className="text-right px-4 py-3 font-medium">Rev/Night</th>
-              <th className="text-right px-4 py-3 font-medium">Rev/Booking</th>
-              <th className="text-right px-4 py-3 font-medium">YoY Change</th>
+              <th className="text-left px-4 py-3 font-semibold text-xs uppercase tracking-wider text-muted-foreground/70">
+                Month
+              </th>
+              <th className="text-right px-4 py-3 font-semibold text-xs uppercase tracking-wider text-muted-foreground/70">
+                Revenue
+              </th>
+              <th className="text-right px-4 py-3 font-semibold text-xs uppercase tracking-wider text-muted-foreground/70">
+                Bookings
+              </th>
+              <th className="text-right px-4 py-3 font-semibold text-xs uppercase tracking-wider text-muted-foreground/70">
+                Nights
+              </th>
+              <th className="text-right px-4 py-3 font-semibold text-xs uppercase tracking-wider text-muted-foreground/70">
+                Rev/Night
+              </th>
+              <th className="text-right px-4 py-3 font-semibold text-xs uppercase tracking-wider text-muted-foreground/70">
+                Rev/Booking
+              </th>
+              <th className="text-right px-4 py-3 font-semibold text-xs uppercase tracking-wider text-muted-foreground/70">
+                YoY Change
+              </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-border">
+          <tbody className="divide-y divide-border/40">
             {revenueTable.map((row) => (
-              <tr key={row.month} className="hover:bg-muted/20">
-                <td className="px-4 py-3 font-mono text-xs">
+              <tr
+                key={row.month}
+                className="hover:bg-muted/20 transition-colors"
+              >
+                <td className="px-4 py-3 font-mono text-xs text-muted-foreground/60">
                   {formatMonth(row.month)}
                 </td>
-                <td className="px-4 py-3 text-right font-medium">
+                <td className="px-4 py-3 text-right font-bold text-emerald-400">
                   {formatCurrency(row.revenue)}
                 </td>
-                <td className="px-4 py-3 text-right">{row.bookings}</td>
-                <td className="px-4 py-3 text-right">{row.nights}</td>
-                <td className="px-4 py-3 text-right text-muted-foreground">
+                <td className="px-4 py-3 text-right font-medium">
+                  {row.bookings}
+                </td>
+                <td className="px-4 py-3 text-right font-medium">
+                  {row.nights}
+                </td>
+                <td className="px-4 py-3 text-right text-muted-foreground/70">
                   {formatCurrency(row.revPerNight)}
                 </td>
-                <td className="px-4 py-3 text-right text-muted-foreground">
+                <td className="px-4 py-3 text-right text-muted-foreground/70">
                   {formatCurrency(row.revPerBooking)}
                 </td>
                 <td className="px-4 py-3 text-right">
                   {row.change !== null ? (
                     <span
                       className={
-                        row.change >= 0 ? "text-green-400" : "text-red-400"
+                        row.change >= 0
+                          ? "text-emerald-400 font-bold"
+                          : "text-rose-400 font-bold"
                       }
                     >
                       {row.change >= 0 ? "+" : ""}
@@ -242,10 +321,15 @@ export default function RevenueReportPage() {
             ))}
           </tbody>
         </table>
-      </div>
+      </motion.div>
 
       {/* Charts */}
-      <div className="grid md:grid-cols-2 gap-4 lg:gap-6">
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.3 }}
+        className="grid md:grid-cols-2 gap-4 lg:gap-6"
+      >
         <ChartCard
           title="Revenue by Room Type"
           subtitle="Share of total revenue"
@@ -314,49 +398,73 @@ export default function RevenueReportPage() {
             </BarChart>
           </ResponsiveContainer>
         </ChartCard>
-      </div>
+      </motion.div>
 
       {/* P&L Table */}
-      <div className="rounded-xl border border-border overflow-x-auto">
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.4 }}
+        className="rounded-2xl border border-border/60 bg-card/10 backdrop-blur-xl overflow-x-auto"
+      >
         <table className="w-full text-sm">
-          <thead className="bg-muted/50">
+          <thead className="bg-muted/30">
             <tr>
-              <th className="text-left px-4 py-3 font-medium">Month</th>
-              <th className="text-right px-4 py-3 font-medium">Revenue</th>
-              <th className="text-right px-4 py-3 font-medium">Additional</th>
-              <th className="text-right px-4 py-3 font-medium">Total In</th>
-              <th className="text-right px-4 py-3 font-medium">Expenses</th>
-              <th className="text-right px-4 py-3 font-medium">Salaries</th>
-              <th className="text-right px-4 py-3 font-medium">Total Out</th>
-              <th className="text-right px-4 py-3 font-medium">Net</th>
+              <th className="text-left px-4 py-3 font-semibold text-xs uppercase tracking-wider text-muted-foreground/70">
+                Month
+              </th>
+              <th className="text-right px-4 py-3 font-semibold text-xs uppercase tracking-wider text-muted-foreground/70">
+                Revenue
+              </th>
+              <th className="text-right px-4 py-3 font-semibold text-xs uppercase tracking-wider text-muted-foreground/70">
+                Additional
+              </th>
+              <th className="text-right px-4 py-3 font-semibold text-xs uppercase tracking-wider text-muted-foreground/70">
+                Total In
+              </th>
+              <th className="text-right px-4 py-3 font-semibold text-xs uppercase tracking-wider text-muted-foreground/70">
+                Expenses
+              </th>
+              <th className="text-right px-4 py-3 font-semibold text-xs uppercase tracking-wider text-muted-foreground/70">
+                Salaries
+              </th>
+              <th className="text-right px-4 py-3 font-semibold text-xs uppercase tracking-wider text-muted-foreground/70">
+                Total Out
+              </th>
+              <th className="text-right px-4 py-3 font-semibold text-xs uppercase tracking-wider text-muted-foreground/70">
+                Net
+              </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-border">
+          <tbody className="divide-y divide-border/40">
             {pnlTable.map((row) => (
-              <tr key={row.month} className="hover:bg-muted/20">
-                <td className="px-4 py-3 font-mono text-xs">
+              <tr
+                key={row.month}
+                className="hover:bg-muted/20 transition-colors"
+              >
+                <td className="px-4 py-3 font-mono text-xs text-muted-foreground/60">
                   {formatMonth(row.month)}
                 </td>
-                <td className="px-4 py-3 text-right">
+                <td className="px-4 py-3 text-right font-medium">
                   {formatCurrency(row.revenue)}
                 </td>
-                <td className="px-4 py-3 text-right">
+                <td className="px-4 py-3 text-right font-medium">
                   {formatCurrency(row.additionalSales)}
                 </td>
-                <td className="px-4 py-3 text-right font-medium">
+                <td className="px-4 py-3 text-right font-bold">
                   {formatCurrency(row.revenue + row.additionalSales)}
                 </td>
-                <td className="px-4 py-3 text-right text-red-400">
+                <td className="px-4 py-3 text-right text-rose-400 font-medium">
                   {formatCurrency(row.expenses)}
                 </td>
-                <td className="px-4 py-3 text-right text-red-400">
+                <td className="px-4 py-3 text-right text-rose-400 font-medium">
                   {formatCurrency(row.salaries)}
                 </td>
-                <td className="px-4 py-3 text-right font-medium text-red-400">
+                <td className="px-4 py-3 text-right font-bold text-rose-400">
                   {formatCurrency(row.expenses + row.salaries)}
                 </td>
                 <td
-                  className={`px-4 py-3 text-right font-medium ${row.net >= 0 ? "text-green-400" : "text-red-400"}`}
+                  className={`px-4 py-3 text-right font-bold ${row.net >= 0 ? "text-emerald-400" : "text-rose-400"}`}
                 >
                   {formatCurrency(row.net)}
                 </td>
@@ -364,86 +472,103 @@ export default function RevenueReportPage() {
             ))}
           </tbody>
         </table>
-      </div>
+      </motion.div>
 
       {/* YoY Comparison */}
-      <ChartCard
-        title="Year-over-Year Revenue"
-        subtitle="Current vs previous year"
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.5 }}
       >
-        <ResponsiveContainer width="100%" height={220}>
-          <AreaChart
-            data={data.monthly.map((m) => {
-              const ly = data.lastYearMonthly.find((l) => l.month === m.month);
-              return {
-                month: m.month,
-                current: m.revenue,
-                lastYear: ly?.revenue || 0,
-              };
-            })}
-          >
-            <defs>
-              <linearGradient id="curGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#14b8a6" stopOpacity={0.3} />
-                <stop offset="95%" stopColor="#14b8a6" stopOpacity={0} />
-              </linearGradient>
-              <linearGradient id="lyGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#94a3b8" stopOpacity={0.15} />
-                <stop offset="95%" stopColor="#94a3b8" stopOpacity={0} />
-              </linearGradient>
-            </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-            <XAxis
-              dataKey="month"
-              tickFormatter={formatMonth}
-              stroke="#94a3b8"
-              fontSize={12}
-            />
-            <YAxis
-              stroke="#94a3b8"
-              fontSize={12}
-              tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}k`}
-            />
-            <Tooltip
-              contentStyle={{
-                background: "#1e293b",
-                border: "1px solid #334155",
-                borderRadius: 8,
-              }}
-              formatter={(v: any) => formatCurrency(Number(v))}
-            />
-            <Area
-              type="monotone"
-              dataKey="current"
-              stroke="#14b8a6"
-              fill="url(#curGrad)"
-              strokeWidth={2}
-              name="This Year"
-            />
-            <Area
-              type="monotone"
-              dataKey="lastYear"
-              stroke="#94a3b8"
-              fill="url(#lyGrad)"
-              strokeWidth={2}
-              strokeDasharray="5 5"
-              name="Last Year"
-            />
-          </AreaChart>
-        </ResponsiveContainer>
-      </ChartCard>
+        <ChartCard
+          title="Year-over-Year Revenue"
+          subtitle="Current vs previous year"
+        >
+          <ResponsiveContainer width="100%" height={220}>
+            <AreaChart
+              data={data.monthly.map((m) => {
+                const ly = data.lastYearMonthly.find(
+                  (l) => l.month === m.month,
+                );
+                return {
+                  month: m.month,
+                  current: m.revenue,
+                  lastYear: ly?.revenue || 0,
+                };
+              })}
+            >
+              <defs>
+                <linearGradient id="curGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#14b8a6" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#14b8a6" stopOpacity={0} />
+                </linearGradient>
+                <linearGradient id="lyGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#94a3b8" stopOpacity={0.15} />
+                  <stop offset="95%" stopColor="#94a3b8" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+              <XAxis
+                dataKey="month"
+                tickFormatter={formatMonth}
+                stroke="#94a3b8"
+                fontSize={12}
+              />
+              <YAxis
+                stroke="#94a3b8"
+                fontSize={12}
+                tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}k`}
+              />
+              <Tooltip
+                contentStyle={{
+                  background: "#1e293b",
+                  border: "1px solid #334155",
+                  borderRadius: 8,
+                }}
+                formatter={(v: any) => formatCurrency(Number(v))}
+              />
+              <Area
+                type="monotone"
+                dataKey="current"
+                stroke="#14b8a6"
+                fill="url(#curGrad)"
+                strokeWidth={2}
+                name="This Year"
+              />
+              <Area
+                type="monotone"
+                dataKey="lastYear"
+                stroke="#94a3b8"
+                fill="url(#lyGrad)"
+                strokeWidth={2}
+                strokeDasharray="5 5"
+                name="Last Year"
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </ChartCard>
+      </motion.div>
     </div>
   );
 }
 
 function Kpi({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-border p-3 sm:p-4 space-y-1">
-      <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide truncate">
-        {label}
+    <motion.div
+      whileHover={{ y: -4, scale: 1.01 }}
+      transition={{ type: "spring", stiffness: 350, damping: 25 }}
+      className="relative rounded-2xl border border-border/60 bg-card/20 backdrop-blur-xl p-3 sm:p-4 space-y-1 overflow-hidden group hover:border-teal-500/20 transition-colors"
+    >
+      <div className="absolute -inset-px bg-linear-to-br from-teal-500/[0.07] via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+      <div className="relative z-10">
+        <div className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest truncate">
+          {label}
+        </div>
+        <div className="text-lg sm:text-xl font-black tracking-tight">
+          {value}
+        </div>
       </div>
-      <div className="text-lg sm:text-xl font-bold">{value}</div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -457,10 +582,12 @@ function ChartCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-xl border border-border p-4 sm:p-5 space-y-4">
+    <div className="rounded-2xl border border-border/60 bg-card/15 backdrop-blur-xl p-4 sm:p-5 space-y-4 hover:border-teal-500/10 transition-colors">
       <div>
-        <h3 className="font-semibold text-sm sm:text-base">{title}</h3>
-        <p className="text-xs text-muted-foreground">{subtitle}</p>
+        <h3 className="font-bold text-sm sm:text-base">{title}</h3>
+        <p className="text-xs text-muted-foreground/70 font-medium">
+          {subtitle}
+        </p>
       </div>
       {children}
     </div>
