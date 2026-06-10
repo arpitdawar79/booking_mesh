@@ -2,7 +2,10 @@ import { z } from "zod";
 
 export const bookingCreateSchema = z.object({
   guestFullName: z.string().min(1, "Guest name is required"),
-  guestEmail: z.string().email("Invalid email address").optional().nullable(),
+  guestEmail: z.preprocess(
+    (val) => (val === "" ? null : val),
+    z.string().email("Invalid email address").optional().nullable(),
+  ),
   guestPhone: z.string().optional().nullable(),
   adultCount: z.coerce.number().int().min(1).default(1),
   childCount: z.coerce.number().int().min(0).default(0),

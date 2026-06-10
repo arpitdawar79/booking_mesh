@@ -1,6 +1,7 @@
 "use client";
 
 import { format } from "date-fns";
+import { AlertTriangle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import DatePicker from "react-datepicker";
@@ -30,6 +31,8 @@ export default function NewBookingPage() {
 
   const [checkInDate, setCheckInDate] = useState<Date | null>(null);
   const [checkOutDate, setCheckOutDate] = useState<Date | null>(null);
+  const [checkInPastWarning, setCheckInPastWarning] = useState(false);
+  const [checkOutPastWarning, setCheckOutPastWarning] = useState(false);
   const checkoutRef = useRef<DatePicker>(null);
 
   const [roomCount, setRoomCount] = useState<number>(1);
@@ -59,13 +62,37 @@ export default function NewBookingPage() {
     }
   }, [roomCount]);
 
+  function getRangeDayClass(date: Date) {
+    if (!checkInDate || !checkOutDate) return "";
+    const t = date.getTime();
+    const s = new Date(checkInDate).setHours(0, 0, 0, 0);
+    const e = new Date(checkOutDate).setHours(0, 0, 0, 0);
+    const d = new Date(date).setHours(0, 0, 0, 0);
+    if (d < s || d > e) return "";
+    if (d === s) return "range-start";
+    if (d === e) return "range-end";
+    return "in-range";
+  }
+
+  function isPastDate(date: Date) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return date.getTime() < today.getTime();
+  }
+
   function handleCheckInChange(date: Date | null) {
     setCheckInDate(date);
+    setCheckInPastWarning(date ? isPastDate(date) : false);
     if (date) {
       setTimeout(() => {
         checkoutRef.current?.setOpen(true);
       }, 100);
     }
+  }
+
+  function handleCheckOutChange(date: Date | null) {
+    setCheckOutDate(date);
+    setCheckOutPastWarning(date ? isPastDate(date) : false);
   }
 
   function addRoomAllocation() {
@@ -182,13 +209,26 @@ export default function NewBookingPage() {
         <Section title="Stay Details">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1">
+              <label className="text-sm font-medium mb-1 flex items-center gap-1.5">
                 Check-in Date <span className="text-red-400">*</span>
+                {checkInPastWarning && (
+                  <span className="past-date-warning">
+                    <AlertTriangle size={14} />
+                    <span className="tooltip">
+                      Selected date is in the past
+                    </span>
+                  </span>
+                )}
               </label>
               <DatePicker
                 selected={checkInDate}
                 onChange={handleCheckInChange}
-                minDate={new Date()}
+                openToDate={new Date()}
+                showYearDropdown
+                showMonthDropdown
+                dropdownMode="select"
+                yearDropdownItemNumber={10}
+                dayClassName={getRangeDayClass}
                 dateFormat="yyyy-MM-dd"
                 placeholderText="Select check-in date"
                 className="w-full rounded-xl border border-input bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
@@ -197,16 +237,30 @@ export default function NewBookingPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">
+              <label className="text-sm font-medium mb-1 flex items-center gap-1.5">
                 Check-out Date <span className="text-red-400">*</span>
+                {checkOutPastWarning && (
+                  <span className="past-date-warning">
+                    <AlertTriangle size={14} />
+                    <span className="tooltip">
+                      Selected date is in the past
+                    </span>
+                  </span>
+                )}
               </label>
               <DatePicker
                 selected={checkOutDate}
-                onChange={setCheckOutDate}
+                onChange={handleCheckOutChange}
+                openToDate={new Date()}
+                showYearDropdown
+                showMonthDropdown
+                dropdownMode="select"
+                yearDropdownItemNumber={10}
+                dayClassName={getRangeDayClass}
                 minDate={
                   checkInDate
                     ? new Date(checkInDate.getTime() + 86400000)
-                    : new Date()
+                    : undefined
                 }
                 dateFormat="yyyy-MM-dd"
                 placeholderText="Select check-out date"
