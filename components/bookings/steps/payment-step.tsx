@@ -43,7 +43,6 @@ export function PaymentStep({
             onChange={setTotalAmount}
             placeholder="e.g. 15000"
             type="number"
-            autoFocus
             onEnter={onEnter}
           />
           <Input

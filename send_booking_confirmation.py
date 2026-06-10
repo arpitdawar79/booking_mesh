@@ -26,7 +26,7 @@ DEFAULTS = {
     "check_out_time": "11:00 AM",
     "child_count": "0",
     "currency": "INR",
-    "meal_plan": "As per booking",
+    "meal_plan": "No Meals",
     "parking_details": "Available near the property. Please contact us before arrival for exact guidance.",
     "property_address": "The Stream by Ekantah",
     "property_email": "digital@ekantah.com",

@@ -25,7 +25,7 @@ import {
   Users,
   Utensils,
   Wallet,
-  X
+  X,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -136,9 +136,7 @@ export function QuickAddDrawer({
     "booking" | "expense" | "sale" | null
   >(null);
 
-  // Auto-focus inputs on tab change
-  const expenseAmountRef = useRef<HTMLInputElement>(null);
-  const saleGuestRef = useRef<HTMLInputElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (open) {
@@ -147,14 +145,41 @@ export function QuickAddDrawer({
     }
   }, [open, initialTab]);
 
+  // Keyboard-aware scroll: center focused inputs above the keyboard
   useEffect(() => {
     if (!open) return;
-    const timer = setTimeout(() => {
-      if (activeTab === "expense") expenseAmountRef.current?.focus();
-      else if (activeTab === "sale") saleGuestRef.current?.focus();
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [activeTab, open]);
+    const container = scrollRef.current;
+    if (!container) return;
+
+    const onFocusIn = (e: FocusEvent) => {
+      const target = e.target as HTMLElement;
+      if (
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.tagName === "SELECT"
+      ) {
+        // Delay allows the virtual keyboard to finish animating in
+        setTimeout(() => {
+          target.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 350);
+      }
+    };
+
+    container.addEventListener("focusin", onFocusIn);
+    return () => container.removeEventListener("focusin", onFocusIn);
+  }, [open]);
+
+  // Virtual Keyboard overlay mode: Android Chrome/Edge only
+  // Makes the keyboard overlay content instead of shrinking the viewport
+  useEffect(() => {
+    const vk = navigator.virtualKeyboard;
+    if (!vk) return;
+    if (open) {
+      vk.overlaysContent = true;
+    } else {
+      vk.overlaysContent = false;
+    }
+  }, [open]);
 
   // --- EXPENSE FORM STATE ---
   const [expenseData, setExpenseData] = useState({
@@ -596,7 +621,11 @@ export function QuickAddDrawer({
                 </div>
 
                 {/* Form Panels with Smooth Motion */}
-                <div className="flex-1 overflow-y-auto px-6 py-4 pb-12">
+                <div
+                  ref={scrollRef}
+                  className="flex-1 overflow-y-auto px-6 py-4 pb-12 scroll-smooth"
+                  style={{ scrollPaddingBottom: "45vh" }}
+                >
                   <AnimatePresence mode="wait">
                     {/* EXPENSE TAB */}
                     {activeTab === "expense" && (
@@ -618,7 +647,6 @@ export function QuickAddDrawer({
                               ₹
                             </span>
                             <input
-                              ref={expenseAmountRef}
                               type="number"
                               inputMode="decimal"
                               required
@@ -901,7 +929,6 @@ export function QuickAddDrawer({
                             Guest Name
                           </label>
                           <input
-                            ref={saleGuestRef}
                             type="text"
                             required
                             placeholder="e.g. Arpit Dawar (Room 102)"
