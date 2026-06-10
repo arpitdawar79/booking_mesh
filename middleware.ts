@@ -1,4 +1,4 @@
-import { verifySessionToken } from "@/lib/auth";
+import { refreshAccessToken, verifySessionToken } from "@/lib/auth";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
@@ -91,10 +91,68 @@ export async function middleware(request: NextRequest) {
 
   if (pathname.startsWith(PROTECTED_PREFIX)) {
     const token = request.cookies.get("access_token")?.value;
-    if (!token || !(await verifySessionToken(token))) {
+    const isValidAccess = token ? await verifySessionToken(token) : null;
+
+    if (!isValidAccess) {
+      const refreshToken = request.cookies.get("refresh_token")?.value;
+      if (refreshToken) {
+        const result = await refreshAccessToken(refreshToken);
+        if (result.success) {
+          const res = NextResponse.next();
+          res.cookies.set("access_token", result.accessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+            maxAge: 60 * 60 * 8,
+            path: "/",
+          });
+          res.cookies.set("refresh_token", result.refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+            maxAge: 60 * 60 * 24 * 30,
+            path: "/",
+          });
+          return res;
+        }
+      }
+
       const loginUrl = new URL("/login", request.url);
       loginUrl.searchParams.set("redirect", pathname);
       return NextResponse.redirect(loginUrl);
+    }
+  }
+
+  // Redirect logged-in users away from public auth pages to dashboard
+  if (pathname === "/" || pathname === "/login") {
+    const token = request.cookies.get("access_token")?.value;
+    const refreshToken = request.cookies.get("refresh_token")?.value;
+    let isAuthenticated = token ? !!(await verifySessionToken(token)) : false;
+
+    if (!isAuthenticated && refreshToken) {
+      const result = await refreshAccessToken(refreshToken);
+      if (result.success) {
+        const res = NextResponse.redirect(new URL("/dashboard", request.url));
+        res.cookies.set("access_token", result.accessToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "lax",
+          maxAge: 60 * 60 * 8,
+          path: "/",
+        });
+        res.cookies.set("refresh_token", result.refreshToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "lax",
+          maxAge: 60 * 60 * 24 * 30,
+          path: "/",
+        });
+        return res;
+      }
+    }
+
+    if (isAuthenticated) {
+      return NextResponse.redirect(new URL("/dashboard", request.url));
     }
   }
 

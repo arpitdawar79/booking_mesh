@@ -15,13 +15,27 @@ export default function LoginPage() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     setRedirect(params.get("redirect") || "/dashboard");
-  }, []);
+
+    // If already logged in, go straight to dashboard
+    fetch("/api/auth/me", { credentials: "include" })
+      .then((r) => {
+        if (r.ok) {
+          router.replace("/dashboard");
+        }
+      })
+      .catch(() => {
+        /* ignore */
+      })
+      .finally(() => setCheckingSession(false));
+  }, [router]);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -31,7 +45,7 @@ export default function LoginPage() {
     const res = await fetch("/api/auth?action=login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, password, rememberMe }),
     });
 
     const data = await res.json();
@@ -146,7 +160,18 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <div className="flex justify-end pl-1">
+            <div className="flex items-center justify-between pl-1">
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="accent-teal-500 w-3.5 h-3.5 rounded border-border"
+                />
+                <span className="text-xs font-medium text-muted-foreground/80">
+                  Remember me
+                </span>
+              </label>
               <a
                 href="/forgot-password"
                 className="text-xs font-semibold text-teal-400 hover:text-teal-300 transition-colors"
@@ -167,14 +192,19 @@ export default function LoginPage() {
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || checkingSession}
               className="group/btn relative w-full rounded-xl bg-foreground text-background py-3.5 text-sm font-bold hover:opacity-95 active:scale-[0.97] disabled:opacity-50 transition-all duration-200 shadow-xl overflow-hidden flex items-center justify-center gap-2 cursor-pointer"
             >
               <div
                 className="absolute inset-0 w-1/2 h-full bg-linear-to-r from-transparent via-white/15 to-transparent -translate-x-full group-hover/btn:animate-shimmer pointer-events-none"
                 style={{ animationDuration: "1.5s" }}
               />
-              {loading ? (
+              {checkingSession ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Checking session...</span>
+                </>
+              ) : loading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
                   <span>Verifying secret key...</span>

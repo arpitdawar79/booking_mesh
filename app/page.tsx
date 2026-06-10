@@ -6,16 +6,31 @@ import { SparklesText } from "@/components/magicui/sparkles-text";
 import { TextReveal } from "@/components/magicui/text-reveal";
 import { motion } from "framer-motion";
 import {
-  CalendarDays,
-  Mail,
-  Receipt,
-  Shield,
-  Sparkles,
-  Zap,
+    CalendarDays,
+    Mail,
+    Receipt,
+    Shield,
+    Sparkles,
+    Zap,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function Home() {
+  const router = useRouter();
+
+  useEffect(() => {
+    fetch("/api/auth/me", { credentials: "include" })
+      .then((r) => {
+        if (r.ok) {
+          router.replace("/dashboard");
+        }
+      })
+      .catch(() => {
+        /* ignore */
+      });
+  }, [router]);
   return (
     <main className="relative min-h-screen flex flex-col items-center justify-center bg-background text-foreground px-4 py-16 overflow-hidden">
       {/* MagicUI Particle Network */}

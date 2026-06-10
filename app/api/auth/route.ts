@@ -1,8 +1,11 @@
 import {
     createSessionToken,
+    DEFAULT_REFRESH_MAX_AGE,
     hashPassword,
-    verifyPassword,
-    verifyRefreshToken,
+    refreshAccessToken,
+    REMEMBER_ME_MAX_AGE,
+    storeRefreshToken,
+    verifyPassword
 } from "@/lib/auth";
 import {
     authForgotPasswordSchema,
@@ -20,6 +23,7 @@ function setAuthCookies(
   res: NextResponse,
   accessToken: string,
   refreshToken: string,
+  rememberMe = true,
 ) {
   res.cookies.set("access_token", accessToken, {
     httpOnly: true,
@@ -32,7 +36,7 @@ function setAuthCookies(
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
-    maxAge: 60 * 60 * 24 * 7,
+    maxAge: rememberMe ? REMEMBER_ME_MAX_AGE : DEFAULT_REFRESH_MAX_AGE,
     path: "/",
   });
 }
@@ -48,6 +52,16 @@ export async function POST(request: NextRequest) {
   const action = url.searchParams.get("action") || "login";
 
   if (action === "logout") {
+    const refreshToken = request.cookies.get("refresh_token")?.value;
+    if (refreshToken) {
+      try {
+        await prisma.refreshToken.deleteMany({
+          where: { token: refreshToken },
+        });
+      } catch {
+        // ignore
+      }
+    }
     const res = NextResponse.json({ success: true });
     clearAuthCookies(res);
     return res;
@@ -62,7 +76,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { email, password } = parsed.data;
+    const { email, password, rememberMe } = parsed.data;
 
     const user = await prisma.user.findUnique({
       where: { email: email.toLowerCase() },
@@ -89,6 +103,8 @@ export async function POST(request: NextRequest) {
     });
 
     const { accessToken, refreshToken } = await createSessionToken(user);
+    await storeRefreshToken(refreshToken, user.id, rememberMe);
+
     const res = NextResponse.json({
       success: true,
       user: {
@@ -98,7 +114,7 @@ export async function POST(request: NextRequest) {
         role: user.role,
       },
     });
-    setAuthCookies(res, accessToken, refreshToken);
+    setAuthCookies(res, accessToken, refreshToken, rememberMe);
     return res;
   }
 
@@ -219,29 +235,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "No refresh token" }, { status: 401 });
     }
 
-    const payload = await verifyRefreshToken(refreshToken);
-    if (!payload) {
-      return NextResponse.json(
+    const result = await refreshAccessToken(refreshToken);
+    if (!result.success) {
+      const res = NextResponse.json(
         { error: "Invalid refresh token" },
         { status: 401 },
       );
+      clearAuthCookies(res);
+      return res;
     }
 
-    const user = await prisma.user.findUnique({
-      where: { id: payload.userId },
-    });
-
-    if (!user || !user.isActive) {
-      return NextResponse.json(
-        { error: "User not found or inactive" },
-        { status: 401 },
-      );
-    }
-
-    const { accessToken, refreshToken: newRefreshToken } =
-      await createSessionToken(user);
-    const res = NextResponse.json({ success: true });
-    setAuthCookies(res, accessToken, newRefreshToken);
+    const res = NextResponse.json({ success: true, user: result.user });
+    setAuthCookies(res, result.accessToken, result.refreshToken);
     return res;
   }
 

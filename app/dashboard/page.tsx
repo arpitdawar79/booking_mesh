@@ -18,7 +18,7 @@ import {
   Receipt,
   ShoppingCart,
   TrendingUp,
-  Users
+  Users,
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -351,7 +351,7 @@ export default function DashboardPage() {
           <div className="space-y-1">
             {analytics.topGuests.slice(0, 5).map((g, i) => (
               <motion.div
-                key={g.email}
+                key={g.email || `${g.name}-${i}`}
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.6 + i * 0.05 }}
