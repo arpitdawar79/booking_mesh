@@ -6,29 +6,33 @@ import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Activity,
-  Calendar,
+  ArrowLeft,
+  ArrowRight,
+  CalendarDays,
   CalendarPlus,
   Check,
-  ChevronRight,
+  ClipboardList,
   Coins,
+  CreditCard,
   HelpCircle,
   Home,
   Info,
   Loader2,
-  Minus,
-  Plus,
   Receipt,
   ShoppingBag,
   ShoppingCart,
   Sparkles,
-  User,
   Users,
   Utensils,
   Wallet,
-  X,
+  X
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { GuestStep } from "../bookings/steps/guest-step";
+import { PaymentStep } from "../bookings/steps/payment-step";
+import { ReviewStep } from "../bookings/steps/review-step";
+import { StayStep } from "../bookings/steps/stay-step";
 import {
   Drawer,
   DrawerContent,
@@ -41,6 +45,21 @@ interface QuickAddDrawerProps {
   onOpenChange: (open: boolean) => void;
   initialTab?: "booking" | "expense" | "sale";
 }
+
+interface RoomAllocation {
+  id: string;
+  roomType: string;
+  count: number;
+}
+
+type BookingStep = 1 | 2 | 3 | 4;
+
+const bookingStepMeta = [
+  { num: 1 as BookingStep, label: "Guest", icon: Users },
+  { num: 2 as BookingStep, label: "Stay", icon: CalendarDays },
+  { num: 3 as BookingStep, label: "Payment", icon: CreditCard },
+  { num: 4 as BookingStep, label: "Review", icon: ClipboardList },
+];
 
 const CATEGORIES = [
   {
@@ -101,19 +120,6 @@ const CATEGORIES = [
   },
 ];
 
-const ROOM_TYPES = [
-  "Balcony Room",
-  "Non-Balcony Room",
-  "Deluxe Room",
-  "Standard Room",
-  "Family Suite",
-];
-const MEAL_PLANS = [
-  { value: "Breakfast", label: "🍳 Breakfast" },
-  { value: "Lunch", label: "🍲 Lunch" },
-  { value: "Dinner", label: "🍽️ Dinner" },
-];
-
 export function QuickAddDrawer({
   open,
   onOpenChange,
@@ -133,7 +139,6 @@ export function QuickAddDrawer({
   // Auto-focus inputs on tab change
   const expenseAmountRef = useRef<HTMLInputElement>(null);
   const saleGuestRef = useRef<HTMLInputElement>(null);
-  const bookingGuestRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (open) {
@@ -147,7 +152,6 @@ export function QuickAddDrawer({
     const timer = setTimeout(() => {
       if (activeTab === "expense") expenseAmountRef.current?.focus();
       else if (activeTab === "sale") saleGuestRef.current?.focus();
-      else if (activeTab === "booking") bookingGuestRef.current?.focus();
     }, 300);
     return () => clearTimeout(timer);
   }, [activeTab, open]);
@@ -176,57 +180,95 @@ export function QuickAddDrawer({
     notes: "",
   });
 
-  // --- BOOKING FORM STATE (World-class Streamlined 2-Step Form) ---
-  const [bookingStep, setBookingStep] = useState<1 | 2>(1);
-  const [bookingData, setBookingData] = useState({
-    guestFullName: "",
-    guestPhone: "",
-    guestEmail: "",
-    adultCount: 2,
-    childCount: 0,
-    checkInDate: new Date().toISOString().split("T")[0],
-    checkOutDate: new Date(Date.now() + 24 * 60 * 60 * 1000)
-      .toISOString()
-      .split("T")[0],
-    checkInTime: "1:00 PM",
-    checkOutTime: "10:00 AM",
-    roomAllocations: {
-      "Balcony Room": 1,
-      "Non-Balcony Room": 0,
-      "Deluxe Room": 0,
-      "Standard Room": 0,
-      "Family Suite": 0,
-    } as Record<string, number>,
-    extraMattressCount: 0,
-    mealPlan: ["Breakfast"],
-    totalAmount: "",
-    amountPaidOnline: "",
-  });
+  // --- BOOKING FORM STATE (Unified 4-Step Wizard) ---
+  const [bookingStep, setBookingStep] = useState<BookingStep>(1);
+  const [bookingDirection, setBookingDirection] = useState(1);
 
-  // Dynamic values for booking
-  const nightCount = (() => {
-    const inDate = new Date(bookingData.checkInDate);
-    const outDate = new Date(bookingData.checkOutDate);
-    if (isNaN(inDate.getTime()) || isNaN(outDate.getTime())) return 0;
-    const diff = outDate.getTime() - inDate.getTime();
-    return Math.max(0, Math.round(diff / (1000 * 60 * 60 * 24)));
-  })();
+  // Guest state
+  const [guestFullName, setGuestFullName] = useState("");
+  const [guestEmail, setGuestEmail] = useState("");
+  const [guestPhone, setGuestPhone] = useState("");
+  const [adultCount, setAdultCount] = useState(2);
+  const [childCount, setChildCount] = useState(0);
 
-  const balanceAmount = (() => {
-    const total = Number(bookingData.totalAmount) || 0;
-    const paid = Number(bookingData.amountPaidOnline) || 0;
-    return Math.max(0, total - paid);
-  })();
+  // Room state
+  const [isFullProperty, setIsFullProperty] = useState(false);
+  const [roomCount, setRoomCount] = useState(1);
+  const [roomAllocations, setRoomAllocations] = useState<RoomAllocation[]>([
+    { id: "1", roomType: "Balcony Room", count: 1 },
+  ]);
 
-  const totalRoomCount = Object.values(bookingData.roomAllocations).reduce(
-    (sum, count) => sum + count,
-    0,
-  );
+  // Stay state
+  const [checkInDate, setCheckInDate] = useState<Date | null>(null);
+  const [checkOutDate, setCheckOutDate] = useState<Date | null>(null);
+  const [checkInTime, setCheckInTime] = useState("1:00 PM");
+  const [checkOutTime, setCheckOutTime] = useState("10:00 AM");
+  const [extraMattressCount, setExtraMattressCount] = useState(0);
+  const [mealPlan, setMealPlan] = useState<string[]>(["Breakfast"]);
 
-  const roomTypeString = Object.entries(bookingData.roomAllocations)
-    .filter(([_, count]) => count > 0)
-    .map(([type, count]) => `${count} ${type}`)
-    .join(", ");
+  // Payment state
+  const [totalAmount, setTotalAmount] = useState("");
+  const [amountPaidOnline, setAmountPaidOnline] = useState("0");
+  const [currency, setCurrency] = useState("INR");
+
+  const nightCount = useMemo(() => {
+    if (!checkInDate || !checkOutDate) return 0;
+    const ms = checkOutDate.getTime() - checkInDate.getTime();
+    return Math.max(0, Math.round(ms / (1000 * 60 * 60 * 24)));
+  }, [checkInDate, checkOutDate]);
+
+  // Auto-compute adults/children and room allocations when rooms change
+  useEffect(() => {
+    if (isFullProperty) {
+      setRoomCount(5);
+      setAdultCount(10);
+      setChildCount(0);
+      setExtraMattressCount((prev) => Math.min(prev, 5));
+      setRoomAllocations([
+        { id: "fp-1", roomType: "Balcony Room", count: 3 },
+        { id: "fp-2", roomType: "Non-Balcony Room", count: 2 },
+      ]);
+    } else {
+      setAdultCount(roomCount * 2);
+      setChildCount(0);
+      setExtraMattressCount((prev) => Math.min(prev, roomCount));
+      setRoomAllocations([
+        { id: "auto-1", roomType: "Balcony Room", count: roomCount },
+      ]);
+    }
+  }, [roomCount, isFullProperty]);
+
+  const canProceed = useCallback(() => {
+    if (bookingStep === 1) return guestFullName.trim().length > 0;
+    if (bookingStep === 2)
+      return checkInDate !== null && checkOutDate !== null && nightCount > 0;
+    if (bookingStep === 3)
+      return totalAmount !== "" && Number(totalAmount) >= 0;
+    return true;
+  }, [
+    bookingStep,
+    guestFullName,
+    checkInDate,
+    checkOutDate,
+    nightCount,
+    totalAmount,
+  ]);
+
+  function nextBookingStep() {
+    if (bookingStep < 4) {
+      haptic("light");
+      setBookingDirection(1);
+      setBookingStep((s) => (s + 1) as BookingStep);
+    }
+  }
+
+  function prevBookingStep() {
+    if (bookingStep > 1) {
+      haptic("light");
+      setBookingDirection(-1);
+      setBookingStep((s) => (s - 1) as BookingStep);
+    }
+  }
 
   // Handlers
   const handleExpenseSubmit = async (e: React.FormEvent) => {
@@ -345,106 +387,99 @@ export function QuickAddDrawer({
     }
   };
 
-  const handleBookingSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!bookingData.guestFullName.trim()) {
-      error("Guest full name is required");
-      return;
-    }
-    if (nightCount <= 0) {
-      error("Check-out date must be after check-in date");
-      return;
-    }
-    if (!bookingData.totalAmount || Number(bookingData.totalAmount) < 0) {
-      error("Please enter a valid total amount");
+  const handleBookingSubmit = async () => {
+    if (!checkInDate || !checkOutDate) {
+      error("Please select check-in and check-out dates.");
       return;
     }
 
     setSaving(true);
     haptic("medium");
 
+    const roomTypeString = roomAllocations
+      .map((r) => `${r.count} ${r.roomType}`)
+      .join(", ");
+
     try {
       const res = await fetch("/api/bookings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          guestFullName: bookingData.guestFullName,
-          guestPhone: bookingData.guestPhone || null,
-          guestEmail: bookingData.guestEmail || null,
-          adultCount: bookingData.adultCount,
-          childCount: bookingData.childCount,
-          checkInDate: bookingData.checkInDate,
-          checkOutDate: bookingData.checkOutDate,
-          checkInTime: bookingData.checkInTime,
-          checkOutTime: bookingData.checkOutTime,
-          roomCount: totalRoomCount,
+          guestFullName,
+          guestPhone: guestPhone || null,
+          guestEmail: guestEmail || null,
+          adultCount,
+          childCount,
+          checkInDate: formatDate(checkInDate),
+          checkOutDate: formatDate(checkOutDate),
+          checkInTime,
+          checkOutTime,
+          roomCount,
           roomType: roomTypeString || "Balcony Room",
-          extraMattressCount: bookingData.extraMattressCount,
+          extraMattressCount,
           mealPlan:
-            bookingData.mealPlan.length > 0
-              ? bookingData.mealPlan.join(", ")
-              : "As per booking",
-          currency: "INR",
-          totalAmount: Number(bookingData.totalAmount),
-          amountPaidOnline: Number(bookingData.amountPaidOnline || 0),
+            mealPlan.length > 0 ? mealPlan.join(", ") : "As per booking",
+          currency,
+          totalAmount: Number(totalAmount),
+          amountPaidOnline: Number(amountPaidOnline || 0),
+          propertyAddress: "The Stream by Ekantah",
+          propertyPhone: "+91 93193 47443, +91 99100 06437",
+          propertyEmail: "Digital@ekantah.com",
+          caretakerNumber: "+91 94599 89576",
+          parkingDetails:
+            "Available near the property. Please contact us before arrival for exact guidance.",
+          mapLink:
+            "https://maps.google.com/?q=The%20Stream%20by%20Ekantah%20Tirthan%20Valley",
+          cancellationPolicy:
+            "As per the booking terms shared at the time of reservation.",
+          specialRequests: "None shared.",
         }),
       });
 
       const json = await res.json();
+      setSaving(false);
+
       if (json.booking) {
-        setSuccessState("booking");
         haptic("success");
+        setSuccessState("booking");
         setBookingStep(1);
-        setBookingData({
-          guestFullName: "",
-          guestPhone: "",
-          guestEmail: "",
-          adultCount: 2,
-          childCount: 0,
-          checkInDate: new Date().toISOString().split("T")[0],
-          checkOutDate: new Date(Date.now() + 24 * 60 * 60 * 1000)
-            .toISOString()
-            .split("T")[0],
-          checkInTime: "1:00 PM",
-          checkOutTime: "10:00 AM",
-          roomAllocations: {
-            "Balcony Room": 1,
-            "Non-Balcony Room": 0,
-            "Deluxe Room": 0,
-            "Standard Room": 0,
-            "Family Suite": 0,
-          } as Record<string, number>,
-          extraMattressCount: 0,
-          mealPlan: ["Breakfast"],
-          totalAmount: "",
-          amountPaidOnline: "",
-        });
+        setGuestFullName("");
+        setGuestEmail("");
+        setGuestPhone("");
+        setAdultCount(2);
+        setChildCount(0);
+        setIsFullProperty(false);
+        setRoomCount(1);
+        setRoomAllocations([{ id: "1", roomType: "Balcony Room", count: 1 }]);
+        setCheckInDate(null);
+        setCheckOutDate(null);
+        setCheckInTime("1:00 PM");
+        setCheckOutTime("10:00 AM");
+        setExtraMattressCount(0);
+        setMealPlan(["Breakfast"]);
+        setTotalAmount("");
+        setAmountPaidOnline("0");
+        setCurrency("INR");
         setTimeout(() => {
           onOpenChange(false);
           router.push(`/dashboard/booking/${json.booking.id}`);
         }, 1200);
       } else {
-        error(json.error || "Failed to create booking");
+        haptic("error");
+        error(json.error || "Failed to create booking.");
       }
     } catch (err) {
-      error("A network error occurred");
-    } finally {
       setSaving(false);
+      error("A network error occurred");
     }
   };
 
-  const changeBookingData = (key: string, value: any) => {
-    setBookingData((prev) => ({ ...prev, [key]: value }));
-  };
-
-  const toggleMealPlan = (item: string) => {
-    changeBookingData(
-      "mealPlan",
-      bookingData.mealPlan.includes(item)
-        ? bookingData.mealPlan.filter((x) => x !== item)
-        : [...bookingData.mealPlan, item],
-    );
-  };
+  function formatDate(d: Date) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  }
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
@@ -1051,518 +1086,228 @@ export function QuickAddDrawer({
                       </motion.form>
                     )}
 
-                    {/* BOOKING TAB (Delightful 2-Step Mobile Wizard) */}
+                    {/* BOOKING TAB (Unified 4-Step Wizard) */}
                     {activeTab === "booking" && (
                       <motion.div
                         key="booking-panel"
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -20 }}
-                        className="space-y-4"
+                        className="space-y-5"
                       >
-                        {/* Step Indicator Pill */}
-                        <div className="flex items-center justify-between pb-1 border-b border-border/40 shrink-0">
+                        {/* Compact Step Indicator */}
+                        <div className="flex items-center justify-between pb-2 border-b border-border/40 shrink-0">
                           <span className="text-xs font-bold text-teal-400 uppercase tracking-wider">
-                            Step {bookingStep} of 2:{" "}
-                            {bookingStep === 1
-                              ? "Guest & Stay"
-                              : "Tariff & Payments"}
+                            Step {bookingStep} of 4:{" "}
+                            {bookingStepMeta[bookingStep - 1].label}
                           </span>
-                          <div className="flex gap-1.5">
-                            <span
-                              className={cn(
-                                "w-6 h-1.5 rounded-full transition-all",
-                                bookingStep >= 1 ? "bg-teal-500" : "bg-muted",
-                              )}
-                            />
-                            <span
-                              className={cn(
-                                "w-6 h-1.5 rounded-full transition-all",
-                                bookingStep === 2 ? "bg-teal-500" : "bg-muted",
-                              )}
-                            />
+                          <div className="flex items-center gap-2">
+                            {bookingStepMeta.map((s) => {
+                              const isCurrent = s.num === bookingStep;
+                              const isCompleted = s.num < bookingStep;
+                              const Icon = s.icon;
+                              return (
+                                <div
+                                  key={s.num}
+                                  className={cn(
+                                    "w-7 h-7 rounded-full flex items-center justify-center border transition-all duration-300",
+                                    isCurrent
+                                      ? "bg-teal-500 border-teal-400/50 text-white shadow-[0_0_16px_-4px_rgba(20,184,166,0.5)]"
+                                      : isCompleted
+                                        ? "bg-teal-500/15 border-teal-500/30 text-teal-400"
+                                        : "bg-muted border-white/8 text-muted-foreground/30",
+                                  )}
+                                >
+                                  {isCompleted ? (
+                                    <Check className="w-3.5 h-3.5" />
+                                  ) : (
+                                    <Icon className="w-3.5 h-3.5" />
+                                  )}
+                                </div>
+                              );
+                            })}
                           </div>
                         </div>
 
-                        {bookingStep === 1 ? (
-                          /* STEP 1: GUEST & STAY */
-                          <div className="space-y-4">
-                            {/* Guest Name */}
-                            <div className="space-y-1.5">
-                              <label className="text-xs font-bold text-muted-foreground">
-                                Guest Full Name
-                              </label>
-                              <div className="relative">
-                                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                                <input
-                                  ref={bookingGuestRef}
-                                  type="text"
-                                  placeholder="e.g. Mukesh Ambani"
-                                  value={bookingData.guestFullName}
-                                  onChange={(e) =>
-                                    changeBookingData(
-                                      "guestFullName",
-                                      e.target.value,
-                                    )
-                                  }
-                                  className="w-full rounded-xl border border-border bg-background pl-10 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/50"
-                                />
-                              </div>
-                            </div>
-
-                            {/* Guest Phone & Email */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                              <div className="space-y-1.5">
-                                <label className="text-xs font-bold text-muted-foreground">
-                                  Guest Phone
-                                </label>
-                                <input
-                                  type="tel"
-                                  inputMode="tel"
-                                  placeholder="10-digit mobile"
-                                  value={bookingData.guestPhone}
-                                  onChange={(e) =>
-                                    changeBookingData(
-                                      "guestPhone",
-                                      e.target.value,
-                                    )
-                                  }
-                                  className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/50"
-                                />
-                              </div>
-                              <div className="space-y-1.5">
-                                <label className="text-xs font-bold text-muted-foreground">
-                                  Guest Email (Optional)
-                                </label>
-                                <input
-                                  type="email"
-                                  placeholder="name@domain.com"
-                                  value={bookingData.guestEmail}
-                                  onChange={(e) =>
-                                    changeBookingData(
-                                      "guestEmail",
-                                      e.target.value,
-                                    )
-                                  }
-                                  className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/50"
-                                />
-                              </div>
-                            </div>
-
-                            {/* Check-In & Check-Out Date */}
-                            <div className="grid grid-cols-2 gap-4 bg-muted/20 p-3 rounded-2xl border border-border/40">
-                              <div className="space-y-1.5">
-                                <label className="text-[10px] font-bold text-muted-foreground uppercase flex items-center gap-1">
-                                  <Calendar className="w-3.5 h-3.5 text-teal-400" />{" "}
-                                  Check In
-                                </label>
-                                <input
-                                  type="date"
-                                  value={bookingData.checkInDate}
-                                  onChange={(e) =>
-                                    changeBookingData(
-                                      "checkInDate",
-                                      e.target.value,
-                                    )
-                                  }
-                                  className="w-full bg-transparent border-0 font-semibold text-sm focus:outline-none p-0 focus:ring-0"
-                                />
-                              </div>
-                              <div className="space-y-1.5 border-l border-border/40 pl-3">
-                                <label className="text-[10px] font-bold text-muted-foreground uppercase flex items-center gap-1">
-                                  <Calendar className="w-3.5 h-3.5 text-rose-400" />{" "}
-                                  Check Out
-                                </label>
-                                <input
-                                  type="date"
-                                  value={bookingData.checkOutDate}
-                                  onChange={(e) =>
-                                    changeBookingData(
-                                      "checkOutDate",
-                                      e.target.value,
-                                    )
-                                  }
-                                  className="w-full bg-transparent border-0 font-semibold text-sm focus:outline-none p-0 focus:ring-0"
-                                />
-                              </div>
-                            </div>
-
-                            {/* Room Type Selector with Steppers */}
-                            <div className="space-y-3 bg-muted/20 p-4 rounded-2xl border border-border/40">
-                              <div className="flex items-center justify-between">
-                                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                                  Room Allocation
-                                </label>
-                                <span className="text-[10px] font-bold text-teal-400 bg-teal-500/10 border border-teal-500/25 rounded-full px-2.5 py-0.5">
-                                  {totalRoomCount} Room
-                                  {totalRoomCount !== 1 ? "s" : ""} Total
-                                </span>
-                              </div>
-
-                              <div className="space-y-2">
-                                {ROOM_TYPES.map((t) => {
-                                  const count =
-                                    bookingData.roomAllocations[t] || 0;
-                                  const isSelected = count > 0;
-                                  return (
-                                    <div
-                                      key={t}
-                                      className={cn(
-                                        "flex items-center justify-between p-2 rounded-xl border transition-all duration-200",
-                                        isSelected
-                                          ? "bg-teal-500/5 border-teal-500/50 text-teal-400 font-semibold"
-                                          : "bg-background border-border/60 text-muted-foreground",
-                                      )}
-                                    >
-                                      <span
-                                        className={cn(
-                                          "text-xs pl-1 transition-colors",
-                                          isSelected
-                                            ? "text-foreground"
-                                            : "text-muted-foreground",
-                                        )}
-                                      >
-                                        {t}
-                                      </span>
-
-                                      <div className="flex items-center gap-2">
-                                        <button
-                                          type="button"
-                                          onClick={() => {
-                                            if (count > 0) {
-                                              haptic("light");
-                                              const newAllocations = {
-                                                ...bookingData.roomAllocations,
-                                                [t]: count - 1,
-                                              };
-                                              changeBookingData(
-                                                "roomAllocations",
-                                                newAllocations,
-                                              );
-                                            }
-                                          }}
-                                          className={cn(
-                                            "p-1 rounded-lg border transition-all",
-                                            count > 0
-                                              ? "border-teal-500/30 text-teal-400 hover:bg-teal-500/10 bg-background"
-                                              : "border-border text-muted-foreground/30 bg-muted/10 cursor-not-allowed",
-                                          )}
-                                          disabled={count === 0}
-                                        >
-                                          <Minus className="w-3 h-3" />
-                                        </button>
-
-                                        <span className="font-bold text-xs w-4 text-center text-foreground">
-                                          {count}
-                                        </span>
-
-                                        <button
-                                          type="button"
-                                          onClick={() => {
-                                            haptic("light");
-                                            const newAllocations = {
-                                              ...bookingData.roomAllocations,
-                                              [t]: count + 1,
-                                            };
-                                            changeBookingData(
-                                              "roomAllocations",
-                                              newAllocations,
-                                            );
-                                          }}
-                                          className="p-1 rounded-lg border border-teal-500/30 text-teal-400 hover:bg-teal-500/10 bg-background"
-                                        >
-                                          <Plus className="w-3 h-3" />
-                                        </button>
-                                      </div>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-
-                              {totalRoomCount > 0 && (
-                                <div className="text-[10px] text-muted-foreground italic text-center mt-1 truncate">
-                                  Selected: {roomTypeString}
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Meal Plan Checklist */}
-                            <div className="space-y-2">
-                              <label className="text-xs font-bold text-muted-foreground">
-                                Meal Plan Includes
-                              </label>
-                              <div className="grid grid-cols-3 gap-2">
-                                {MEAL_PLANS.map((m) => {
-                                  const isChecked =
-                                    bookingData.mealPlan.includes(m.value);
-                                  return (
-                                    <button
-                                      key={m.value}
-                                      type="button"
-                                      onClick={() => {
-                                        haptic("light");
-                                        toggleMealPlan(m.value);
-                                      }}
-                                      className={cn(
-                                        "py-2.5 rounded-xl border text-xs font-bold transition-all text-center",
-                                        isChecked
-                                          ? "bg-teal-500/10 border-teal-500 text-teal-400 shadow-sm"
-                                          : "bg-muted/30 border-border/40 text-muted-foreground hover:bg-muted/50",
-                                      )}
-                                    >
-                                      {m.label}
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                            </div>
-
-                            {/* Navigation button */}
-                            <div className="pt-2">
-                              <button
-                                type="button"
-                                disabled={
-                                  !bookingData.guestFullName.trim() ||
-                                  nightCount <= 0 ||
-                                  totalRoomCount <= 0
+                        {/* Step Content */}
+                        <AnimatePresence mode="wait" custom={bookingDirection}>
+                          <motion.div
+                            key={bookingStep}
+                            custom={bookingDirection}
+                            initial={{
+                              x: bookingDirection > 0 ? 40 : -40,
+                              opacity: 0,
+                            }}
+                            animate={{ x: 0, opacity: 1 }}
+                            exit={{
+                              x: bookingDirection > 0 ? -40 : 40,
+                              opacity: 0,
+                            }}
+                            transition={{
+                              type: "spring",
+                              stiffness: 380,
+                              damping: 30,
+                            }}
+                          >
+                            {bookingStep === 1 && (
+                              <GuestStep
+                                guestFullName={guestFullName}
+                                setGuestFullName={setGuestFullName}
+                                guestPhone={guestPhone}
+                                setGuestPhone={setGuestPhone}
+                                guestEmail={guestEmail}
+                                setGuestEmail={setGuestEmail}
+                                adultCount={adultCount}
+                                setAdultCount={setAdultCount}
+                                childCount={childCount}
+                                setChildCount={setChildCount}
+                                roomCount={roomCount}
+                                setRoomCount={setRoomCount}
+                                isFullProperty={isFullProperty}
+                                setIsFullProperty={setIsFullProperty}
+                                onEnter={
+                                  canProceed() ? nextBookingStep : undefined
                                 }
-                                onClick={() => {
-                                  haptic("medium");
-                                  setBookingStep(2);
-                                }}
-                                className="w-full py-3.5 bg-foreground text-background hover:opacity-90 rounded-2xl font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-40"
-                              >
-                                Next: Price & Payments{" "}
-                                <ChevronRight className="w-4 h-4" />
-                              </button>
-                            </div>
-                          </div>
-                        ) : (
-                          /* STEP 2: PRICING & CONFIRM */
-                          <div className="space-y-5">
-                            {/* Summary Pill Panel */}
-                            <div className="p-4 bg-teal-500/5 rounded-2xl border border-teal-500/10 space-y-1.5">
-                              <h4 className="text-xs font-bold text-teal-400">
-                                Stay Summary
-                              </h4>
-                              <div className="text-xs text-muted-foreground grid grid-cols-2 gap-y-1 gap-x-4">
-                                <div>
-                                  Guest:{" "}
-                                  <span className="font-semibold text-foreground">
-                                    {bookingData.guestFullName}
-                                  </span>
-                                </div>
-                                <div>
-                                  Nights:{" "}
-                                  <span className="font-semibold text-foreground">
-                                    {nightCount} nights
-                                  </span>
-                                </div>
-                                <div className="col-span-2">
-                                  Rooms:{" "}
-                                  <span className="font-semibold text-foreground">
-                                    {roomTypeString}
-                                  </span>
-                                </div>
-                                <div className="col-span-2">
-                                  Meals:{" "}
-                                  <span className="font-semibold text-foreground">
-                                    {bookingData.mealPlan.join(", ") || "None"}
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
+                              />
+                            )}
+                            {bookingStep === 2 && (
+                              <StayStep
+                                checkInDate={checkInDate}
+                                setCheckInDate={setCheckInDate}
+                                checkOutDate={checkOutDate}
+                                setCheckOutDate={setCheckOutDate}
+                                checkInTime={checkInTime}
+                                setCheckInTime={setCheckInTime}
+                                checkOutTime={checkOutTime}
+                                setCheckOutTime={setCheckOutTime}
+                                roomCount={roomCount}
+                                roomAllocations={roomAllocations}
+                                setRoomAllocations={setRoomAllocations}
+                                isFullProperty={isFullProperty}
+                                extraMattressCount={extraMattressCount}
+                                setExtraMattressCount={setExtraMattressCount}
+                                mealPlan={mealPlan}
+                                setMealPlan={setMealPlan}
+                                nightCount={nightCount}
+                              />
+                            )}
+                            {bookingStep === 3 && (
+                              <PaymentStep
+                                totalAmount={totalAmount}
+                                setTotalAmount={setTotalAmount}
+                                amountPaidOnline={amountPaidOnline}
+                                setAmountPaidOnline={setAmountPaidOnline}
+                                currency={currency}
+                                setCurrency={setCurrency}
+                                onEnter={
+                                  canProceed() ? nextBookingStep : undefined
+                                }
+                              />
+                            )}
+                            {bookingStep === 4 && (
+                              <ReviewStep
+                                guestFullName={guestFullName}
+                                guestPhone={guestPhone}
+                                guestEmail={guestEmail}
+                                adultCount={adultCount}
+                                childCount={childCount}
+                                checkInDate={checkInDate}
+                                checkOutDate={checkOutDate}
+                                checkInTime={checkInTime}
+                                checkOutTime={checkOutTime}
+                                roomCount={roomCount}
+                                roomAllocations={roomAllocations}
+                                extraMattressCount={extraMattressCount}
+                                mealPlan={mealPlan}
+                                totalAmount={totalAmount}
+                                amountPaidOnline={amountPaidOnline}
+                                currency={currency}
+                                nightCount={nightCount}
+                              />
+                            )}
+                          </motion.div>
+                        </AnimatePresence>
 
-                            {/* Steppers: Room Count & Guest Occupancy counts */}
-                            <div className="grid grid-cols-3 gap-2 bg-muted/20 p-3 rounded-2xl border border-border/40">
-                              {/* Rooms */}
-                              <div className="flex flex-col items-center justify-center space-y-1.5">
-                                <label className="text-[10px] font-bold text-muted-foreground uppercase">
-                                  Rooms
-                                </label>
-                                <span className="font-extrabold text-sm text-teal-400 bg-teal-500/10 border border-teal-500/20 px-3 py-1 rounded-xl">
-                                  {totalRoomCount} Room
-                                  {totalRoomCount !== 1 ? "s" : ""}
-                                </span>
-                              </div>
-
-                              {/* Adults */}
-                              <div className="flex flex-col items-center justify-center space-y-1.5 border-l border-border/40">
-                                <label className="text-[10px] font-bold text-muted-foreground uppercase">
-                                  Adults
-                                </label>
-                                <div className="flex items-center gap-3">
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      haptic("light");
-                                      changeBookingData(
-                                        "adultCount",
-                                        Math.max(1, bookingData.adultCount - 1),
-                                      );
+                        {/* Navigation */}
+                        <div className="flex items-center gap-3 pt-2">
+                          {bookingStep > 1 && (
+                            <motion.button
+                              type="button"
+                              onClick={prevBookingStep}
+                              whileTap={{ scale: 0.93 }}
+                              className="flex items-center justify-center gap-1.5 px-4 py-3 rounded-xl border border-white/[0.07] bg-white/3 text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-white/6 transition-all duration-200 min-h-[48px]"
+                            >
+                              <ArrowLeft className="w-4 h-4" />
+                              <span className="hidden sm:inline">Back</span>
+                            </motion.button>
+                          )}
+                          <div className="flex-1" />
+                          {bookingStep < 4 ? (
+                            <motion.button
+                              type="button"
+                              onClick={nextBookingStep}
+                              disabled={!canProceed()}
+                              whileTap={
+                                canProceed() ? { scale: 0.94 } : undefined
+                              }
+                              className={cn(
+                                "flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-bold tracking-tight transition-all duration-200 min-h-[48px]",
+                                canProceed()
+                                  ? "bg-white text-background shadow-[0_4px_24px_rgba(255,255,255,0.12)] hover:bg-zinc-100"
+                                  : "bg-white/10 text-white/30 cursor-not-allowed",
+                              )}
+                            >
+                              <span>Continue</span>
+                              <ArrowRight className="w-4 h-4" />
+                            </motion.button>
+                          ) : (
+                            <motion.button
+                              type="button"
+                              onClick={handleBookingSubmit}
+                              disabled={saving || !canProceed()}
+                              whileTap={
+                                !saving && canProceed()
+                                  ? { scale: 0.94 }
+                                  : undefined
+                              }
+                              className="relative flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-bold overflow-hidden disabled:opacity-30 transition-all duration-200 min-h-[48px] text-white"
+                              style={{
+                                background:
+                                  !saving && canProceed()
+                                    ? "linear-gradient(135deg, #14b8a6, #10b981)"
+                                    : undefined,
+                                backgroundColor:
+                                  saving || !canProceed()
+                                    ? "#0d4036"
+                                    : undefined,
+                                boxShadow:
+                                  !saving && canProceed()
+                                    ? "0 0 28px -6px rgba(20,184,166,0.55)"
+                                    : undefined,
+                              }}
+                            >
+                              {saving ? (
+                                <>
+                                  <motion.div
+                                    animate={{ rotate: 360 }}
+                                    transition={{
+                                      duration: 0.8,
+                                      repeat: Infinity,
+                                      ease: "linear",
                                     }}
-                                    className="p-1 rounded-lg border border-border hover:bg-muted bg-background"
-                                  >
-                                    <Minus className="w-3.5 h-3.5" />
-                                  </button>
-                                  <span className="font-bold text-sm w-4 text-center">
-                                    {bookingData.adultCount}
-                                  </span>
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      haptic("light");
-                                      changeBookingData(
-                                        "adultCount",
-                                        bookingData.adultCount + 1,
-                                      );
-                                    }}
-                                    className="p-1 rounded-lg border border-border hover:bg-muted bg-background"
-                                  >
-                                    <Plus className="w-3.5 h-3.5" />
-                                  </button>
-                                </div>
-                              </div>
-
-                              {/* Extra Mattress */}
-                              <div className="flex flex-col items-center justify-center space-y-1.5 border-l border-border/40">
-                                <label className="text-[10px] font-bold text-muted-foreground uppercase">
-                                  Mattress
-                                </label>
-                                <div className="flex items-center gap-3">
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      haptic("light");
-                                      changeBookingData(
-                                        "extraMattressCount",
-                                        Math.max(
-                                          0,
-                                          bookingData.extraMattressCount - 1,
-                                        ),
-                                      );
-                                    }}
-                                    className="p-1 rounded-lg border border-border hover:bg-muted bg-background"
-                                  >
-                                    <Minus className="w-3.5 h-3.5" />
-                                  </button>
-                                  <span className="font-bold text-sm w-4 text-center">
-                                    {bookingData.extraMattressCount}
-                                  </span>
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      haptic("light");
-                                      changeBookingData(
-                                        "extraMattressCount",
-                                        bookingData.extraMattressCount + 1,
-                                      );
-                                    }}
-                                    className="p-1 rounded-lg border border-border hover:bg-muted bg-background"
-                                  >
-                                    <Plus className="w-3.5 h-3.5" />
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* Total Tariff and Paid Advance in two fields */}
-                            <div className="grid grid-cols-2 gap-4">
-                              <div className="space-y-1.5">
-                                <label className="text-xs font-bold text-muted-foreground">
-                                  Total Amount
-                                </label>
-                                <div className="relative flex items-center">
-                                  <span className="absolute left-3 text-sm font-bold text-teal-400">
-                                    ₹
-                                  </span>
-                                  <input
-                                    type="number"
-                                    inputMode="decimal"
-                                    required
-                                    placeholder="0"
-                                    min={0}
-                                    value={bookingData.totalAmount}
-                                    onChange={(e) =>
-                                      changeBookingData(
-                                        "totalAmount",
-                                        e.target.value,
-                                      )
-                                    }
-                                    className="w-full rounded-xl border border-border bg-background pl-7 pr-3 py-2.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-teal-500/50"
+                                    className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white"
                                   />
-                                </div>
-                              </div>
-
-                              <div className="space-y-1.5">
-                                <label className="text-xs font-bold text-muted-foreground">
-                                  Advance Paid
-                                </label>
-                                <div className="relative flex items-center">
-                                  <span className="absolute left-3 text-sm font-bold text-emerald-400">
-                                    ₹
-                                  </span>
-                                  <input
-                                    type="number"
-                                    inputMode="decimal"
-                                    placeholder="0"
-                                    min={0}
-                                    value={bookingData.amountPaidOnline}
-                                    onChange={(e) =>
-                                      changeBookingData(
-                                        "amountPaidOnline",
-                                        e.target.value,
-                                      )
-                                    }
-                                    className="w-full rounded-xl border border-border bg-background pl-7 pr-3 py-2.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-teal-500/50"
-                                  />
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* Dynamically calculated Balance */}
-                            <div className="flex items-center justify-between p-3.5 bg-muted/40 border border-border/40 rounded-xl text-sm">
-                              <span className="text-muted-foreground font-semibold">
-                                Calculated Balance Due:
-                              </span>
-                              <span className="font-extrabold text-foreground text-base">
-                                ₹{balanceAmount.toLocaleString("en-IN")}
-                              </span>
-                            </div>
-
-                            {/* Step Navigation Back + Create */}
-                            <div className="grid grid-cols-3 gap-3 pt-2">
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  haptic("medium");
-                                  setBookingStep(1);
-                                }}
-                                className="py-3.5 border border-border hover:bg-muted text-foreground rounded-2xl font-bold text-xs transition-all active:scale-[0.98]"
-                              >
-                                Edit Details
-                              </button>
-                              <button
-                                type="button"
-                                disabled={saving}
-                                onClick={handleBookingSubmit}
-                                className="col-span-2 py-3.5 bg-teal-500 hover:bg-teal-600 text-white rounded-2xl font-bold text-sm shadow-lg shadow-teal-500/15 transition-all flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-50"
-                              >
-                                {saving ? (
-                                  <>
-                                    <Loader2 className="w-4 h-4 animate-spin" />{" "}
-                                    Creating...
-                                  </>
-                                ) : (
-                                  <>
-                                    <Check className="w-4 h-4" /> Create
-                                    Reservation
-                                  </>
-                                )}
-                              </button>
-                            </div>
-                          </div>
-                        )}
+                                  <span>Creating…</span>
+                                </>
+                              ) : (
+                                <>
+                                  <span>Create Booking</span>
+                                  <Check className="w-4 h-4" />
+                                </>
+                              )}
+                            </motion.button>
+                          )}
+                        </div>
                       </motion.div>
                     )}
                   </AnimatePresence>

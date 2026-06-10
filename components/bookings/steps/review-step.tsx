@@ -1,8 +1,20 @@
 "use client";
 
-import { ReviewSection, ReviewRow, StepCard } from "@/components/ui/form-primitives";
-import { Check, Users, CalendarDays, CircleDollarSign, MapPin } from "lucide-react";
+import {
+    ReviewRow,
+    ReviewSection,
+    StepCard,
+} from "@/components/ui/form-primitives";
+import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import {
+    CalendarDays,
+    Check,
+    CircleDollarSign,
+    HeartHandshake,
+    MapPin,
+    Users,
+} from "lucide-react";
 
 interface RoomAllocation {
   id: string;
@@ -53,37 +65,171 @@ export function ReviewStep({
   const paid = Number(amountPaidOnline || 0);
   const balance = Math.max(0, total - paid);
 
+  const formattedDate = (d: Date | null) => {
+    if (!d) return "—";
+    try {
+      return format(d, "EEE, MMM dd, yyyy");
+    } catch {
+      return "—";
+    }
+  };
+
   return (
-    <StepCard icon={<Check className="w-5 h-5" />} title="Review & Create" subtitle="Double-check everything looks right.">
+    <StepCard
+      icon={<Check className="w-5 h-5" />}
+      title="Review & Confirm"
+      subtitle="Double-check everything before booking registration"
+    >
       <div className="space-y-4">
-        <ReviewSection title="Guest" icon={<Users className="w-3.5 h-3.5" />}>
-          <ReviewRow label="Name" value={guestFullName || "—"} />
-          <ReviewRow label="Phone" value={guestPhone || "—"} />
-          <ReviewRow label="Email" value={guestEmail || "—"} />
-          <ReviewRow label="Guests" value={`${adultCount} adults, ${childCount} children`} />
-        </ReviewSection>
-
-        <ReviewSection title="Stay" icon={<CalendarDays className="w-3.5 h-3.5" />}>
+        {/* Guest Credentials Card */}
+        <ReviewSection
+          title="Primary Guest"
+          icon={<Users className="w-4 h-4" />}
+        >
+          <ReviewRow label="Full Name" value={guestFullName || "—"} />
+          <ReviewRow label="Phone Number" value={guestPhone || "—"} />
+          <ReviewRow label="Email Address" value={guestEmail || "—"} />
           <ReviewRow
-            label="Dates"
-            value={`${checkInDate ? format(checkInDate, "yyyy-MM-dd") : "—"} → ${checkOutDate ? format(checkOutDate, "yyyy-MM-dd") : "—"} (${nightCount} nights)`}
+            label="Total Guests"
+            value={
+              <span className="text-teal-400 font-extrabold">
+                {adultCount} Adult{adultCount > 1 ? "s" : ""}, {childCount}{" "}
+                Child{childCount !== 1 ? "ren" : ""}
+              </span>
+            }
           />
-          <ReviewRow label="Times" value={`${checkInTime} — ${checkOutTime}`} />
-          <ReviewRow label="Rooms" value={`${roomCount} × ${roomAllocations.map((r) => `${r.count} ${r.roomType}`).join(", ")}`} />
-          {extraMattressCount > 0 && <ReviewRow label="Extra Mattresses" value={String(extraMattressCount)} />}
-          <ReviewRow label="Meals" value={mealPlan.join(", ") || "None"} />
         </ReviewSection>
 
-        <ReviewSection title="Payment" icon={<CircleDollarSign className="w-3.5 h-3.5" />}>
-          <ReviewRow label="Total" value={`${currency} ${total.toLocaleString("en-IN")}`} />
-          <ReviewRow label="Paid Online" value={`${currency} ${paid.toLocaleString("en-IN")}`} />
-          <ReviewRow label="Balance" value={`${currency} ${balance.toLocaleString("en-IN")}`} />
+        {/* Accommodation and Stay Card */}
+        <ReviewSection
+          title="Stay & Rooms"
+          icon={<CalendarDays className="w-4 h-4" />}
+        >
+          <ReviewRow
+            label="Timeline"
+            value={
+              <div className="text-right">
+                <span className="block font-black text-foreground">
+                  {formattedDate(checkInDate)} &rarr;{" "}
+                  {formattedDate(checkOutDate)}
+                </span>
+                <span className="text-xs text-teal-400 font-bold uppercase tracking-wider bg-teal-500/5 border border-teal-500/10 px-2 py-0.5 rounded-md inline-block mt-1">
+                  {nightCount} Night{nightCount > 1 ? "s" : ""} Stay
+                </span>
+              </div>
+            }
+          />
+          <ReviewRow
+            label="Timings"
+            value={`In: ${checkInTime} | Out: ${checkOutTime}`}
+          />
+          <ReviewRow
+            label="Room Allocations"
+            value={
+              <span className="text-foreground font-extrabold">
+                {roomCount} Room{roomCount > 1 ? "s" : ""} (
+                {roomAllocations.length > 0
+                  ? roomAllocations
+                      .map((r) => `${r.count} ${r.roomType}`)
+                      .join(", ")
+                  : "None allocated"}
+                )
+              </span>
+            }
+          />
+          {extraMattressCount > 0 && (
+            <ReviewRow
+              label="Extra Mattresses"
+              value={`${extraMattressCount} Mattress${extraMattressCount > 1 ? "es" : ""}`}
+            />
+          )}
+          <ReviewRow
+            label="Meal Inclusions"
+            value={
+              mealPlan.length > 0 ? (
+                <div className="flex flex-wrap gap-1 justify-end">
+                  {mealPlan.map((m) => (
+                    <span
+                      key={m}
+                      className="text-[10px] bg-white/5 border border-white/5 px-2 py-0.5 rounded-lg text-foreground font-extrabold uppercase"
+                    >
+                      {m}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                "None included"
+              )
+            }
+          />
         </ReviewSection>
 
-        <ReviewSection title="Property" icon={<MapPin className="w-3.5 h-3.5" />}>
-          <ReviewRow label="Address" value="The Stream by Ekantah" />
-          <ReviewRow label="Phone" value="+91 93193 47443, +91 99100 06437" />
+        {/* Ledger and Bills Card */}
+        <ReviewSection
+          title="Payment Ledger"
+          icon={<CircleDollarSign className="w-4 h-4" />}
+        >
+          <ReviewRow
+            label="Invoice Amount"
+            value={
+              <span className="text-foreground font-black text-base">
+                {currency} {total.toLocaleString("en-IN")}
+              </span>
+            }
+          />
+          <ReviewRow
+            label="Paid Online"
+            value={
+              <span className="text-teal-400 font-extrabold">
+                {currency} {paid.toLocaleString("en-IN")}
+              </span>
+            }
+          />
+          <ReviewRow
+            label="Remaining Balance"
+            value={
+              <span
+                className={cn(
+                  "font-black text-base px-2.5 py-0.5 rounded-xl border",
+                  balance > 0
+                    ? "text-orange-400 bg-orange-500/5 border-orange-500/10"
+                    : "text-emerald-400 bg-emerald-500/5 border-emerald-500/10",
+                )}
+              >
+                {currency} {balance.toLocaleString("en-IN")}
+              </span>
+            }
+          />
         </ReviewSection>
+
+        {/* Resort Properties Info Card */}
+        <ReviewSection
+          title="Property Details"
+          icon={<MapPin className="w-4 h-4" />}
+        >
+          <ReviewRow
+            label="Resort Location"
+            value="The Stream by Ekantah, Tirthan Valley"
+          />
+          <ReviewRow label="Concierge Hotline" value="+91 93193 47443" />
+        </ReviewSection>
+
+        <div className="rounded-2xl border border-teal-500/15 bg-teal-500/5 p-5 flex items-start gap-3.5 relative overflow-hidden">
+          <div className="absolute inset-0 bg-linear-to-br from-teal-500/8 via-transparent to-transparent pointer-events-none rounded-2xl" />
+          <div className="w-9 h-9 rounded-xl bg-teal-500/15 border border-teal-500/20 flex items-center justify-center shrink-0 mt-0.5">
+            <HeartHandshake className="w-4.5 h-4.5 text-teal-400" />
+          </div>
+          <div className="space-y-1 relative z-10">
+            <h4 className="text-xs font-extrabold uppercase tracking-wider text-teal-300">
+              Ekantah Hospitality Guarantee
+            </h4>
+            <p className="text-[11px] text-muted-foreground/60 font-medium leading-relaxed">
+              Once created, a booking confirmation will be generated, sending
+              instant digital receipts, map links, check-in instructions, and
+              dynamic templates to the guest.
+            </p>
+          </div>
+        </div>
       </div>
     </StepCard>
   );

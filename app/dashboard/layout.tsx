@@ -5,8 +5,7 @@ import { QuickAddFAB } from "@/components/quick-add/fab";
 import {
   Drawer,
   DrawerContent,
-  DrawerTitle,
-  DrawerTrigger,
+  DrawerTitle
 } from "@/components/ui/drawer";
 import { MobileBottomNav } from "@/components/ui/mobile-bottom-nav";
 import { ToastProvider } from "@/components/ui/toast";
@@ -70,44 +69,6 @@ const navItems = [
   { href: "/dashboard/whatsapp", label: "WhatsApp Setup", icon: Smartphone },
 ];
 
-const dockItems = [
-  {
-    href: "/dashboard",
-    label: "Dashboard",
-    icon: <LayoutDashboard className="w-5 h-5" />,
-  },
-  {
-    href: "/dashboard/bookings",
-    label: "Bookings",
-    icon: <CalendarDays className="w-5 h-5" />,
-  },
-  {
-    href: "/dashboard/new",
-    label: "New Booking",
-    icon: <PlusCircle className="w-5 h-5" />,
-  },
-  {
-    href: "/dashboard/guests",
-    label: "Guests",
-    icon: <Users className="w-5 h-5" />,
-  },
-  {
-    href: "/dashboard/expenses",
-    label: "Expenses",
-    icon: <Receipt className="w-5 h-5" />,
-  },
-  {
-    href: "/dashboard/salary",
-    label: "Salary",
-    icon: <Banknote className="w-5 h-5" />,
-  },
-  {
-    href: "/dashboard/additional-sales",
-    label: "Sales",
-    icon: <ShoppingCart className="w-5 h-5" />,
-  },
-];
-
 function LogoutForm({
   collapsed,
   className = "px-3 py-2 rounded-md",
@@ -164,6 +125,34 @@ export default function DashboardLayout({
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+
+  const dockItems = [
+    {
+      href: "/dashboard",
+      label: "Dashboard",
+      icon: <LayoutDashboard className="w-5 h-5" />,
+    },
+    {
+      href: "/dashboard/bookings",
+      label: "Bookings",
+      icon: <CalendarDays className="w-5 h-5" />,
+    },
+    {
+      href: "/dashboard/expenses",
+      label: "Expenses",
+      icon: <Receipt className="w-5 h-5" />,
+    },
+    {
+      href: "/dashboard/guests",
+      label: "Guests",
+      icon: <Users className="w-5 h-5" />,
+    },
+    {
+      label: "More",
+      icon: <MoreHorizontal className="w-5 h-5" />,
+      onClick: () => setDrawerOpen(true),
+    },
+  ];
   const haptic = useHaptic();
 
   const handleRefresh = useCallback(async () => {
@@ -368,16 +357,7 @@ export default function DashboardLayout({
             onItemClick={() => haptic("light")}
           />
 
-          {/* More options drawer trigger */}
           <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
-            <DrawerTrigger asChild>
-              <button
-                className="fixed bottom-[calc(5.25rem+env(safe-area-inset-bottom))] right-4 z-50 w-10 h-10 rounded-full bg-background/80 backdrop-blur-xl border border-border/50 shadow-lg flex items-center justify-center text-muted-foreground hover:text-foreground transition"
-                aria-label="More options"
-              >
-                <MoreHorizontal className="w-5 h-5" />
-              </button>
-            </DrawerTrigger>
             <DrawerContent>
               <DrawerTitle>More Options</DrawerTitle>
               <div className="mt-6 space-y-1">

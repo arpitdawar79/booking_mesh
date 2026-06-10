@@ -1,13 +1,19 @@
 import { PWAShell } from "@/components/pwa/pwa-shell";
 import type { Metadata, Viewport } from "next";
 import { ViewTransitions } from "next-view-transitions";
-import { Outfit, Space_Mono } from "next/font/google";
+import { Outfit, Plus_Jakarta_Sans, Space_Mono } from "next/font/google";
 import "./globals.css";
 
 const outfit = Outfit({
   subsets: ["latin"],
   variable: "--font-outfit",
   weight: ["300", "400", "500", "600", "700", "800", "900"],
+});
+
+const plusJakartaSans = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  variable: "--font-jakarta",
+  weight: ["300", "400", "500", "600", "700", "800"],
 });
 
 const spaceMono = Space_Mono({
@@ -92,7 +98,7 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="/" />
       </head>
       <body
-        className={`${outfit.variable} ${spaceMono.variable} font-sans min-h-screen bg-background text-foreground overflow-x-hidden`}
+        className={`${outfit.variable} ${plusJakartaSans.variable} ${spaceMono.variable} font-sans min-h-screen bg-background text-foreground overflow-x-hidden`}
       >
         <ViewTransitions>
           <PWAShell>{children}</PWAShell>

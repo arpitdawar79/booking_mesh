@@ -1,17 +1,21 @@
 "use client";
 
+import { AnimatedGradientText } from "@/components/magicui/animated-gradient-text";
+import { BorderBeam } from "@/components/magicui/border-beam";
+import { TextReveal } from "@/components/magicui/text-reveal";
 import { useToast } from "@/components/ui/toast";
+import { useHaptic, useTouchFeedback } from "@/lib/pwa-hooks";
+import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowLeft,
   ArrowRight,
   CalendarDays,
   Check,
-  ChevronRight,
   ClipboardList,
   CreditCard,
+  Sparkles,
   Users,
-  Zap,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -29,23 +33,17 @@ interface RoomAllocation {
 type Step = 1 | 2 | 3 | 4;
 
 const stepMeta = [
-  { num: 1 as Step, label: "Guest", icon: <Users className="w-4 h-4" /> },
-  { num: 2 as Step, label: "Stay", icon: <CalendarDays className="w-4 h-4" /> },
-  {
-    num: 3 as Step,
-    label: "Payment",
-    icon: <CreditCard className="w-4 h-4" />,
-  },
-  {
-    num: 4 as Step,
-    label: "Review",
-    icon: <ClipboardList className="w-4 h-4" />,
-  },
+  { num: 1 as Step, label: "Guest", icon: Users },
+  { num: 2 as Step, label: "Stay", icon: CalendarDays },
+  { num: 3 as Step, label: "Payment", icon: CreditCard },
+  { num: 4 as Step, label: "Review", icon: ClipboardList },
 ];
 
 export function BookingWizard() {
   const router = useRouter();
   const { success, error } = useToast();
+  const haptic = useHaptic();
+  const touch = useTouchFeedback();
   const [step, setStep] = useState<Step>(1);
   const [direction, setDirection] = useState(1);
   const [saving, setSaving] = useState(false);
@@ -62,15 +60,18 @@ export function BookingWizard() {
   const [adultCount, setAdultCount] = useState(2);
   const [childCount, setChildCount] = useState(0);
 
+  // Room state (moved from stay for UX priority)
+  const [isFullProperty, setIsFullProperty] = useState(false);
+  const [roomCount, setRoomCount] = useState(1);
+  const [roomAllocations, setRoomAllocations] = useState<RoomAllocation[]>([
+    { id: "1", roomType: "Balcony Room", count: 1 },
+  ]);
+
   // Stay state
   const [checkInDate, setCheckInDate] = useState<Date | null>(null);
   const [checkOutDate, setCheckOutDate] = useState<Date | null>(null);
   const [checkInTime, setCheckInTime] = useState("1:00 PM");
   const [checkOutTime, setCheckOutTime] = useState("10:00 AM");
-  const [roomCount, setRoomCount] = useState(1);
-  const [roomAllocations, setRoomAllocations] = useState<RoomAllocation[]>([
-    { id: "1", roomType: "Balcony Room", count: 1 },
-  ]);
   const [extraMattressCount, setExtraMattressCount] = useState(0);
   const [mealPlan, setMealPlan] = useState<string[]>(["Breakfast"]);
 
@@ -85,32 +86,38 @@ export function BookingWizard() {
     return Math.max(0, Math.round(ms / (1000 * 60 * 60 * 24)));
   }, [checkInDate, checkOutDate]);
 
-  const allocated = roomAllocations.reduce((s, r) => s + r.count, 0);
-  const roomCountError = allocated !== roomCount;
+  // Auto-compute adults/children and room allocations when rooms change
+  useEffect(() => {
+    if (isFullProperty) {
+      setRoomCount(5);
+      setAdultCount(10);
+      setChildCount(0);
+      setExtraMattressCount((prev) => Math.min(prev, 5));
+      setRoomAllocations([
+        { id: "fp-1", roomType: "Balcony Room", count: 3 },
+        { id: "fp-2", roomType: "Non-Balcony Room", count: 2 },
+      ]);
+    } else {
+      setAdultCount(roomCount * 2);
+      setChildCount(0);
+      setExtraMattressCount((prev) => Math.min(prev, roomCount));
+      setRoomAllocations([
+        { id: "auto-1", roomType: "Balcony Room", count: roomCount },
+      ]);
+    }
+  }, [roomCount, isFullProperty]);
 
   const canProceed = useCallback(() => {
     if (step === 1) return guestFullName.trim().length > 0;
     if (step === 2)
-      return (
-        checkInDate !== null &&
-        checkOutDate !== null &&
-        !roomCountError &&
-        nightCount > 0
-      );
+      return checkInDate !== null && checkOutDate !== null && nightCount > 0;
     if (step === 3) return totalAmount !== "" && Number(totalAmount) >= 0;
     return true;
-  }, [
-    step,
-    guestFullName,
-    checkInDate,
-    checkOutDate,
-    roomCountError,
-    nightCount,
-    totalAmount,
-  ]);
+  }, [step, guestFullName, checkInDate, checkOutDate, nightCount, totalAmount]);
 
   function nextStep() {
     if (step < 4) {
+      haptic("light");
       setDirection(1);
       setStep((s) => (s + 1) as Step);
     }
@@ -118,6 +125,7 @@ export function BookingWizard() {
 
   function prevStep() {
     if (step > 1) {
+      haptic("light");
       setDirection(-1);
       setStep((s) => (s - 1) as Step);
     }
@@ -156,10 +164,6 @@ export function BookingWizard() {
   }, [step, canProceed]);
 
   async function handleSubmit() {
-    if (roomCountError) {
-      error("Room allocation must match total room count");
-      return;
-    }
     if (!checkInDate || !checkOutDate) {
       error("Please select check-in and check-out dates.");
       return;
@@ -208,91 +212,172 @@ export function BookingWizard() {
     setSaving(false);
 
     if (json.booking) {
+      haptic("success");
       success("Booking created successfully!");
       router.push(`/dashboard/booking/${json.booking.id}`);
     } else {
+      haptic("error");
       error(json.error || "Failed to create booking.");
     }
   }
 
   const variants = {
-    enter: (dir: number) => ({ x: dir > 0 ? 40 : -40, opacity: 0 }),
+    enter: (dir: number) => ({ x: dir > 0 ? 60 : -60, opacity: 0 }),
     center: { x: 0, opacity: 1 },
-    exit: (dir: number) => ({ x: dir > 0 ? -40 : 40, opacity: 0 }),
+    exit: (dir: number) => ({ x: dir > 0 ? -60 : 60, opacity: 0 }),
   };
 
+  const progressPct = ((step - 1) / (stepMeta.length - 1)) * 100;
+
   return (
-    <div className="max-w-2xl mx-auto space-y-8">
-      {/* Decorative ambient backdrop light */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[300px] bg-teal-500/5 blur-[80px] rounded-full pointer-events-none -z-10" />
+    <div className="max-w-2xl mx-auto relative pb-4">
+      {/* Ambient layered glows */}
+      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[700px] h-[500px] bg-teal-500/3 blur-[120px] rounded-full pointer-events-none -z-10" />
+      <div className="fixed bottom-0 right-0 w-[400px] h-[300px] bg-emerald-500/3 blur-[100px] rounded-full pointer-events-none -z-10" />
 
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-teal-500/10 border border-teal-500/20 shadow-sm text-teal-400">
-            <Zap className="w-5.5 h-5.5 animate-pulse" />
+      {/* Header */}
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+        className="mb-7 sm:mb-9"
+      >
+        <div className="flex items-center gap-2.5 mb-1">
+          <div className="w-7 h-7 rounded-lg bg-teal-500/15 border border-teal-500/20 flex items-center justify-center">
+            <Sparkles className="w-3.5 h-3.5 text-teal-400" />
           </div>
-          <span className="bg-linear-to-b from-white to-zinc-400 bg-clip-text text-transparent">
-            New Reservation
+          <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-teal-400/80">
+            The Stream by Ekantah
           </span>
+        </div>
+        <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tighter leading-none mt-2">
+          <AnimatedGradientText
+            gradientFrom="#14b8a6"
+            gradientVia="#4ade80"
+            gradientTo="#06b6d4"
+            animationDuration={5}
+          >
+            New Reservation
+          </AnimatedGradientText>
         </h1>
-        <p className="text-sm text-muted-foreground/80 font-medium mt-1 pl-1">
-          Configure stay dates, allocate room inventories, and record guest
-          credentials in 4 simple stages.
-        </p>
-      </div>
+        <TextReveal
+          text="Configure stay, allocate rooms, record guest credentials in 4 stages."
+          className="text-sm text-muted-foreground/55 font-medium mt-2.5 max-w-sm leading-relaxed"
+          delay={0.05}
+        />
+      </motion.div>
 
-      {/* Modern Progress Pill Dock */}
-      <div className="flex items-center gap-1.5 bg-muted/20 border border-border/40 p-1.5 rounded-2xl">
-        {stepMeta.map((s) => {
-          const isCurrent = s.num === step;
-          const isCompleted = s.num < step;
-          return (
-            <div key={s.num} className="flex items-center gap-1 flex-1">
+      {/* Step Indicator — pill track */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.55, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+        className="mb-7 relative"
+      >
+        {/* Progress track */}
+        <div className="absolute top-[22px] left-6 right-6 h-px bg-white/5 z-0" />
+        <motion.div
+          className="absolute top-[22px] left-6 h-px bg-linear-to-r from-teal-500 to-emerald-400 z-0 origin-left"
+          style={{ right: `${100 - progressPct}%` }}
+          initial={false}
+          animate={{ right: `${100 - progressPct}%` }}
+          transition={{ type: "spring", stiffness: 300, damping: 28 }}
+        />
+
+        <div className="relative flex items-start justify-between">
+          {stepMeta.map((s, i) => {
+            const isCurrent = s.num === step;
+            const isCompleted = s.num < step;
+            const Icon = s.icon;
+
+            return (
               <button
+                key={s.num}
                 type="button"
                 onClick={() => {
                   if (s.num < step) {
+                    haptic("light");
                     setDirection(-1);
                     setStep(s.num);
                   }
                 }}
                 disabled={s.num > step}
-                className={`relative flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold transition-all duration-300 flex-1 justify-center disabled:opacity-40 disabled:cursor-not-allowed ${
-                  isCurrent
-                    ? "text-teal-400"
-                    : isCompleted
-                      ? "text-foreground hover:bg-muted/40"
-                      : "text-muted-foreground/50"
-                }`}
+                className="flex flex-col items-center gap-2 disabled:pointer-events-none group"
               >
-                {/* Slidable highlight backing */}
-                {isCurrent && (
-                  <motion.div
-                    layoutId="activeWizardStepTab"
-                    className="absolute inset-0 rounded-xl bg-teal-500/10 border border-teal-500/15"
-                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                  />
-                )}
-
-                <span className="relative z-10 flex items-center gap-2">
-                  {isCompleted ? (
-                    <Check className="w-3.5 h-3.5 text-emerald-400" />
-                  ) : (
-                    s.icon
+                <div className="relative">
+                  {isCurrent && (
+                    <motion.div
+                      layoutId="stepActiveGlow"
+                      className="absolute -inset-2 rounded-full bg-teal-500/15 blur-sm"
+                      transition={{
+                        type: "spring",
+                        stiffness: 350,
+                        damping: 28,
+                      }}
+                    />
                   )}
-                  <span className="hidden sm:inline">{s.label}</span>
+                  <div
+                    className={cn(
+                      "relative w-11 h-11 rounded-full flex items-center justify-center transition-all duration-300 border",
+                      isCurrent
+                        ? "bg-teal-500 border-teal-400/50 text-white shadow-[0_0_24px_-4px_rgba(20,184,166,0.6)]"
+                        : isCompleted
+                          ? "bg-teal-500/15 border-teal-500/30 text-teal-400"
+                          : "bg-[#111] border-white/8 text-muted-foreground/30 group-disabled:opacity-40",
+                    )}
+                  >
+                    {isCompleted ? (
+                      <motion.span
+                        initial={{ scale: 0, rotate: -45 }}
+                        animate={{ scale: 1, rotate: 0 }}
+                        transition={{
+                          type: "spring",
+                          stiffness: 400,
+                          damping: 20,
+                        }}
+                      >
+                        <Check className="w-4.5 h-4.5" />
+                      </motion.span>
+                    ) : (
+                      <Icon
+                        className={cn(
+                          "w-4.5 h-4.5",
+                          isCurrent &&
+                            "animate-in fade-in zoom-in-50 duration-200",
+                        )}
+                      />
+                    )}
+                    {isCurrent && (
+                      <BorderBeam
+                        size={80}
+                        duration={6}
+                        colorFrom="#14b8a6"
+                        colorTo="#4ade80"
+                        borderWidth={1.5}
+                      />
+                    )}
+                  </div>
+                </div>
+                <span
+                  className={cn(
+                    "text-[10px] font-bold uppercase tracking-widest transition-colors duration-300",
+                    isCurrent
+                      ? "text-teal-400"
+                      : isCompleted
+                        ? "text-teal-400/60"
+                        : "text-muted-foreground/30",
+                  )}
+                >
+                  {s.label}
                 </span>
               </button>
-              {s.num < 4 && (
-                <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/40 hidden sm:block" />
-              )}
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      </motion.div>
 
-      {/* Step Content Wrapper */}
-      <div className="relative min-h-[440px] bg-card/10 border border-border/30 rounded-3xl p-6 sm:p-8 backdrop-blur-xl shadow-xs">
+      {/* Step Content */}
+      <div className="relative overflow-visible">
         <AnimatePresence mode="wait" custom={direction}>
           <motion.div
             key={step}
@@ -301,8 +386,30 @@ export function BookingWizard() {
             initial="enter"
             animate="center"
             exit="exit"
-            transition={{ duration: 0.25, ease: "easeInOut" }}
-            className="absolute inset-x-6 sm:inset-x-8"
+            drag="x"
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={0.12}
+            onDragEnd={(e, info) => {
+              const swipeThreshold = 55;
+              if (info.offset.x < -swipeThreshold) {
+                if (canProceed() && step < 4) {
+                  nextStep();
+                } else if (!canProceed() && step < 4) {
+                  haptic("warning");
+                }
+              } else if (info.offset.x > swipeThreshold) {
+                if (step > 1) {
+                  prevStep();
+                }
+              }
+            }}
+            transition={{
+              type: "spring",
+              stiffness: 380,
+              damping: 30,
+              mass: 0.75,
+            }}
+            className="relative cursor-grab active:cursor-grabbing touch-y"
           >
             {step === 1 && (
               <GuestStep
@@ -316,6 +423,10 @@ export function BookingWizard() {
                 setAdultCount={setAdultCount}
                 childCount={childCount}
                 setChildCount={setChildCount}
+                roomCount={roomCount}
+                setRoomCount={setRoomCount}
+                isFullProperty={isFullProperty}
+                setIsFullProperty={setIsFullProperty}
                 onEnter={canProceed() ? nextStep : undefined}
               />
             )}
@@ -330,9 +441,9 @@ export function BookingWizard() {
                 checkOutTime={checkOutTime}
                 setCheckOutTime={setCheckOutTime}
                 roomCount={roomCount}
-                setRoomCount={setRoomCount}
                 roomAllocations={roomAllocations}
                 setRoomAllocations={setRoomAllocations}
+                isFullProperty={isFullProperty}
                 extraMattressCount={extraMattressCount}
                 setExtraMattressCount={setExtraMattressCount}
                 mealPlan={mealPlan}
@@ -376,49 +487,125 @@ export function BookingWizard() {
         </AnimatePresence>
       </div>
 
-      {/* Navigation and Shortcuts Bar */}
-      <div className="flex items-center justify-between pt-5 border-t border-border/50">
-        <button
+      {/* Bottom Floating Navigation Capsule */}
+      <motion.div
+        initial={{ opacity: 0, y: 28 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.55, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
+        className="flex items-center justify-between gap-3 mt-8 px-3 py-2.5 border border-white/[0.07] sticky bg-background/75 backdrop-blur-3xl rounded-[26px] z-40 shadow-[0_8px_60px_rgba(0,0,0,0.6),0_0_0_1px_rgba(255,255,255,0.03)]"
+        style={{ bottom: "calc(1rem + env(safe-area-inset-bottom))" }}
+      >
+        {/* Back button */}
+        <motion.button
           type="button"
           onClick={prevStep}
           disabled={step === 1}
-          className="flex items-center gap-1.5 px-4.5 py-3 rounded-xl border border-border bg-muted/10 text-sm font-semibold hover:bg-muted transition disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+          whileTap={{ scale: 0.93 }}
+          onTouchStart={touch.onTouchStart}
+          onTouchEnd={touch.onTouchEnd}
+          onMouseDown={touch.onTouchStart}
+          onMouseUp={touch.onTouchEnd}
+          className="flex items-center justify-center gap-1.5 px-4 sm:px-5 py-3 rounded-xl border border-white/[0.07] bg-white/3 text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-white/6 active:bg-white/8 transition-all duration-200 disabled:opacity-20 disabled:cursor-not-allowed min-h-[48px]"
         >
-          <ArrowLeft className="w-4 h-4" /> <span>Back</span>
-        </button>
+          <ArrowLeft className="w-4 h-4" />
+          <span className="hidden sm:inline tracking-tight">Back</span>
+        </motion.button>
 
-        <div className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground/80 font-medium">
-          <kbd className="px-1.5 py-0.5 rounded border border-border bg-muted/40 text-[10px]">
-            {cmdKey}
-          </kbd>
-          <span>+</span>
-          <kbd className="px-1.5 py-0.5 rounded border border-border bg-muted/40 text-[10px]">
-            →
-          </kbd>
-          <span className="ml-1">to advance</span>
+        {/* Center: step dots on mobile / keyboard hint on desktop */}
+        <div className="flex-1 flex items-center justify-center">
+          <div className="sm:hidden flex items-center gap-1.5">
+            {stepMeta.map((s) => (
+              <div
+                key={s.num}
+                className={cn(
+                  "rounded-full transition-all duration-300",
+                  s.num === step
+                    ? "w-5 h-1.5 bg-teal-400"
+                    : s.num < step
+                      ? "w-1.5 h-1.5 bg-teal-500/50"
+                      : "w-1.5 h-1.5 bg-white/10",
+                )}
+              />
+            ))}
+          </div>
+          <div className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground/35 font-medium">
+            <kbd className="px-1.5 py-0.5 rounded-md border border-white/8 bg-white/4 text-[10px] font-bold font-mono">
+              {cmdKey}
+            </kbd>
+            <span className="opacity-60">+</span>
+            <kbd className="px-1.5 py-0.5 rounded-md border border-white/8 bg-white/4 text-[10px] font-bold font-mono">
+              →
+            </kbd>
+            <span className="ml-0.5">to advance</span>
+          </div>
         </div>
 
+        {/* Next / Submit button */}
         {step < 4 ? (
-          <button
+          <motion.button
             type="button"
             onClick={nextStep}
             disabled={!canProceed()}
-            className="flex items-center gap-1.5 px-5.5 py-3 rounded-xl bg-foreground text-background text-sm font-bold hover:opacity-95 disabled:opacity-40 active:scale-[0.98] transition cursor-pointer"
+            whileTap={canProceed() ? { scale: 0.94 } : undefined}
+            onTouchStart={touch.onTouchStart}
+            onTouchEnd={touch.onTouchEnd}
+            onMouseDown={touch.onTouchStart}
+            onMouseUp={touch.onTouchEnd}
+            className={cn(
+              "relative flex items-center gap-2 px-5 sm:px-6 py-3 rounded-xl text-sm font-bold tracking-tight overflow-hidden transition-all duration-200 min-h-[48px]",
+              canProceed()
+                ? "bg-white text-background shadow-[0_4px_24px_rgba(255,255,255,0.12)] hover:bg-zinc-100"
+                : "bg-white/10 text-white/30 cursor-not-allowed",
+            )}
           >
-            <span>Next</span> <ArrowRight className="w-4 h-4" />
-          </button>
+            <span>Continue</span>
+            <ArrowRight className="w-4 h-4" />
+          </motion.button>
         ) : (
-          <button
+          <motion.button
             type="button"
             onClick={handleSubmit}
             disabled={saving || !canProceed()}
-            className="flex items-center gap-1.5 px-5.5 py-3 rounded-xl bg-teal-500 text-white text-sm font-bold hover:opacity-95 disabled:opacity-40 active:scale-[0.98] transition cursor-pointer"
+            whileTap={!saving && canProceed() ? { scale: 0.94 } : undefined}
+            onTouchStart={touch.onTouchStart}
+            onTouchEnd={touch.onTouchEnd}
+            onMouseDown={touch.onTouchStart}
+            onMouseUp={touch.onTouchEnd}
+            className="relative flex items-center gap-2 px-5 sm:px-6 py-3 rounded-xl text-sm font-bold overflow-hidden disabled:opacity-30 transition-all duration-200 min-h-[48px] text-white"
+            style={{
+              background:
+                !saving && canProceed()
+                  ? "linear-gradient(135deg, #14b8a6, #10b981)"
+                  : undefined,
+              backgroundColor: saving || !canProceed() ? "#0d4036" : undefined,
+              boxShadow:
+                !saving && canProceed()
+                  ? "0 0 28px -6px rgba(20,184,166,0.55)"
+                  : undefined,
+            }}
           >
-            <span>{saving ? "Creating..." : "Create Booking"}</span>{" "}
-            <Check className="w-4 h-4" />
-          </button>
+            {saving ? (
+              <>
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{
+                    duration: 0.8,
+                    repeat: Infinity,
+                    ease: "linear",
+                  }}
+                  className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white"
+                />
+                <span>Creating…</span>
+              </>
+            ) : (
+              <>
+                <span>Create Booking</span>
+                <Check className="w-4 h-4" />
+              </>
+            )}
+          </motion.button>
         )}
-      </div>
+      </motion.div>
     </div>
   );
 }

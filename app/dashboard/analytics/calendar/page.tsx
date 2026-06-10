@@ -1,31 +1,16 @@
 "use client";
 
-import { motion } from "framer-motion";
 import {
-  ArrowLeft,
-  BedDouble,
-  ChevronLeft,
-  ChevronRight,
-  DoorOpen,
-  IndianRupee,
-  LogOutIcon,
-  Receipt,
-  ShoppingCart,
-  Users,
-} from "lucide-react";
+  CalendarGrid,
+  CalendarLegend,
+  DayData,
+  DayDetailDrawer,
+  SummaryCards,
+} from "@/components/analytics/calendar";
+import { motion } from "framer-motion";
+import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
-
-interface DayData {
-  date: string;
-  rooms: number;
-  guests: number;
-  revenue: number;
-  bookings: number;
-  checkins: number;
-  checkinrevenue: number;
-  checkouts: number;
-}
+import { useEffect, useMemo, useRef, useState } from "react";
 
 interface CalendarResponse {
   year: number;
@@ -59,12 +44,14 @@ const MONTH_NAMES = [
   "December",
 ];
 
-const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-
 export default function CalendarAnalyticsPage() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [data, setData] = useState<CalendarResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedDay, setSelectedDay] = useState<DayData | null>(null);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth() + 1;
@@ -84,7 +71,7 @@ export default function CalendarAnalyticsPage() {
     if (!data) return [];
 
     const firstDay = new Date(year, month - 1, 1);
-    const startOffset = firstDay.getDay(); // 0 = Sunday
+    const startOffset = firstDay.getDay();
     const daysInMonth = new Date(year, month, 0).getDate();
 
     const grid: (DayData | null)[] = [];
@@ -115,9 +102,13 @@ export default function CalendarAnalyticsPage() {
     setCurrentDate(new Date());
   }
 
-  function formatCurrency(v: number) {
-    return `\u20b9${Math.round(v).toLocaleString("en-IN")}`;
+  function handleDayClick(day: DayData) {
+    setSelectedDay(day);
+    setIsDrawerOpen(true);
   }
+
+  const maxRooms = Math.max(...(data?.days.map((d) => d.rooms) || [1]), 1);
+  const daysInMonth = new Date(year, month, 0).getDate();
 
   if (loading) {
     return (
@@ -126,8 +117,8 @@ export default function CalendarAnalyticsPage() {
           <div className="h-8 w-48 bg-muted/30 rounded-lg animate-pulse" />
           <div className="h-4 w-64 bg-muted/30 rounded-lg animate-pulse" />
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-          {Array.from({ length: 6 }).map((_, i) => (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          {Array.from({ length: 8 }).map((_, i) => (
             <div
               key={i}
               className="rounded-2xl border border-border/60 bg-card/10 backdrop-blur-xl p-4 h-24 animate-pulse"
@@ -154,16 +145,13 @@ export default function CalendarAnalyticsPage() {
     );
   }
 
-  const maxRooms = Math.max(...data.days.map((d) => d.rooms), 1);
-
   return (
-    <div className="space-y-6">
-      {/* Header */}
+    <div className="space-y-4 sm:space-y-6" ref={containerRef}>
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+        className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4"
       >
         <div className="flex items-center gap-3">
           <Link
@@ -173,22 +161,22 @@ export default function CalendarAnalyticsPage() {
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight">
               Occupancy Calendar
             </h1>
-            <p className="text-sm text-muted-foreground/80 font-medium">
+            <p className="text-xs sm:text-sm text-muted-foreground/80 font-medium">
               Daily rooms, guests, and revenue breakdown.
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2">
           <button
             onClick={goPrevMonth}
             className="p-2 rounded-xl border border-border/60 bg-card/20 backdrop-blur-xl hover:bg-muted/50 hover:border-teal-500/20 transition-all"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
-          <div className="px-4 py-2 rounded-xl border border-border/60 bg-card/20 backdrop-blur-xl font-bold min-w-[160px] text-center text-sm">
+          <div className="px-3 sm:px-4 py-2 rounded-xl border border-border/60 bg-card/20 backdrop-blur-xl font-bold min-w-[140px] sm:min-w-[160px] text-center text-sm">
             {MONTH_NAMES[month - 1]} {year}
           </div>
           <button
@@ -199,241 +187,31 @@ export default function CalendarAnalyticsPage() {
           </button>
           <button
             onClick={goToday}
-            className="px-3 py-2 rounded-xl border border-border/60 bg-card/20 backdrop-blur-xl text-sm font-bold hover:bg-muted/50 hover:border-teal-500/20 transition-all"
+            className="px-3 py-2 rounded-xl border border-border/60 bg-card/20 backdrop-blur-xl text-xs sm:text-sm font-bold hover:bg-muted/50 hover:border-teal-500/20 transition-all"
           >
             Today
           </button>
         </div>
       </motion.div>
 
-      {/* Summary Cards */}
-      <motion.div
-        initial={{ opacity: 0, y: 15 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.1 }}
-        className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3"
-      >
-        <SummaryCard
-          icon={<BedDouble className="w-4 h-4 text-teal-400" />}
-          label="Avg Rooms/Night"
-          value={data.summary.avgRooms.toFixed(1)}
-          sub={`Total: ${data.summary.totalRooms}`}
-        />
-        <SummaryCard
-          icon={<Users className="w-4 h-4 text-blue-400" />}
-          label="Total Guests"
-          value={data.summary.totalGuests.toLocaleString("en-IN")}
-          sub="For the month"
-        />
-        <SummaryCard
-          icon={<IndianRupee className="w-4 h-4 text-emerald-400" />}
-          label="Avg Revenue/Night"
-          value={formatCurrency(data.summary.avgRevenue)}
-          sub={`Total: ${formatCurrency(data.summary.totalRevenue)}`}
-        />
-        <SummaryCard
-          icon={<DoorOpen className="w-4 h-4 text-amber-400" />}
-          label="Check-ins"
-          value={String(data.summary.totalCheckins)}
-          sub={`Check-outs: ${data.summary.totalCheckouts}`}
-        />
-        <SummaryCard
-          icon={<ShoppingCart className="w-4 h-4 text-violet-400" />}
-          label="Additional Sales"
-          value={formatCurrency(data.summary.totalAdditionalSales)}
-          sub="For the month"
-        />
-        <SummaryCard
-          icon={<Receipt className="w-4 h-4 text-rose-400" />}
-          label="Expenses"
-          value={formatCurrency(data.summary.totalExpenses)}
-          sub="For the month"
-        />
-      </motion.div>
+      {data && (
+        <SummaryCards summary={data.summary} daysInMonth={daysInMonth} />
+      )}
 
-      {/* Calendar Grid */}
-      <motion.div
-        initial={{ opacity: 0, y: 15 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.2 }}
-        className="rounded-2xl border border-border/60 overflow-hidden bg-card/10 backdrop-blur-xl"
-      >
-        {/* Weekday headers */}
-        <div className="grid grid-cols-7 bg-muted/30 border-b border-border/50">
-          {WEEKDAYS.map((day) => (
-            <div
-              key={day}
-              className="px-1 py-2 text-[10px] sm:text-xs font-bold text-muted-foreground/60 text-center uppercase tracking-widest"
-            >
-              {day.slice(0, 3)}
-            </div>
-          ))}
-        </div>
+      <CalendarGrid
+        calendarGrid={calendarGrid}
+        todayStr={todayStr}
+        maxRooms={maxRooms}
+        onDayClick={handleDayClick}
+      />
 
-        {/* Days */}
-        <div className="grid grid-cols-7">
-          {calendarGrid.map((day, idx) => {
-            if (!day) {
-              return (
-                <div
-                  key={`empty-${idx}`}
-                  className="min-h-[70px] sm:min-h-[120px] border-r border-b border-border bg-muted/20 last:border-r-0"
-                />
-              );
-            }
+      <CalendarLegend />
 
-            const dayNum = parseInt(day.date.split("-")[2], 10);
-            const isToday = day.date === todayStr;
-            const occupancyRatio = day.rooms / maxRooms;
-            const occupancyColor =
-              day.rooms === 0
-                ? "bg-transparent"
-                : occupancyRatio > 0.75
-                  ? "bg-teal-500/20"
-                  : occupancyRatio > 0.4
-                    ? "bg-teal-500/10"
-                    : "bg-teal-500/5";
-
-            return (
-              <div
-                key={day.date}
-                className={`min-h-[70px] sm:min-h-[120px] border-r border-b border-border p-1 sm:p-2 flex flex-col gap-0.5 sm:gap-1 transition hover:bg-muted/30 ${occupancyColor} ${isToday ? "ring-1 ring-inset ring-teal-500" : ""}`}
-              >
-                <div className="flex items-center justify-between">
-                  <span
-                    className={`text-xs sm:text-sm font-semibold w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center rounded-full ${
-                      isToday ? "bg-teal-500 text-white" : ""
-                    }`}
-                  >
-                    {dayNum}
-                  </span>
-                  <div className="flex items-center gap-1">
-                    {day.checkins > 0 && (
-                      <span className="text-[9px] sm:text-[10px] font-medium text-amber-400 bg-amber-500/10 px-1 py-0.5 rounded">
-                        +{day.checkins}
-                      </span>
-                    )}
-                    {day.checkouts > 0 && day.rooms === 0 && (
-                      <span className="text-[9px] sm:text-[10px] font-medium text-rose-400 bg-rose-500/10 px-1 py-0.5 rounded">
-                        out
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {day.rooms > 0 && (
-                  <div className="mt-auto space-y-0.5 sm:space-y-1">
-                    <div className="flex items-center gap-1 text-[10px] sm:text-xs">
-                      <BedDouble className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-muted-foreground" />
-                      <span className="font-medium">{day.rooms}</span>
-                      <span className="text-muted-foreground text-[9px] sm:text-[10px] hidden sm:inline">
-                        {day.rooms === 1 ? "room" : "rooms"}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1 text-[10px] sm:text-xs">
-                      <Users className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-muted-foreground" />
-                      <span className="font-medium">{day.guests}</span>
-                      <span className="text-muted-foreground text-[9px] sm:text-[10px] hidden sm:inline">
-                        {day.guests === 1 ? "guest" : "guests"}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1 text-[10px] sm:text-xs">
-                      <IndianRupee className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-muted-foreground" />
-                      <span className="font-medium text-emerald-400">
-                        {formatCurrency(day.revenue)}
-                      </span>
-                    </div>
-                    {day.checkouts > 0 && (
-                      <div className="flex items-center gap-1 text-[9px] sm:text-[10px] text-rose-400">
-                        <LogOutIcon className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-                        <span>{day.checkouts} out</span>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {day.rooms === 0 && (
-                  <div className="mt-auto space-y-0.5 sm:space-y-1">
-                    {day.checkouts > 0 && (
-                      <div className="flex items-center gap-1 text-[9px] sm:text-[10px] text-rose-400">
-                        <LogOutIcon className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-                        <span>{day.checkouts} out</span>
-                      </div>
-                    )}
-                    {day.checkouts === 0 && (
-                      <div className="text-[9px] sm:text-[10px] text-muted-foreground italic hidden sm:block">
-                        No bookings
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </motion.div>
-
-      {/* Legend */}
-      <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-[10px] sm:text-xs text-muted-foreground">
-        <div className="flex items-center gap-1">
-          <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-sm bg-teal-500/20 border border-teal-500/30" />
-          <span>High (&gt;75%)</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-sm bg-teal-500/10 border border-teal-500/20" />
-          <span>Med (40-75%)</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-sm bg-teal-500/5 border border-teal-500/10" />
-          <span>Low (&lt;40%)</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-teal-500" />
-          <span>Today</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <span className="text-[9px] sm:text-[10px] font-medium text-amber-400 bg-amber-500/10 px-1 py-0.5 rounded">
-            +N
-          </span>
-          <span>Check-ins</span>
-        </div>
-      </div>
+      <DayDetailDrawer
+        day={selectedDay}
+        isOpen={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+      />
     </div>
-  );
-}
-
-function SummaryCard({
-  icon,
-  label,
-  value,
-  sub,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-  sub: string;
-}) {
-  return (
-    <motion.div
-      whileHover={{ y: -3, scale: 1.01 }}
-      transition={{ type: "spring", stiffness: 350, damping: 25 }}
-      className="relative rounded-2xl border border-border/60 bg-card/20 backdrop-blur-xl p-3 sm:p-4 space-y-1 sm:space-y-2 overflow-hidden group hover:border-teal-500/20 transition-colors"
-    >
-      <div className="absolute -inset-px bg-linear-to-br from-teal-500/[0.07] via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-      <div className="relative z-10">
-        <div className="flex items-center gap-2">
-          {icon}
-          <span className="text-[10px] sm:text-xs font-bold text-muted-foreground/60 uppercase tracking-widest truncate">
-            {label}
-          </span>
-        </div>
-        <div className="text-lg sm:text-xl font-black tracking-tight">
-          {value}
-        </div>
-        <div className="text-[10px] sm:text-xs text-muted-foreground/70 font-medium">
-          {sub}
-        </div>
-      </div>
-    </motion.div>
   );
 }

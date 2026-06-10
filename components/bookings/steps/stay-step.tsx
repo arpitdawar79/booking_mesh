@@ -1,20 +1,25 @@
 "use client";
 
+import { DatePicker } from "@/components/ui/calendar";
 import {
     PillSelect,
     PillToggle,
     Select,
     StepCard,
 } from "@/components/ui/form-primitives";
-import { CalendarDays, Clock } from "lucide-react";
-import DatePicker from "react-datepicker";
+import { useHaptic } from "@/lib/pwa-hooks";
+import { cn } from "@/lib/utils";
+import NumberFlow from "@number-flow/react";
+import { AnimatePresence, motion } from "framer-motion";
+import {
+    BedDouble,
+    CalendarDays,
+    Minus,
+    Moon,
+    Plus,
+    Utensils,
+} from "lucide-react";
 
-const ROOM_TYPES = [
-  "Balcony Room",
-  "Non-Balcony Room",
-  "Deluxe Room",
-  "Standard Room",
-];
 const MEAL_OPTIONS = ["Breakfast", "Lunch", "Dinner"];
 const TIME_OPTIONS = Array.from({ length: 24 }, (_, i) => {
   const h24 = i;
@@ -29,6 +34,8 @@ interface RoomAllocation {
   count: number;
 }
 
+const ROOM_TYPES = ["Balcony Room", "Non-Balcony Room"];
+
 interface Props {
   checkInDate: Date | null;
   setCheckInDate: (d: Date | null) => void;
@@ -39,9 +46,9 @@ interface Props {
   checkOutTime: string;
   setCheckOutTime: (v: string) => void;
   roomCount: number;
-  setRoomCount: (v: number) => void;
   roomAllocations: RoomAllocation[];
-  setRoomAllocations: React.Dispatch<React.SetStateAction<RoomAllocation[]>>;
+  setRoomAllocations: (v: RoomAllocation[]) => void;
+  isFullProperty: boolean;
   extraMattressCount: number;
   setExtraMattressCount: (v: number) => void;
   mealPlan: string[];
@@ -59,44 +66,16 @@ export function StayStep({
   checkOutTime,
   setCheckOutTime,
   roomCount,
-  setRoomCount,
   roomAllocations,
   setRoomAllocations,
+  isFullProperty,
   extraMattressCount,
   setExtraMattressCount,
   mealPlan,
   setMealPlan,
   nightCount,
 }: Props) {
-  const allocated = roomAllocations.reduce((s, r) => s + r.count, 0);
-  const roomCountError = allocated !== roomCount;
-
-  function handleRoomCountChange(val: number) {
-    setRoomCount(val);
-    setRoomAllocations([{ id: "1", roomType: "Balcony Room", count: val }]);
-    if (extraMattressCount > val) setExtraMattressCount(val);
-  }
-
-  function addAllocation() {
-    const remaining = roomCount - allocated;
-    if (remaining <= 0) return;
-    const used = new Set(roomAllocations.map((r) => r.roomType));
-    const nextType = ROOM_TYPES.find((t) => !used.has(t)) || ROOM_TYPES[0];
-    setRoomAllocations((prev) => [
-      ...prev,
-      { id: Math.random().toString(36).slice(2), roomType: nextType, count: 1 },
-    ]);
-  }
-
-  function updateAllocation(id: string, updates: Partial<RoomAllocation>) {
-    setRoomAllocations((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, ...updates } : r)),
-    );
-  }
-
-  function removeAllocation(id: string) {
-    setRoomAllocations((prev) => prev.filter((r) => r.id !== id));
-  }
+  const haptic = useHaptic();
 
   function toggleMeal(option: string) {
     setMealPlan((prev: string[]) =>
@@ -106,11 +85,6 @@ export function StayStep({
     );
   }
 
-  const roomOptions = Array.from({ length: 6 }, (_, i) => i + 1).map((n) => ({
-    label: `${n} Room${n > 1 ? "s" : ""}`,
-    value: n,
-  }));
-
   const mattressOptions = Array.from(
     { length: roomCount + 1 },
     (_, i) => i,
@@ -119,71 +93,101 @@ export function StayStep({
     value: n,
   }));
 
+  const roomSummary = roomAllocations
+    .map((r) => `${r.count} ${r.roomType}`)
+    .join(", ");
+
+  const allocatedTotal = roomAllocations.reduce((s, a) => s + a.count, 0);
+
+  function getCount(type: string) {
+    return roomAllocations.find((a) => a.roomType === type)?.count ?? 0;
+  }
+
+  function setCount(type: string, newCount: number) {
+    const existing = roomAllocations.find((a) => a.roomType === type);
+    const otherTotal = allocatedTotal - (existing?.count ?? 0);
+    const maxAllowed = roomCount - otherTotal;
+    const clamped = Math.max(0, Math.min(newCount, maxAllowed));
+
+    let next = roomAllocations.map((a) =>
+      a.roomType === type ? { ...a, count: clamped } : a,
+    );
+    if (!existing && clamped > 0) {
+      next = [...next, { id: `room-${type}`, roomType: type, count: clamped }];
+    }
+    setRoomAllocations(next.filter((a) => a.count > 0));
+  }
+
   return (
     <StepCard
       icon={<CalendarDays className="w-5 h-5" />}
       title="Stay Details"
-      subtitle="When and where will they stay?"
+      subtitle="When and what do they need?"
     >
-      <div className="space-y-4">
+      <div className="space-y-6">
         {/* Dates */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium mb-1.5">
-              Check-in Date *
-            </label>
-            <DatePicker
-              selected={checkInDate}
-              onChange={(d: Date | null) => {
-                setCheckInDate(d);
-                if (d && checkOutDate && d >= checkOutDate) {
-                  const next = new Date(d);
-                  next.setDate(next.getDate() + 1);
-                  setCheckOutDate(next);
-                }
-              }}
-              selectsStart
-              startDate={checkInDate || undefined}
-              endDate={checkOutDate || undefined}
-              openToDate={new Date()}
-              minDate={new Date()}
-              dateFormat="yyyy-MM-dd"
-              placeholderText="Pick check-in"
-              className="w-full rounded-xl border border-input bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-              wrapperClassName="w-full"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1.5">
-              Check-out Date *
-            </label>
-            <DatePicker
-              selected={checkOutDate}
-              onChange={setCheckOutDate}
-              selectsEnd
-              startDate={checkInDate || undefined}
-              endDate={checkOutDate || undefined}
-              minDate={
-                checkInDate
-                  ? new Date(checkInDate.getTime() + 86400000)
-                  : new Date()
+          <DatePicker
+            label="Check-in Date *"
+            value={checkInDate}
+            onChange={(d) => {
+              setCheckInDate(d);
+              haptic("medium");
+              if (checkOutDate && d >= checkOutDate) {
+                const next = new Date(d);
+                next.setDate(next.getDate() + 1);
+                setCheckOutDate(next);
               }
-              dateFormat="yyyy-MM-dd"
-              placeholderText="Pick check-out"
-              className="w-full rounded-xl border border-input bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-              wrapperClassName="w-full"
-            />
-          </div>
+            }}
+            rangeStart={checkInDate}
+            rangeEnd={checkOutDate}
+            minDate={new Date()}
+            placeholder="Pick check-in"
+          />
+
+          <DatePicker
+            label="Check-out Date *"
+            value={checkOutDate}
+            onChange={(d) => {
+              setCheckOutDate(d);
+              haptic("medium");
+            }}
+            rangeStart={checkInDate}
+            rangeEnd={checkOutDate}
+            minDate={
+              checkInDate
+                ? new Date(checkInDate.getTime() + 86400000)
+                : new Date()
+            }
+            placeholder="Pick check-out"
+          />
         </div>
 
-        {nightCount > 0 && (
-          <div className="flex items-center gap-2 rounded-lg bg-teal-500/5 border border-teal-500/10 px-3 py-2">
-            <Clock className="w-4 h-4 text-teal-400" />
-            <span className="text-sm text-teal-400 font-medium">
-              {nightCount} night{nightCount > 1 ? "s" : ""}
-            </span>
-          </div>
-        )}
+        {/* Night Count Indicator */}
+        <AnimatePresence>
+          {nightCount > 0 && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.92, y: -4 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.92, y: -4 }}
+              className="flex items-center gap-2.5 rounded-2xl bg-teal-500/6 border border-teal-500/15 px-4 py-3 w-fit shadow-[0_0_20px_-6px_rgba(20,184,166,0.2)]"
+            >
+              <Moon className="w-4 h-4 text-teal-400 shrink-0" />
+              <span className="text-xs text-teal-300 font-bold uppercase tracking-wider flex items-center gap-1">
+                <span className="text-teal-400 font-black">
+                  <NumberFlow
+                    value={nightCount}
+                    transformTiming={{
+                      duration: 250,
+                      easing: "cubic-bezier(0.16, 1, 0.3, 1)",
+                    }}
+                  />
+                </span>{" "}
+                night{nightCount > 1 ? "s" : ""} stay
+              </span>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Times */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -201,19 +205,113 @@ export function StayStep({
           />
         </div>
 
-        {/* Rooms */}
-        <div>
-          <label className="block text-sm font-medium mb-1.5">Rooms</label>
-          <PillSelect
-            options={roomOptions}
-            value={roomCount}
-            onChange={handleRoomCountChange}
-          />
+        {/* Room Type Stepper */}
+        <div className="rounded-3xl border border-white/5 bg-white/1 p-5 space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-teal-500/10 border border-teal-500/15 flex items-center justify-center text-teal-400">
+                <BedDouble className="w-4 h-4" />
+              </div>
+              <span className="text-sm font-bold tracking-tight">
+                Room Allocation
+              </span>
+            </div>
+            <span
+              className={cn(
+                "text-[10px] font-black uppercase tracking-wider rounded-xl px-3 py-1 border transition-colors duration-200",
+                allocatedTotal === roomCount
+                  ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/20"
+                  : "text-teal-400 bg-teal-500/10 border-teal-500/15",
+              )}
+            >
+              {allocatedTotal} / {roomCount} Allocated
+            </span>
+          </div>
+
+          <div className="space-y-2.5">
+            {ROOM_TYPES.map((type) => {
+              const count = getCount(type);
+              const isSelected = count > 0;
+              const canAdd = allocatedTotal < roomCount;
+              return (
+                <div
+                  key={type}
+                  className={cn(
+                    "flex items-center justify-between p-3 px-4 rounded-2xl border transition-all duration-300 bg-[#0c0c0c]/40",
+                    isSelected
+                      ? "border-teal-500/25 bg-teal-500/1"
+                      : "border-white/5 hover:border-white/10",
+                  )}
+                >
+                  <div className="space-y-0.5">
+                    <span
+                      className={cn(
+                        "text-xs font-bold uppercase tracking-wider transition-colors duration-200",
+                        isSelected
+                          ? "text-teal-400 font-extrabold"
+                          : "text-muted-foreground/60",
+                      )}
+                    >
+                      {type}
+                    </span>
+                    <p className="text-[10px] text-muted-foreground/30 font-medium">
+                      {type === "Balcony Room"
+                        ? "Premium valley-facing view"
+                        : "Cozy wood-paneled interior"}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-1 bg-white/2 rounded-xl p-1 border border-white/5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCount(type, count - 1);
+                        haptic("medium");
+                      }}
+                      disabled={count === 0 || isFullProperty}
+                      className={cn(
+                        "w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200",
+                        count > 0 && !isFullProperty
+                          ? "bg-white/4 text-foreground hover:bg-white/8"
+                          : "text-muted-foreground/20 cursor-not-allowed",
+                      )}
+                    >
+                      <Minus className="w-3.5 h-3.5" />
+                    </button>
+                    <span className="font-bold text-sm w-7 text-center text-foreground flex items-center justify-center">
+                      <NumberFlow value={count} />
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCount(type, count + 1);
+                        haptic("medium");
+                      }}
+                      disabled={!canAdd || isFullProperty}
+                      className={cn(
+                        "w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200",
+                        canAdd && !isFullProperty
+                          ? "bg-white/4 text-foreground hover:bg-white/8"
+                          : "text-muted-foreground/20 cursor-not-allowed",
+                      )}
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="text-[11px] text-muted-foreground/50 font-semibold px-1 pt-1 border-t border-white/3 flex items-center gap-1.5">
+            <span className="inline-block w-1.5 h-1.5 rounded-full bg-teal-500" />
+            Summary: {roomSummary || "No rooms assigned yet"}
+          </div>
         </div>
 
         {/* Extra Mattresses */}
-        <div>
-          <label className="block text-sm font-medium mb-1.5">
+        <div className="space-y-2">
+          <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">
             Extra Mattresses
           </label>
           <PillSelect
@@ -223,76 +321,16 @@ export function StayStep({
           />
         </div>
 
-        {/* Room Allocation */}
-        <div className="rounded-xl border border-border p-4 space-y-3">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold">Room Allocation</h3>
-            <button
-              type="button"
-              onClick={addAllocation}
-              disabled={roomCount - allocated <= 0}
-              className="text-xs rounded-lg bg-foreground text-background px-3 py-1.5 hover:opacity-90 disabled:opacity-40 active:scale-[0.98] transition"
-            >
-              + Add Type
-            </button>
-          </div>
-          {roomAllocations.map((alloc) => {
-            const remaining = roomCount - allocated + alloc.count;
-            return (
-              <div
-                key={alloc.id}
-                className="grid grid-cols-[1fr_auto_auto] gap-3 items-end"
-              >
-                <Select
-                  label="Type"
-                  value={alloc.roomType}
-                  onChange={(v) => updateAllocation(alloc.id, { roomType: v })}
-                  options={ROOM_TYPES}
-                />
-                <div>
-                  <label className="block text-xs font-medium mb-1">
-                    Count
-                  </label>
-                  <select
-                    value={alloc.count}
-                    onChange={(e) =>
-                      updateAllocation(alloc.id, {
-                        count: Number(e.target.value),
-                      })
-                    }
-                    className="w-20 rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                  >
-                    {Array.from({ length: remaining }, (_, i) => i + 1).map(
-                      (n) => (
-                        <option key={n} value={n}>
-                          {n}
-                        </option>
-                      ),
-                    )}
-                  </select>
-                </div>
-                {roomAllocations.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => removeAllocation(alloc.id)}
-                    className="text-red-500 text-sm px-2 py-2 hover:text-red-400"
-                  >
-                    ✕
-                  </button>
-                )}
-              </div>
-            );
-          })}
-          {roomCountError && (
-            <p className="text-xs text-red-400">
-              Allocated rooms ({allocated}) must equal total rooms ({roomCount})
-            </p>
-          )}
-        </div>
-
         {/* Meal Plan */}
-        <div className="rounded-xl border border-border p-4 space-y-3">
-          <h3 className="text-sm font-semibold">Meal Plan</h3>
+        <div className="rounded-3xl border border-white/5 bg-white/1 p-5 space-y-3.5">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-teal-500/10 flex items-center justify-center text-teal-400">
+              <Utensils className="w-4 h-4" />
+            </div>
+            <h3 className="text-sm font-black tracking-tight">
+              Meal Plan Included
+            </h3>
+          </div>
           <PillToggle
             options={MEAL_OPTIONS}
             selected={mealPlan}

@@ -107,6 +107,87 @@ export async function GET(request: Request) {
     ]) as [string, { date: string; checkouts: number }][],
   );
 
+  // Active bookings in the month range (occupying rooms on any night)
+  const activeBookings = await prisma.$queryRaw<
+    Array<{
+      id: string;
+      booking_id: string;
+      guest_full_name: string;
+      room_count: number;
+      adult_count: number;
+      child_count: number;
+      total_amount: number;
+      check_in_date: Date;
+      check_out_date: Date;
+      status: string;
+      payment_status: string;
+    }>
+  >`
+    SELECT 
+      id,
+      booking_id,
+      guest_full_name,
+      room_count,
+      adult_count,
+      child_count,
+      total_amount,
+      check_in_date,
+      check_out_date,
+      status,
+      payment_status
+    FROM bookings
+    WHERE status != 'cancelled'
+      AND check_in_date::date <= ${endStr}::date
+      AND check_out_date::date >= ${startStr}::date
+    ORDER BY check_in_date ASC
+  `;
+
+  interface BookingInfo {
+    id: string;
+    bookingId: string;
+    guestFullName: string;
+    roomCount: number;
+    guestCount: number;
+    totalAmount: number;
+    checkInDate: string;
+    checkOutDate: string;
+    status: string;
+    paymentStatus: string;
+  }
+
+  // Group active bookings by each date they occupy
+  const bookingsByDate = new Map<string, BookingInfo[]>();
+
+  for (const b of activeBookings) {
+    const checkIn = new Date(b.check_in_date);
+    const checkOut = new Date(b.check_out_date);
+    const bookingInfo: BookingInfo = {
+      id: String(b.id),
+      bookingId: String(b.booking_id),
+      guestFullName: String(b.guest_full_name),
+      roomCount: Number(b.room_count),
+      guestCount: Number(b.adult_count) + Number(b.child_count),
+      totalAmount: Number(b.total_amount),
+      checkInDate: checkIn.toISOString().split("T")[0],
+      checkOutDate: checkOut.toISOString().split("T")[0],
+      status: String(b.status),
+      paymentStatus: String(b.payment_status),
+    };
+
+    // Add booking to every date it occupies (check_in to check_out - 1)
+    const current = new Date(checkIn);
+    while (current < checkOut) {
+      const dateStr = current.toISOString().split("T")[0];
+      if (dateStr >= startStr && dateStr <= endStr) {
+        if (!bookingsByDate.has(dateStr)) {
+          bookingsByDate.set(dateStr, []);
+        }
+        bookingsByDate.get(dateStr)!.push(bookingInfo);
+      }
+      current.setDate(current.getDate() + 1);
+    }
+  }
+
   interface DayData {
     date: string;
     rooms: number;
@@ -116,6 +197,7 @@ export async function GET(request: Request) {
     checkins: number;
     checkinrevenue: number;
     checkouts: number;
+    bookingsList: BookingInfo[];
   }
 
   const days: DayData[] = occupancyData.map(
@@ -138,6 +220,7 @@ export async function GET(request: Request) {
         checkins: checkin ? Number(checkin.checkins) : 0,
         checkinrevenue: checkin ? Number(checkin.checkinrevenue) : 0,
         checkouts: checkout ? Number(checkout.checkouts) : 0,
+        bookingsList: bookingsByDate.get(dateStr) || [],
       };
     },
   );
