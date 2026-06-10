@@ -8,7 +8,7 @@ export interface BookingActionsProps {
   id: string;
   bookingId: string;
   guestFullName: string;
-  guestEmail: string;
+  guestEmail: string | null;
   checkInDate: string | Date;
   checkOutDate: string | Date;
   nightCount: number;
@@ -93,9 +93,10 @@ Status: ${status}
         <Eye className={iconClass} />
       </Link>
       <button
-        onClick={() => onEmail(id, guestEmail)}
-        className={`${btnClass} rounded-md hover:bg-muted transition`}
-        title="Send Confirmation Email"
+        onClick={() => guestEmail && onEmail(id, guestEmail)}
+        className={`${btnClass} rounded-md hover:bg-muted transition ${!guestEmail ? "opacity-40 cursor-not-allowed" : ""}`}
+        title={guestEmail ? "Send Confirmation Email" : "No guest email"}
+        disabled={!guestEmail}
       >
         <Mail className={iconClass} />
       </button>

@@ -213,7 +213,7 @@ export async function renderAdminDigestHtml(
   checkIns: Array<{
     bookingId: string;
     guestFullName: string;
-    guestEmail: string;
+    guestEmail: string | null;
     guestPhone: string | null;
     checkInDate: string;
     checkOutDate: string;
@@ -237,7 +237,7 @@ export async function renderAdminDigestHtml(
   checkOuts: Array<{
     bookingId: string;
     guestFullName: string;
-    guestEmail: string;
+    guestEmail: string | null;
     guestPhone: string | null;
     checkInDate: string;
     checkOutDate: string;

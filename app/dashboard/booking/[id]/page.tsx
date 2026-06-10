@@ -20,7 +20,7 @@ interface Booking {
   bookingId: string;
   guestFirstName: string;
   guestFullName: string;
-  guestEmail: string;
+  guestEmail: string | null;
   guestPhone: string | null;
   adultCount: number;
   childCount: number;
@@ -96,7 +96,7 @@ export default function BookingDetailPage() {
         const b = data.bookings?.[0] || null;
         setBooking(b);
         if (b) {
-          setToEmail(b.guestEmail);
+          setToEmail(b.guestEmail || "");
           if (b.status === "cancelled") setEmailType("cancellation");
           else if (b.status === "confirmed")
             setEmailType("booking_confirmation");
@@ -414,6 +414,10 @@ We look forward to hosting you!
 
   function handlePaymentReminder() {
     if (!booking) return;
+    if (!booking.guestEmail) {
+      alert("No guest email on file.");
+      return;
+    }
     const balance = Number(booking.balanceAmount);
     if (balance <= 0) {
       alert("No outstanding balance.");

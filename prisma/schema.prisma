@@ -39,7 +39,7 @@ model Booking {
   bookingDate       DateTime      @default(now()) @map("booking_date")
   guestFirstName    String        @map("guest_first_name")
   guestFullName     String        @map("guest_full_name")
-  guestEmail        String        @map("guest_email")
+  guestEmail        String?       @map("guest_email")
   guestPhone        String?       @map("guest_phone")
   adultCount        Int           @default(1) @map("adult_count")
   childCount        Int           @default(0) @map("child_count")

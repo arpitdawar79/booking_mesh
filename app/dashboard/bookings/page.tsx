@@ -23,7 +23,7 @@ interface Booking {
   id: string;
   bookingId: string;
   guestFullName: string;
-  guestEmail: string;
+  guestEmail: string | null;
   checkInDate: string | Date;
   checkOutDate: string | Date;
   nightCount: number;
@@ -61,7 +61,6 @@ interface Stats {
     totalAmount: number;
   }>;
 }
-
 
 export default function BookingsPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -116,6 +115,10 @@ export default function BookingsPage() {
   }, [page, pageSize, filter, search]);
 
   async function handleQuickEmail(booking: Booking) {
+    if (!booking.guestEmail) {
+      alert("No guest email on file. Open the booking to send manually.");
+      return;
+    }
     const res = await fetch("/api/send-email", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

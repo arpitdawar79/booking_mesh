@@ -3,7 +3,7 @@ import { EmailFooter, EmailSection, EmailShell, themes } from "./components";
 interface BookingItem {
   bookingId: string;
   guestFullName: string;
-  guestEmail: string;
+  guestEmail: string | null;
   guestPhone: string | null;
   checkInDate: string;
   checkOutDate: string;
@@ -200,7 +200,7 @@ function BookingRow({
                   paddingTop: 2,
                 }}
               >
-                {booking.guestEmail} &middot; {booking.guestPhone || "—"}
+                {booking.guestEmail || "—"} &middot; {booking.guestPhone || "—"}
               </div>
               <div
                 style={{

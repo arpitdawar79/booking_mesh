@@ -309,7 +309,7 @@ export async function GET() {
     topGuests: topGuests.map(
       (g: {
         guestFullName: string;
-        guestEmail: string;
+        guestEmail: string | null;
         _count: { id: number };
         _sum: { totalAmount: any | null; nightCount: number | null };
       }) => ({

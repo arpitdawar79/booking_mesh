@@ -190,7 +190,7 @@ export async function POST(request: Request) {
       bookingId: generateBookingId(),
       guestFirstName: data.guestFullName.split(" ")[0] || data.guestFullName,
       guestFullName: data.guestFullName,
-      guestEmail: data.guestEmail,
+      guestEmail: data.guestEmail || null,
       guestPhone: data.guestPhone || null,
       adultCount: data.adultCount,
       childCount: data.childCount,
@@ -247,15 +247,16 @@ export async function POST(request: Request) {
     });
   }
   if (booking.guestEmail) {
-    sendEmail("booking_confirmation", booking, { to: [booking.guestEmail] })
+    const guestEmail = booking.guestEmail;
+    sendEmail("booking_confirmation", booking, { to: [guestEmail] })
       .then(async (result) => {
         await prisma.emailSent.create({
           data: {
             bookingId: booking.id,
             type: "booking_confirmation",
-            toEmail: booking.guestEmail,
+            toEmail: guestEmail,
             subject: `Booking confirmed: The Stream by Ekantah #${booking.bookingId}`,
-            htmlBody: result.error ? "" : `Email sent to ${booking.guestEmail}`,
+            htmlBody: result.error ? "" : `Email sent to ${guestEmail}`,
             status: result.error ? "failed" : "sent",
           },
         });
@@ -311,20 +312,19 @@ export async function PATCH(request: Request) {
       sendBookingWhatsApp(waType, booking, { sendPdf: true }).catch(() => {});
     }
     if (booking.guestEmail && emailType) {
-      sendEmail(emailType, booking, { to: [booking.guestEmail] })
+      const guestEmail = booking.guestEmail;
+      sendEmail(emailType, booking, { to: [guestEmail] })
         .then(async (result) => {
           await prisma.emailSent.create({
             data: {
               bookingId: booking.id,
               type: emailType as string,
-              toEmail: booking.guestEmail,
+              toEmail: guestEmail,
               subject:
                 emailType === "booking_confirmation"
                   ? `Booking confirmed: The Stream by Ekantah #${booking.bookingId}`
                   : `Booking cancelled: The Stream by Ekantah #${booking.bookingId}`,
-              htmlBody: result.error
-                ? ""
-                : `Email sent to ${booking.guestEmail}`,
+              htmlBody: result.error ? "" : `Email sent to ${guestEmail}`,
               status: result.error ? "failed" : "sent",
             },
           });

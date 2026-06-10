@@ -2,10 +2,10 @@ import { renderAdminDigestHtml, sendEmail, sendRawEmail } from "@/lib/email";
 import { prisma } from "@/lib/prisma";
 import { formatDate } from "@/lib/utils";
 import {
-  generatePdfFromHtml,
-  sendBookingWhatsApp,
-  sendWhatsAppGroupMessage,
-  sendWhatsAppGroupPdf,
+    generatePdfFromHtml,
+    sendBookingWhatsApp,
+    sendWhatsAppGroupMessage,
+    sendWhatsAppGroupPdf,
 } from "@/lib/whatsapp";
 import { format } from "date-fns";
 
@@ -334,56 +334,86 @@ export async function runCheckoutReminderJob(log: LogFn = defaultLog) {
     for (const booking of bookings) {
       const alreadySent = await wasEmailSent(booking.id, "checkout_reminder");
       if (alreadySent) {
-        log("checkout-reminder", `Skipping ${booking.bookingId} — already sent`);
+        log(
+          "checkout-reminder",
+          `Skipping ${booking.bookingId} — already sent`,
+        );
         continue;
       }
 
-      const result = await sendEmail("checkout_reminder", booking, {
-        to: [booking.guestEmail],
-      });
+      if (booking.guestEmail) {
+        const result = await sendEmail("checkout_reminder", booking, {
+          to: [booking.guestEmail],
+        });
 
-      if (result.error) {
-        log("checkout-reminder", `Failed ${booking.bookingId}: ${result.error}`);
-        await recordEmailSent(
-          booking.id,
-          "checkout_reminder",
-          booking.guestEmail,
-          `Checkout reminder — ${booking.bookingId}`,
-          "",
-          "failed",
-        );
+        if (result.error) {
+          log(
+            "checkout-reminder",
+            `Failed ${booking.bookingId}: ${result.error}`,
+          );
+          await recordEmailSent(
+            booking.id,
+            "checkout_reminder",
+            booking.guestEmail,
+            `Checkout reminder — ${booking.bookingId}`,
+            "",
+            "failed",
+          );
+        } else {
+          log(
+            "checkout-reminder",
+            `Sent to ${booking.guestEmail} (${booking.bookingId})`,
+          );
+          await recordEmailSent(
+            booking.id,
+            "checkout_reminder",
+            booking.guestEmail,
+            `Checkout reminder — ${booking.bookingId}`,
+            "",
+            "sent",
+          );
+          sentCount++;
+        }
+        await prisma.booking.update({
+          where: { id: booking.id },
+          data: { status: "completed" },
+        });
       } else {
         log(
           "checkout-reminder",
-          `Sent to ${booking.guestEmail} (${booking.bookingId})`,
-        );
-        await recordEmailSent(
-          booking.id,
-          "checkout_reminder",
-          booking.guestEmail,
-          `Checkout reminder — ${booking.bookingId}`,
-          "",
-          "sent",
+          `Skipping email for ${booking.bookingId} — no guest email`,
         );
         await prisma.booking.update({
           where: { id: booking.id },
           data: { status: "completed" },
         });
-        sentCount++;
       }
 
       if (booking.guestPhone) {
-        const alreadySentWA = await wasWhatsAppSent(booking.id, "checkout_reminder");
+        const alreadySentWA = await wasWhatsAppSent(
+          booking.id,
+          "checkout_reminder",
+        );
         if (!alreadySentWA) {
-          const waResult = await sendBookingWhatsApp("checkout_reminder", booking, { sendPdf: true });
+          const waResult = await sendBookingWhatsApp(
+            "checkout_reminder",
+            booking,
+            { sendPdf: true },
+          );
           if (!waResult.success) {
-            log("checkout-reminder", `WA failed ${booking.bookingId}: ${waResult.error}`);
+            log(
+              "checkout-reminder",
+              `WA failed ${booking.bookingId}: ${waResult.error}`,
+            );
           }
         }
       }
     }
 
-    log("checkout-reminder", `Finished. Sent ${sentCount}/${bookings.length} reminders.`);
+    log(
+      "checkout-reminder",
+      `Finished. Sent ${sentCount}/${bookings.length} reminders.`,
+    );
   } catch (err) {
     log("checkout-reminder", `Error: ${err}`);
     throw err;
@@ -404,51 +434,77 @@ export async function runPreArrivalReminderJob(log: LogFn = defaultLog) {
 
     let sentCount = 0;
     for (const booking of bookings) {
-      const alreadySent = await wasEmailSent(booking.id, "pre_arrival_reminder");
+      const alreadySent = await wasEmailSent(
+        booking.id,
+        "pre_arrival_reminder",
+      );
       if (alreadySent) {
         log("pre-arrival", `Skipping ${booking.bookingId} — already sent`);
         continue;
       }
 
-      const result = await sendEmail("pre_arrival_reminder", booking, {
-        to: [booking.guestEmail],
-      });
+      if (booking.guestEmail) {
+        const result = await sendEmail("pre_arrival_reminder", booking, {
+          to: [booking.guestEmail],
+        });
 
-      if (result.error) {
-        log("pre-arrival", `Failed ${booking.bookingId}: ${result.error}`);
-        await recordEmailSent(
-          booking.id,
-          "pre_arrival_reminder",
-          booking.guestEmail,
-          `Pre-arrival reminder — ${booking.bookingId}`,
-          "",
-          "failed",
-        );
+        if (result.error) {
+          log("pre-arrival", `Failed ${booking.bookingId}: ${result.error}`);
+          await recordEmailSent(
+            booking.id,
+            "pre_arrival_reminder",
+            booking.guestEmail,
+            `Pre-arrival reminder — ${booking.bookingId}`,
+            "",
+            "failed",
+          );
+        } else {
+          log(
+            "pre-arrival",
+            `Sent to ${booking.guestEmail} (${booking.bookingId})`,
+          );
+          await recordEmailSent(
+            booking.id,
+            "pre_arrival_reminder",
+            booking.guestEmail,
+            `Pre-arrival reminder — ${booking.bookingId}`,
+            "",
+            "sent",
+          );
+          sentCount++;
+        }
       } else {
-        log("pre-arrival", `Sent to ${booking.guestEmail} (${booking.bookingId})`);
-        await recordEmailSent(
-          booking.id,
-          "pre_arrival_reminder",
-          booking.guestEmail,
-          `Pre-arrival reminder — ${booking.bookingId}`,
-          "",
-          "sent",
+        log(
+          "pre-arrival",
+          `Skipping email for ${booking.bookingId} — no guest email`,
         );
-        sentCount++;
       }
 
       if (booking.guestPhone) {
-        const alreadySentWA = await wasWhatsAppSent(booking.id, "pre_arrival_reminder");
+        const alreadySentWA = await wasWhatsAppSent(
+          booking.id,
+          "pre_arrival_reminder",
+        );
         if (!alreadySentWA) {
-          const waResult = await sendBookingWhatsApp("pre_arrival_reminder", booking, { sendPdf: true });
+          const waResult = await sendBookingWhatsApp(
+            "pre_arrival_reminder",
+            booking,
+            { sendPdf: true },
+          );
           if (!waResult.success) {
-            log("pre-arrival", `WA failed ${booking.bookingId}: ${waResult.error}`);
+            log(
+              "pre-arrival",
+              `WA failed ${booking.bookingId}: ${waResult.error}`,
+            );
           }
         }
       }
     }
 
-    log("pre-arrival", `Finished. Sent ${sentCount}/${bookings.length} reminders.`);
+    log(
+      "pre-arrival",
+      `Finished. Sent ${sentCount}/${bookings.length} reminders.`,
+    );
   } catch (err) {
     log("pre-arrival", `Error: ${err}`);
     throw err;

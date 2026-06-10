@@ -161,7 +161,7 @@ export default function NewBookingPage() {
       <form onSubmit={handleSubmit} className="space-y-5">
         <Section title="Guest Details">
           <Field label="Full Name" name="guestFullName" required />
-          <Field label="Email" name="guestEmail" type="email" required />
+          <Field label="Email (optional)" name="guestEmail" type="email" />
           <Field label="Phone (for WhatsApp)" name="guestPhone" type="tel" />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field
