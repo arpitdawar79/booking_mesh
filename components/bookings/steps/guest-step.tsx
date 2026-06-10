@@ -7,12 +7,12 @@ import { cn } from "@/lib/utils";
 import NumberFlow from "@number-flow/react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-    BedDouble,
-    ClipboardCheck,
-    Home,
-    Minus,
-    Plus,
-    Users,
+  BedDouble,
+  ClipboardCheck,
+  Home,
+  Minus,
+  Plus,
+  Users,
 } from "lucide-react";
 
 interface Props {
@@ -58,7 +58,7 @@ export function GuestStep({
       title="Guest & Rooms"
       subtitle="Who is staying and how many rooms?"
     >
-      <div className="space-y-6">
+      <div className="space-y-5 sm:space-y-6">
         {/* Contact Information */}
         <div className="space-y-4">
           <Input
@@ -87,7 +87,7 @@ export function GuestStep({
         </div>
 
         {/* Room configuration - high-fidelity interactive cards */}
-        <div className="rounded-3xl border border-white/5 bg-white/1 p-5 space-y-5">
+        <div className="rounded-3xl border border-white/5 bg-white/1 p-4 sm:p-5 space-y-4 sm:space-y-5">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-teal-500/10 border border-teal-500/15 flex items-center justify-center text-teal-400">
               <BedDouble className="w-4.5 h-4.5" />
@@ -291,7 +291,7 @@ export function GuestStep({
         </div>
 
         {/* Guests Count Display */}
-        <div className="rounded-3xl border border-white/5 bg-white/1 p-5 space-y-4">
+        <div className="rounded-3xl border border-white/5 bg-white/1 p-4 sm:p-5 space-y-4">
           <div className="flex items-center justify-between">
             <span className="text-sm font-black tracking-tight">
               Group Details

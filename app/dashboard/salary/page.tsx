@@ -2,23 +2,23 @@
 
 import { Pagination } from "@/components/ui/pagination";
 import {
-  ArrowLeft,
-  Banknote,
-  CalendarDays,
-  ChevronRight,
-  Clock,
-  Eye,
-  IndianRupee,
-  MessageCircle,
-  Pencil,
-  PersonStanding,
-  PlusCircle,
-  Search,
-  Send,
-  Smartphone,
-  Trash2,
-  User,
-  X,
+    ArrowLeft,
+    Banknote,
+    CalendarDays,
+    ChevronRight,
+    Clock,
+    Eye,
+    IndianRupee,
+    MessageCircle,
+    Pencil,
+    PersonStanding,
+    PlusCircle,
+    Search,
+    Send,
+    Smartphone,
+    Trash2,
+    User,
+    X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { EmployeeForm } from "./employee-form";
@@ -236,7 +236,7 @@ export default function SalaryPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="relative overflow-hidden rounded-2xl bg-linear-to-br from-slate-900 via-[#0d1525] to-slate-900 border border-white/10 p-6 shadow-xl">
+      <div className="relative overflow-hidden rounded-2xl bg-linear-to-br from-slate-900 via-[#0d1525] to-slate-900 border border-white/10 p-4 sm:p-6 shadow-xl">
         <div className="absolute top-0 right-0 w-40 h-40 bg-emerald-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
         <div className="absolute bottom-0 left-0 w-32 h-32 bg-teal-500/10 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2" />
         <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -398,7 +398,7 @@ export default function SalaryPage() {
                   <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
                 </div>
               ) : employees.length === 0 ? (
-                <div className="rounded-2xl border border-white/10 bg-white/3 p-10 text-center">
+                <div className="rounded-2xl border border-white/10 bg-white/3 p-6 sm:p-10 text-center">
                   <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-emerald-500/20 to-teal-500/10 flex items-center justify-center mx-auto mb-4 border border-emerald-500/20">
                     <User className="w-7 h-7 text-emerald-400" />
                   </div>
@@ -423,22 +423,22 @@ export default function SalaryPage() {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-white/10">
-                        <th className="text-left px-5 py-4 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                        <th className="text-left px-3 sm:px-5 py-3 sm:py-4 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
                           Employee
                         </th>
-                        <th className="text-left px-5 py-4 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                        <th className="text-left px-3 sm:px-5 py-3 sm:py-4 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
                           Designation
                         </th>
-                        <th className="text-left px-5 py-4 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                        <th className="text-left px-3 sm:px-5 py-3 sm:py-4 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
                           Phone
                         </th>
-                        <th className="text-left px-5 py-4 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                        <th className="text-left px-3 sm:px-5 py-3 sm:py-4 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
                           Monthly Salary
                         </th>
-                        <th className="text-left px-5 py-4 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                        <th className="text-left px-3 sm:px-5 py-3 sm:py-4 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
                           Status
                         </th>
-                        <th className="text-right px-5 py-4 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                        <th className="text-right px-3 sm:px-5 py-3 sm:py-4 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
                           Actions
                         </th>
                       </tr>
@@ -450,7 +450,7 @@ export default function SalaryPage() {
                           className="hover:bg-white/[0.03] cursor-pointer transition group"
                           onClick={() => fetchEmployeeDetail(e.id)}
                         >
-                          <td className="px-5 py-4">
+                          <td className="px-3 sm:px-5 py-3 sm:py-4">
                             <div className="flex items-center gap-3">
                               <div className="w-8 h-8 rounded-lg bg-linear-to-br from-emerald-500/20 to-teal-500/10 flex items-center justify-center border border-emerald-500/20">
                                 <User className="w-3.5 h-3.5 text-emerald-400" />
@@ -460,16 +460,16 @@ export default function SalaryPage() {
                               </span>
                             </div>
                           </td>
-                          <td className="px-5 py-4 text-slate-400">
+                          <td className="px-3 sm:px-5 py-3 sm:py-4 text-slate-400">
                             {e.designation}
                           </td>
-                          <td className="px-5 py-4 text-slate-400">
+                          <td className="px-3 sm:px-5 py-3 sm:py-4 text-slate-400">
                             {e.phone || "—"}
                           </td>
-                          <td className="px-5 py-4 font-semibold text-emerald-400">
+                          <td className="px-3 sm:px-5 py-3 sm:py-4 font-semibold text-emerald-400">
                             {fmtCurrency(Number(e.monthlySalary))}
                           </td>
-                          <td className="px-5 py-4">
+                          <td className="px-3 sm:px-5 py-3 sm:py-4">
                             <span
                               className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide ${e.status === "active" ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-white/5 text-slate-400 border border-white/10"}`}
                             >
@@ -479,7 +479,7 @@ export default function SalaryPage() {
                               {e.status}
                             </span>
                           </td>
-                          <td className="px-5 py-4">
+                          <td className="px-3 sm:px-5 py-3 sm:py-4">
                             <div
                               className="flex items-center justify-end gap-1"
                               onClick={(ev) => ev.stopPropagation()}
@@ -522,7 +522,7 @@ export default function SalaryPage() {
           {view === "employee-detail" && selectedEmployee && (
             <div className="space-y-6">
               {/* Employee Profile Card */}
-              <div className="relative overflow-hidden rounded-2xl bg-linear-to-br from-slate-900 via-[#0d1525] to-slate-900 border border-white/10 p-6">
+              <div className="relative overflow-hidden rounded-2xl bg-linear-to-br from-slate-900 via-[#0d1525] to-slate-900 border border-white/10 p-4 sm:p-6">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
                 <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="flex items-center gap-4">
@@ -597,7 +597,7 @@ export default function SalaryPage() {
               </div>
               {!selectedEmployee.salarySlips ||
               selectedEmployee.salarySlips.length === 0 ? (
-                <div className="rounded-2xl border border-white/10 bg-white/3 p-10 text-center">
+                <div className="rounded-2xl border border-white/10 bg-white/3 p-6 sm:p-10 text-center">
                   <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-emerald-500/20 to-teal-500/10 flex items-center justify-center mx-auto mb-4 border border-emerald-500/20">
                     <Banknote className="w-7 h-7 text-emerald-400" />
                   </div>
@@ -757,7 +757,7 @@ export default function SalaryPage() {
               <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
             </div>
           ) : slips.length === 0 ? (
-            <div className="rounded-2xl border border-white/10 bg-white/3 p-10 text-center">
+            <div className="rounded-2xl border border-white/10 bg-white/3 p-6 sm:p-10 text-center">
               <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-emerald-500/20 to-teal-500/10 flex items-center justify-center mx-auto mb-4 border border-emerald-500/20">
                 <Banknote className="w-7 h-7 text-emerald-400" />
               </div>

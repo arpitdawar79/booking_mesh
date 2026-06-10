@@ -171,14 +171,14 @@ export default function WhatsAppSetupPage() {
   }
 
   return (
-    <div className="max-w-xl mx-auto space-y-6">
+    <div className="max-w-none sm:max-w-xl sm:mx-auto space-y-5 lg:space-y-6">
       <div className="flex items-center gap-3">
         <Smartphone className="w-6 h-6 text-teal-500" />
         <h1 className="text-xl sm:text-2xl font-bold">WhatsApp Setup</h1>
       </div>
 
       {/* Status Card */}
-      <div className="rounded-xl border border-border p-6 space-y-4">
+      <div className="rounded-xl border border-border p-4 sm:p-6 space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
             Connection Status
@@ -244,7 +244,7 @@ export default function WhatsAppSetupPage() {
 
       {/* QR Code Card */}
       {status?.qrCode && !status?.isConnected && (
-        <div className="rounded-xl border border-yellow-500/30 bg-yellow-900/10 p-6 space-y-4">
+        <div className="rounded-xl border border-yellow-500/30 bg-yellow-900/10 p-4 sm:p-6 space-y-4">
           <div className="flex items-center gap-2">
             <QrCode className="w-5 h-5 text-yellow-400" />
             <h2 className="text-sm font-semibold text-yellow-300">
@@ -271,7 +271,7 @@ export default function WhatsAppSetupPage() {
       )}
 
       {!status?.isConnected && !status?.qrCode && (
-        <div className="rounded-xl border border-border p-6 text-center">
+        <div className="rounded-xl border border-border p-4 sm:p-6 text-center">
           <p className="text-sm text-muted-foreground">
             WhatsApp is initializing. The QR code will appear here shortly.
           </p>
@@ -280,7 +280,7 @@ export default function WhatsAppSetupPage() {
 
       {/* Admin Group Selection */}
       {status?.isConnected && (
-        <div className="rounded-xl border border-border p-6 space-y-4">
+        <div className="rounded-xl border border-border p-4 sm:p-6 space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Users className="w-5 h-5 text-teal-500" />

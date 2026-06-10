@@ -9,7 +9,12 @@ interface PaginationProps {
   onPageChange: (page: number) => void;
 }
 
-export function Pagination({ page, totalPages, total, onPageChange }: PaginationProps) {
+export function Pagination({
+  page,
+  totalPages,
+  total,
+  onPageChange,
+}: PaginationProps) {
   if (totalPages <= 1) return null;
 
   const pages: (number | string)[] = [];
@@ -28,7 +33,7 @@ export function Pagination({ page, totalPages, total, onPageChange }: Pagination
   }
 
   return (
-    <div className="flex items-center justify-between pt-4">
+    <div className="flex items-center justify-between pt-3 sm:pt-4">
       <span className="text-xs text-muted-foreground">
         Page {page} of {totalPages} ({total} total)
       </span>
@@ -42,7 +47,10 @@ export function Pagination({ page, totalPages, total, onPageChange }: Pagination
         </button>
         {pages.map((p, i) =>
           p === "..." ? (
-            <span key={`dots-${i}`} className="px-2 text-xs text-muted-foreground">
+            <span
+              key={`dots-${i}`}
+              className="px-2 text-xs text-muted-foreground"
+            >
               ...
             </span>
           ) : (

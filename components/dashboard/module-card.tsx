@@ -21,7 +21,7 @@ export function ModuleCard({
       transition={{ type: "spring", stiffness: 400, damping: 22 }}
       className="relative rounded-2xl border border-border/60 bg-card/20 backdrop-blur-xl overflow-hidden shadow-sm group hover:border-teal-500/25 hover:shadow-lg hover:shadow-teal-500/5"
     >
-      <Link href={href} className="block p-5 space-y-3 relative z-10">
+      <Link href={href} className="block p-4 sm:p-5 space-y-3 relative z-10">
         {/* Ambient glow */}
         <div className="absolute -inset-px bg-linear-to-br from-teal-500/[0.07] via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
         <div className="absolute top-[-30px] right-[-30px] w-[100px] h-[100px] bg-teal-500/10 blur-[30px] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />

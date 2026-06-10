@@ -23,7 +23,7 @@ export default function TemplatesPage() {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4 lg:space-y-5">
       <h1 className="text-xl sm:text-2xl font-bold">Email Templates</h1>
 
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">

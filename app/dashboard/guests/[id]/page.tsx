@@ -119,7 +119,7 @@ export default function GuestDetailPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 lg:space-y-6">
       <Link
         href="/dashboard/guests"
         className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition"
@@ -172,7 +172,7 @@ export default function GuestDetailPage() {
       {editing && (
         <form
           onSubmit={handleSaveEdit}
-          className="rounded-xl border border-border p-4 sm:p-6 space-y-4 bg-muted/10"
+          className="rounded-xl border border-border p-3 sm:p-6 space-y-4 bg-muted/10"
         >
           <h2 className="text-sm font-semibold">Edit Guest</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -302,7 +302,7 @@ export default function GuestDetailPage() {
       </div>
 
       {guest.preferences && (
-        <div className="rounded-xl border border-border p-4">
+        <div className="rounded-xl border border-border p-3 sm:p-4">
           <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
             Preferences
           </h3>
@@ -314,7 +314,7 @@ export default function GuestDetailPage() {
       <div className="space-y-3">
         <h2 className="text-sm font-semibold">Booking History</h2>
         {bookings.length === 0 ? (
-          <div className="rounded-xl border border-border p-6 text-center text-muted-foreground text-sm">
+          <div className="rounded-xl border border-border p-4 sm:p-6 text-center text-muted-foreground text-sm">
             No bookings found.
           </div>
         ) : (
@@ -380,7 +380,7 @@ function StatCard({
   value: string | number;
 }) {
   return (
-    <div className="rounded-lg border border-border p-4 space-y-2">
+    <div className="rounded-lg border border-border p-3 sm:p-4 space-y-2">
       <div className="flex items-center gap-2">
         {icon}
         <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">

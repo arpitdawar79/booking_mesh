@@ -429,7 +429,7 @@ We look forward to hosting you!
         </div>
 
         {/* Quick Actions Bar */}
-        <div className="rounded-xl border border-border p-4">
+        <div className="rounded-xl border border-border p-3 sm:p-4">
           <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">
             Quick Actions
           </h2>
@@ -479,7 +479,7 @@ We look forward to hosting you!
         {isEditing ? (
           <form
             onSubmit={handleEditSave}
-            className="rounded-xl border border-border p-4 sm:p-6 space-y-5 text-sm"
+            className="rounded-xl border border-border p-3 sm:p-6 space-y-5 text-sm"
           >
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-semibold">Edit Booking</h2>
@@ -667,7 +667,7 @@ We look forward to hosting you!
             </div>
           </form>
         ) : (
-          <div className="rounded-xl border border-border p-4 sm:p-6 space-y-4 text-sm">
+          <div className="rounded-xl border border-border p-3 sm:p-6 space-y-4 text-sm">
             <Section title="Guest">
               <Detail label="Name" value={booking.guestFullName} />
               <Detail label="Email" value={booking.guestEmail} />
@@ -747,7 +747,7 @@ We look forward to hosting you!
           </div>
         )}
 
-        <div className="rounded-lg border border-border p-6">
+        <div className="rounded-lg border border-border p-4 sm:p-6">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-4">
             Email History
           </h2>
@@ -779,7 +779,7 @@ We look forward to hosting you!
           )}
         </div>
 
-        <div className="rounded-lg border border-border p-6">
+        <div className="rounded-lg border border-border p-4 sm:p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
               WhatsApp History
@@ -846,7 +846,7 @@ We look forward to hosting you!
 
       {/* Send Email */}
       <div>
-        <div className="rounded-xl border border-border p-4 sm:p-6 space-y-4 lg:sticky lg:top-8">
+        <div className="rounded-xl border border-border p-3 sm:p-6 space-y-4 lg:sticky lg:top-8">
           <h2 className="text-base sm:text-lg font-semibold">Send Email</h2>
 
           <form onSubmit={handleSendEmail} className="space-y-4">

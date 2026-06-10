@@ -2,35 +2,31 @@
 
 import { PullToRefresh } from "@/components/pwa/pull-to-refresh";
 import { QuickAddFAB } from "@/components/quick-add/fab";
-import {
-  Drawer,
-  DrawerContent,
-  DrawerTitle
-} from "@/components/ui/drawer";
+import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
 import { MobileBottomNav } from "@/components/ui/mobile-bottom-nav";
 import { ToastProvider } from "@/components/ui/toast";
 import { useHaptic } from "@/lib/pwa-hooks";
 import { motion } from "framer-motion";
 import {
-  Banknote,
-  BarChart3,
-  CalendarDays,
-  ChevronLeft,
-  ChevronRight,
-  Clock,
-  Hotel,
-  IndianRupee,
-  LayoutDashboard,
-  LogOut,
-  Mail,
-  Menu,
-  MoreHorizontal,
-  PlusCircle,
-  Receipt,
-  ShoppingCart,
-  Smartphone,
-  Users,
-  X,
+    Banknote,
+    BarChart3,
+    CalendarDays,
+    ChevronLeft,
+    ChevronRight,
+    Clock,
+    Hotel,
+    IndianRupee,
+    LayoutDashboard,
+    LogOut,
+    Mail,
+    Menu,
+    MoreHorizontal,
+    PlusCircle,
+    Receipt,
+    ShoppingCart,
+    Smartphone,
+    Users,
+    X,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -345,7 +341,7 @@ export default function DashboardLayout({
             <div className="w-8" />
           </header>
 
-          <main className="p-3 md:p-4 lg:p-6 max-w-7xl mx-auto">
+          <main className="p-2 sm:p-3 md:p-4 lg:p-6 max-w-none lg:max-w-7xl lg:mx-auto">
             <PullToRefresh onRefresh={handleRefresh}>{children}</PullToRefresh>
           </main>
         </div>

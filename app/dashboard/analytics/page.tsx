@@ -200,13 +200,13 @@ export default function AnalyticsPage() {
   const formatCurrency = (v: number) => `₹${v.toLocaleString("en-IN")}`;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 lg:space-y-8">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+        className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4"
       >
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
@@ -303,7 +303,7 @@ export default function AnalyticsPage() {
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.3 }}
-        className="grid lg:grid-cols-2 gap-4 lg:gap-6"
+        className="grid lg:grid-cols-2 gap-3 sm:gap-4 lg:gap-6"
       >
         <ChartCard title="Monthly Revenue" subtitle="Revenue trend this year">
           <ResponsiveContainer width="100%" height={220}>
@@ -375,7 +375,7 @@ export default function AnalyticsPage() {
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.4 }}
-        className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6"
+        className="grid md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6"
       >
         <ChartCard title="Payment Status" subtitle="Booking distribution">
           <ResponsiveContainer width="100%" height={200}>
@@ -486,7 +486,7 @@ export default function AnalyticsPage() {
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.5 }}
-        className="grid lg:grid-cols-2 gap-4 lg:gap-6"
+        className="grid lg:grid-cols-2 gap-3 sm:gap-4 lg:gap-6"
       >
         <ChartCard
           title="P&L Overview"
@@ -598,7 +598,7 @@ export default function AnalyticsPage() {
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.55 }}
-          className="grid lg:grid-cols-2 gap-4 lg:gap-6"
+          className="grid lg:grid-cols-2 gap-3 sm:gap-4 lg:gap-6"
         >
           <ChartCard
             title="Additional Sales Trend"
@@ -676,7 +676,7 @@ export default function AnalyticsPage() {
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.6 }}
-        className="grid lg:grid-cols-2 gap-4 lg:gap-6"
+        className="grid lg:grid-cols-2 gap-3 sm:gap-4 lg:gap-6"
       >
         <ChartCard title="Weekly Booking Trend" subtitle="Last 12 weeks">
           <ResponsiveContainer width="100%" height={200}>
@@ -822,7 +822,7 @@ function KpiCard({
     <motion.div
       whileHover={{ y: -4, scale: 1.01 }}
       transition={{ type: "spring", stiffness: 350, damping: 25 }}
-      className="relative rounded-2xl border border-border/60 bg-card/20 backdrop-blur-xl p-5 space-y-2 overflow-hidden shadow-sm group hover:border-teal-500/20 hover:shadow-lg hover:shadow-teal-500/5"
+      className="relative rounded-2xl border border-border/60 bg-card/20 backdrop-blur-xl p-4 sm:p-5 space-y-2 overflow-hidden shadow-sm group hover:border-teal-500/20 hover:shadow-lg hover:shadow-teal-500/5"
     >
       <div className="absolute -inset-px bg-linear-to-br from-teal-500/[0.07] via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
       <div className="relative z-10">

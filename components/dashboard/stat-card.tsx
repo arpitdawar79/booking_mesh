@@ -17,7 +17,7 @@ export function StatCard({
     <motion.div
       whileHover={{ y: -4, scale: 1.01 }}
       transition={{ type: "spring", stiffness: 350, damping: 25 }}
-      className="relative rounded-2xl border border-border/80 bg-card/40 backdrop-blur-xl p-5 space-y-3 overflow-hidden shadow-sm group hover:border-teal-500/20 hover:shadow-lg hover:shadow-teal-500/2"
+      className="relative rounded-2xl border border-border/80 bg-card/40 backdrop-blur-xl p-4 sm:p-5 space-y-3 overflow-hidden shadow-sm group hover:border-teal-500/20 hover:shadow-lg hover:shadow-teal-500/2"
     >
       {/* Premium ambient glow */}
       <div className="absolute -inset-px bg-linear-to-br from-teal-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />

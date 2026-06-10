@@ -151,7 +151,7 @@ export default function AdditionalSalesPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 lg:space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
           <ShoppingCart className="w-5 h-5 text-orange-400" />
@@ -237,7 +237,7 @@ export default function AdditionalSalesPage() {
       {loading && sales.length === 0 ? (
         <div className="text-muted-foreground">Loading sales...</div>
       ) : sales.length === 0 ? (
-        <div className="rounded-xl border border-border p-8 text-center text-muted-foreground">
+        <div className="rounded-xl border border-border p-6 sm:p-8 text-center text-muted-foreground">
           No sales found.
         </div>
       ) : (
@@ -325,7 +325,7 @@ function SummaryCard({
   value: string | number;
 }) {
   return (
-    <div className="rounded-lg border border-border p-4 space-y-2">
+    <div className="rounded-lg border border-border p-3 sm:p-4 space-y-2">
       <div className="flex items-center gap-2">
         {icon}
         <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">

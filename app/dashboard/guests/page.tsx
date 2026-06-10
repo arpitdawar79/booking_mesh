@@ -63,7 +63,7 @@ export default function GuestsPage() {
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 lg:space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
           <Users className="w-5 h-5 text-teal-400" />
@@ -102,7 +102,7 @@ export default function GuestsPage() {
       </div>
 
       {showForm && (
-        <div className="rounded-xl border border-border p-4 sm:p-6 space-y-4 bg-muted/10">
+        <div className="rounded-xl border border-border p-3 sm:p-6 space-y-4 bg-muted/10">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-semibold">Add Guest</h2>
             <button
@@ -251,7 +251,7 @@ export default function GuestsPage() {
       {loading && guests.length === 0 ? (
         <div className="text-muted-foreground">Loading guests...</div>
       ) : guests.length === 0 ? (
-        <div className="rounded-xl border border-border p-8 text-center text-muted-foreground">
+        <div className="rounded-xl border border-border p-6 sm:p-8 text-center text-muted-foreground">
           No guests found.
         </div>
       ) : (
@@ -262,7 +262,7 @@ export default function GuestsPage() {
               <Link
                 key={g.id}
                 href={`/dashboard/guests/${g.id}`}
-                className="block rounded-xl border border-border bg-card/30 p-4 space-y-2 hover:bg-muted/20 transition"
+                className="block rounded-xl border border-border bg-card/30 p-3 sm:p-4 space-y-2 hover:bg-muted/20 transition"
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-2">

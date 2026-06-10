@@ -100,7 +100,7 @@ export default function DashboardPage() {
     `₹${v.toLocaleString("en-IN", { maximumFractionDigits: 0 })}`;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 lg:space-y-8">
       {/* Header with TextReveal */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
@@ -238,7 +238,7 @@ export default function DashboardPage() {
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.3 }}
-          className="rounded-2xl border border-border/60 bg-card/20 backdrop-blur-xl p-4 space-y-3"
+          className="rounded-2xl border border-border/60 bg-card/20 backdrop-blur-xl p-3 sm:p-4 space-y-3"
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -332,7 +332,7 @@ export default function DashboardPage() {
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.5 }}
-          className="rounded-2xl border border-border/60 bg-card/20 backdrop-blur-xl p-4 space-y-3"
+          className="rounded-2xl border border-border/60 bg-card/20 backdrop-blur-xl p-3 sm:p-4 space-y-3"
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">

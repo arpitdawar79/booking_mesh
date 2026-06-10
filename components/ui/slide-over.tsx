@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
 import { useEffect } from "react";
 
@@ -18,7 +18,13 @@ const sizes = {
   lg: "max-w-xl",
 };
 
-export function SlideOver({ open, onClose, title, children, size = "md" }: SlideOverProps) {
+export function SlideOver({
+  open,
+  onClose,
+  title,
+  children,
+  size = "md",
+}: SlideOverProps) {
   useEffect(() => {
     if (!open) return;
     const handler = (e: KeyboardEvent) => {
@@ -50,7 +56,7 @@ export function SlideOver({ open, onClose, title, children, size = "md" }: Slide
             className={`relative w-full ${sizes[size]} h-full bg-background border-l border-border shadow-2xl flex flex-col`}
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
+            <div className="flex items-center justify-between px-4 sm:px-5 py-3 sm:py-4 border-b border-border shrink-0">
               <h2 className="text-base font-semibold">{title}</h2>
               <button
                 onClick={onClose}
@@ -60,9 +66,7 @@ export function SlideOver({ open, onClose, title, children, size = "md" }: Slide
               </button>
             </div>
             {/* Content */}
-            <div className="flex-1 overflow-y-auto p-5">
-              {children}
-            </div>
+            <div className="flex-1 overflow-y-auto p-4 sm:p-5">{children}</div>
           </motion.div>
         </div>
       )}

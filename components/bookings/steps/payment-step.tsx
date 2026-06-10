@@ -35,7 +35,7 @@ export function PaymentStep({
       title="Payment details"
       subtitle="How much and how paid?"
     >
-      <div className="space-y-6">
+      <div className="space-y-5 sm:space-y-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Input
             label="Total Amount *"
@@ -55,7 +55,7 @@ export function PaymentStep({
         </div>
 
         {/* Financial Summary panel */}
-        <div className="rounded-3xl border border-white/[0.07] bg-[#0d0d0d]/50 p-5 space-y-4 shadow-sm relative overflow-hidden">
+        <div className="rounded-3xl border border-white/[0.07] bg-[#0d0d0d]/50 p-4 sm:p-5 space-y-4 shadow-sm relative overflow-hidden">
           <div className="absolute inset-0 bg-linear-to-br from-teal-500/4 via-transparent to-emerald-500/2 pointer-events-none" />
 
           <div className="flex items-center justify-between">

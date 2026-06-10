@@ -6,15 +6,15 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { formatDate } from "@/lib/utils";
 import { motion } from "framer-motion";
 import {
-  AlertCircle,
-  CalendarCheck,
-  Copy,
-  Eye,
-  IndianRupee,
-  PlusCircle,
-  Search,
-  TrendingUp,
-  Users,
+    AlertCircle,
+    CalendarCheck,
+    Copy,
+    Eye,
+    IndianRupee,
+    PlusCircle,
+    Search,
+    TrendingUp,
+    Users,
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -126,7 +126,7 @@ export default function BookingsPage() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 lg:space-y-8">
       {/* Stats Cards with NumberTicker */}
       {stats && (
         <motion.div
@@ -166,7 +166,7 @@ export default function BookingsPage() {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-2xl border border-border/60 bg-card/20 backdrop-blur-xl p-4 space-y-3"
+          className="rounded-2xl border border-border/60 bg-card/20 backdrop-blur-xl p-3 sm:p-4 space-y-3"
         >
           <div className="flex items-center gap-2">
             <div className="p-1.5 rounded-lg bg-teal-500/10 border border-teal-500/15">
@@ -250,7 +250,7 @@ export default function BookingsPage() {
         <motion.div
           initial={{ opacity: 0, scale: 0.97 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="rounded-2xl border border-border/60 bg-card/20 backdrop-blur-xl p-10 text-center"
+          className="rounded-2xl border border-border/60 bg-card/20 backdrop-blur-xl p-8 sm:p-10 text-center"
         >
           <div className="text-4xl mb-3">🔍</div>
           <p className="text-sm text-muted-foreground font-medium">
@@ -267,7 +267,7 @@ export default function BookingsPage() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.03 }}
-                className="rounded-2xl border border-border/60 bg-card/20 backdrop-blur-xl p-4 space-y-3 hover:border-teal-500/15 transition-colors"
+                className="rounded-2xl border border-border/60 bg-card/20 backdrop-blur-xl p-3 sm:p-4 space-y-3 hover:border-teal-500/15 transition-colors"
               >
                 <div className="flex items-start justify-between">
                   <div>

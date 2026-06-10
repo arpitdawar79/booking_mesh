@@ -1,25 +1,25 @@
 "use client";
 
 import {
-  Drawer,
-  DrawerContent,
-  DrawerDescription,
-  DrawerTitle,
+    Drawer,
+    DrawerContent,
+    DrawerDescription,
+    DrawerTitle,
 } from "@/components/ui/drawer";
-import { formatDate } from "@/lib/utils";
 import { useHaptic } from "@/lib/pwa-hooks";
+import { formatDate } from "@/lib/utils";
 import {
-  AlertCircle,
-  CheckCircle2,
-  ChevronLeft,
-  ChevronRight,
-  Clock,
-  Filter,
-  Loader2,
-  Play,
-  RefreshCw,
-  Terminal,
-  XCircle,
+    AlertCircle,
+    CheckCircle2,
+    ChevronLeft,
+    ChevronRight,
+    Clock,
+    Filter,
+    Loader2,
+    Play,
+    RefreshCw,
+    Terminal,
+    XCircle,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -173,7 +173,10 @@ export default function CronsPage() {
   };
 
   const jobOptions = useMemo(
-    () => [{ value: "", label: "All jobs" }, ...jobs.map((j) => ({ value: j.name, label: j.label }))],
+    () => [
+      { value: "", label: "All jobs" },
+      ...jobs.map((j) => ({ value: j.name, label: j.label })),
+    ],
     [jobs],
   );
 
@@ -185,7 +188,7 @@ export default function CronsPage() {
   ];
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 lg:space-y-8">
       <div>
         <h1 className="text-2xl font-bold">Cron Dashboard</h1>
         <p className="text-sm text-muted-foreground mt-1">
@@ -214,7 +217,7 @@ export default function CronsPage() {
             {jobs.map((job) => (
               <div
                 key={job.name}
-                className="rounded-xl border border-border p-4 space-y-3 bg-muted/10"
+                className="rounded-xl border border-border p-3 sm:p-4 space-y-3 bg-muted/10"
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-2 min-w-0">
@@ -228,8 +231,12 @@ export default function CronsPage() {
                       </div>
                     </div>
                   </div>
-                  {job.latestRun ? statusBadge(job.latestRun.status) : (
-                    <span className="text-xs text-muted-foreground">Never run</span>
+                  {job.latestRun ? (
+                    statusBadge(job.latestRun.status)
+                  ) : (
+                    <span className="text-xs text-muted-foreground">
+                      Never run
+                    </span>
                   )}
                 </div>
 
@@ -267,7 +274,9 @@ export default function CronsPage() {
                   <div className="text-xs text-muted-foreground border-t border-border pt-2">
                     Last run: {formatDate(job.latestRun.startedAt)} ·{" "}
                     {formatDuration(job.latestRun.durationMs)} ·{" "}
-                    {job.latestRun.triggeredBy === "manual" ? "Manual" : "Scheduled"}
+                    {job.latestRun.triggeredBy === "manual"
+                      ? "Manual"
+                      : "Scheduled"}
                   </div>
                 )}
               </div>
@@ -354,7 +363,9 @@ export default function CronsPage() {
                       <th className="px-4 py-2 font-medium">Started</th>
                       <th className="px-4 py-2 font-medium">Duration</th>
                       <th className="px-4 py-2 font-medium">Trigger</th>
-                      <th className="px-4 py-2 font-medium text-right">Actions</th>
+                      <th className="px-4 py-2 font-medium text-right">
+                        Actions
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -365,9 +376,12 @@ export default function CronsPage() {
                         onClick={() => openDetail(run)}
                       >
                         <td className="px-4 py-2.5 font-medium">
-                          {jobs.find((j) => j.name === run.jobName)?.label || run.jobName}
+                          {jobs.find((j) => j.name === run.jobName)?.label ||
+                            run.jobName}
                         </td>
-                        <td className="px-4 py-2.5">{statusBadge(run.status)}</td>
+                        <td className="px-4 py-2.5">
+                          {statusBadge(run.status)}
+                        </td>
                         <td className="px-4 py-2.5 text-muted-foreground text-xs">
                           {new Date(run.startedAt).toLocaleString()}
                         </td>
@@ -435,7 +449,8 @@ export default function CronsPage() {
             {detailRun && statusBadge(detailRun.status)}
             <span className="text-sm text-muted-foreground font-normal">
               {detailRun
-                ? jobs.find((j) => j.name === detailRun.jobName)?.label || detailRun.jobName
+                ? jobs.find((j) => j.name === detailRun.jobName)?.label ||
+                  detailRun.jobName
                 : ""}
             </span>
           </DrawerTitle>
@@ -446,19 +461,27 @@ export default function CronsPage() {
             <div className="mt-4 space-y-4">
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div className="rounded-lg border border-border p-3">
-                  <div className="text-xs text-muted-foreground mb-1">Started</div>
+                  <div className="text-xs text-muted-foreground mb-1">
+                    Started
+                  </div>
                   <div>{new Date(detailRun.startedAt).toLocaleString()}</div>
                 </div>
                 <div className="rounded-lg border border-border p-3">
-                  <div className="text-xs text-muted-foreground mb-1">Duration</div>
+                  <div className="text-xs text-muted-foreground mb-1">
+                    Duration
+                  </div>
                   <div>{formatDuration(detailRun.durationMs)}</div>
                 </div>
                 <div className="rounded-lg border border-border p-3">
-                  <div className="text-xs text-muted-foreground mb-1">Trigger</div>
+                  <div className="text-xs text-muted-foreground mb-1">
+                    Trigger
+                  </div>
                   <div className="capitalize">{detailRun.triggeredBy}</div>
                 </div>
                 <div className="rounded-lg border border-border p-3">
-                  <div className="text-xs text-muted-foreground mb-1">Job Key</div>
+                  <div className="text-xs text-muted-foreground mb-1">
+                    Job Key
+                  </div>
                   <div className="font-mono text-xs">{detailRun.jobName}</div>
                 </div>
               </div>

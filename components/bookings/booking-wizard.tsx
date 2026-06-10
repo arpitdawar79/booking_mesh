@@ -230,7 +230,7 @@ export function BookingWizard() {
   const progressPct = ((step - 1) / (stepMeta.length - 1)) * 100;
 
   return (
-    <div className="max-w-2xl mx-auto relative pb-4">
+    <div className="max-w-none sm:max-w-2xl sm:mx-auto relative pb-4">
       {/* Ambient layered glows */}
       <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[700px] h-[500px] bg-teal-500/3 blur-[120px] rounded-full pointer-events-none -z-10" />
       <div className="fixed bottom-0 right-0 w-[400px] h-[300px] bg-emerald-500/3 blur-[100px] rounded-full pointer-events-none -z-10" />
@@ -240,7 +240,7 @@ export function BookingWizard() {
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-        className="mb-7 sm:mb-9"
+        className="mb-5 sm:mb-9"
       >
         <div className="flex items-center gap-2.5 mb-1">
           <div className="w-7 h-7 rounded-lg bg-teal-500/15 border border-teal-500/20 flex items-center justify-center">
@@ -272,7 +272,7 @@ export function BookingWizard() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.55, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-        className="mb-7 relative"
+        className="mb-5 sm:mb-7 relative"
       >
         {/* Progress track */}
         <div className="absolute top-[22px] left-6 right-6 h-px bg-white/5 z-0" />

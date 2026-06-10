@@ -60,7 +60,7 @@ export function Input({
           placeholder={placeholder}
           autoFocus={autoFocus}
           className={cn(
-            "w-full rounded-2xl border bg-[#0c0c0c]/90 px-4 py-3.5 text-sm font-medium text-foreground transition-all duration-300 placeholder:text-muted-foreground/30 focus:outline-none",
+            "w-full rounded-2xl border bg-[#0c0c0c]/90 px-3.5 sm:px-4 py-3 sm:py-3.5 text-sm font-medium text-foreground transition-all duration-300 placeholder:text-muted-foreground/30 focus:outline-none",
             isFocused
               ? "border-teal-500/40 shadow-[0_0_24px_-6px_rgba(20,184,166,0.2)] ring-1 ring-teal-500/15"
               : "border-white/[0.07] hover:border-white/15",
@@ -314,7 +314,7 @@ export function StepCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-3xl border border-white/[0.07] p-5 sm:p-7 space-y-6 bg-[#0d0d0d]/60 backdrop-blur-2xl relative overflow-hidden shadow-[0_2px_40px_rgba(0,0,0,0.5)]">
+    <div className="rounded-3xl border border-white/[0.07] p-4 sm:p-5 lg:p-7 space-y-5 sm:space-y-6 bg-[#0d0d0d]/60 backdrop-blur-2xl relative overflow-hidden shadow-[0_2px_40px_rgba(0,0,0,0.5)]">
       <DotPattern
         width={20}
         height={20}
@@ -361,7 +361,7 @@ export function ReviewSection({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-2xl border border-white/6 bg-white/2 p-5 space-y-3 relative overflow-hidden">
+    <div className="rounded-2xl border border-white/6 bg-white/2 p-4 sm:p-5 space-y-3 relative overflow-hidden">
       <div className="absolute inset-0 bg-linear-to-br from-teal-500/3 to-transparent pointer-events-none rounded-2xl" />
       <div className="relative flex items-center gap-2.5 text-xs font-extrabold uppercase tracking-wider text-teal-400">
         <div className="w-6 h-6 rounded-lg bg-teal-500/15 border border-teal-500/20 flex items-center justify-center">
@@ -382,7 +382,7 @@ export function ReviewRow({
   value: string | React.ReactNode;
 }) {
   return (
-    <div className="flex justify-between items-center text-sm py-2.5 first:pt-0 last:pb-0">
+    <div className="flex justify-between items-center text-sm py-2 first:pt-0 last:pb-0 sm:py-2.5">
       <span className="text-muted-foreground/70 font-semibold">{label}</span>
       <span className="font-extrabold text-foreground text-right">{value}</span>
     </div>
