@@ -294,14 +294,14 @@ export default function CronsPage() {
           </h2>
           <div className="flex items-center gap-2">
             <div className="relative">
-              <Filter className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <Filter className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <select
                 value={selectedJob}
                 onChange={(e) => {
                   setSelectedJob(e.target.value);
                   setPage(1);
                 }}
-                className="pl-8 pr-3 py-1.5 text-xs rounded-md border border-border bg-background appearance-none cursor-pointer"
+                className="pl-10 pr-3 py-1.5 text-xs rounded-md border border-border bg-background appearance-none cursor-pointer"
               >
                 {jobOptions.map((o) => (
                   <option key={o.value} value={o.value}>

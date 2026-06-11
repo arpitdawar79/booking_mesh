@@ -14,6 +14,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import {
     BedDouble,
     CalendarDays,
+    Clock,
     Minus,
     Moon,
     Plus,
@@ -196,12 +197,14 @@ export function StayStep({
             value={checkInTime}
             onChange={setCheckInTime}
             options={TIME_OPTIONS}
+            icon={Clock}
           />
           <Select
             label="Check-out Time"
             value={checkOutTime}
             onChange={setCheckOutTime}
             options={TIME_OPTIONS}
+            icon={Clock}
           />
         </div>
 

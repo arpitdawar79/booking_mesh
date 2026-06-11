@@ -17,6 +17,7 @@ export function Input({
   type = "text",
   autoFocus,
   onEnter,
+  icon: Icon,
 }: {
   label: string;
   value: string;
@@ -25,6 +26,7 @@ export function Input({
   type?: string;
   autoFocus?: boolean;
   onEnter?: () => void;
+  icon?: React.ComponentType<{ className?: string }>;
 }) {
   const [isFocused, setIsFocused] = useState(false);
   const haptic = useHaptic();
@@ -39,7 +41,15 @@ export function Input({
       >
         {label}
       </label>
-      <div className="relative">
+      <div className="relative flex items-center">
+        {Icon && (
+          <Icon
+            className={cn(
+              "absolute left-4 w-4.5 h-4.5 transition-colors duration-300 pointer-events-none z-10",
+              isFocused ? "text-teal-400" : "text-muted-foreground/45",
+            )}
+          />
+        )}
         <input
           type={type}
           value={value}
@@ -60,7 +70,8 @@ export function Input({
           placeholder={placeholder}
           autoFocus={autoFocus}
           className={cn(
-            "w-full rounded-2xl border bg-[#0c0c0c]/90 px-3.5 sm:px-4 py-3 sm:py-3.5 text-sm font-medium text-foreground transition-all duration-300 placeholder:text-muted-foreground/30 focus:outline-none",
+            "w-full rounded-2xl border bg-[#0c0c0c]/90 py-3 sm:py-3.5 text-sm font-medium text-foreground transition-all duration-300 placeholder:text-muted-foreground/30 focus:outline-none",
+            Icon ? "pl-12 pr-4" : "px-3.5 sm:px-4",
             isFocused
               ? "border-teal-500/40 shadow-[0_0_24px_-6px_rgba(20,184,166,0.2)] ring-1 ring-teal-500/15"
               : "border-white/[0.07] hover:border-white/15",
@@ -87,11 +98,13 @@ export function Select({
   value,
   onChange,
   options,
+  icon: Icon,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   options: string[];
+  icon?: React.ComponentType<{ className?: string }>;
 }) {
   const [isFocused, setIsFocused] = useState(false);
   const haptic = useHaptic();
@@ -106,7 +119,15 @@ export function Select({
       >
         {label}
       </label>
-      <div className="relative">
+      <div className="relative flex items-center">
+        {Icon && (
+          <Icon
+            className={cn(
+              "absolute left-4 w-4.5 h-4.5 transition-colors duration-300 pointer-events-none z-10",
+              isFocused ? "text-teal-400" : "text-muted-foreground/45",
+            )}
+          />
+        )}
         <select
           value={value}
           onChange={(e) => {
@@ -116,7 +137,8 @@ export function Select({
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           className={cn(
-            "w-full rounded-2xl border bg-[#0e0e0e]/80 px-4 py-3 text-sm font-medium text-foreground transition-all duration-300 focus:outline-none appearance-none pr-10 cursor-pointer",
+            "w-full rounded-2xl border bg-[#0e0e0e]/80 py-3 text-sm font-medium text-foreground transition-all duration-300 focus:outline-none appearance-none pr-10 cursor-pointer",
+            Icon ? "pl-12" : "px-4",
             isFocused
               ? "border-teal-500/50 bg-[#0e0e0e] shadow-[0_0_20px_-3px_rgba(20,184,166,0.15)] ring-2 ring-teal-500/10"
               : "border-white/6 hover:border-white/12",
@@ -128,7 +150,7 @@ export function Select({
             </option>
           ))}
         </select>
-        <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60 pointer-events-none transition-transform duration-300" />
+        <ChevronDown className="absolute right-3.5 w-4 h-4 text-muted-foreground/60 pointer-events-none transition-transform duration-300" />
       </div>
     </div>
   );

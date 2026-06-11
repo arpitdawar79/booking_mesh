@@ -317,7 +317,7 @@ export default function SalaryPage() {
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
           <input
             type="text"
             value={search}
@@ -325,7 +325,7 @@ export default function SalaryPage() {
             placeholder={
               view === "slips" ? "Search slips..." : "Search employees..."
             }
-            className="pl-9 pr-3 py-2 rounded-xl border border-white/10 bg-white/3 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 w-44 sm:w-64"
+            className="pl-10 pr-3 py-2 rounded-xl border border-white/10 bg-white/3 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 w-44 sm:w-64"
           />
         </div>
         {view === "slips" && (

@@ -3,7 +3,7 @@
 import { Input, Select, StepCard } from "@/components/ui/form-primitives";
 import { cn } from "@/lib/utils";
 import NumberFlow from "@number-flow/react";
-import { CircleDollarSign, Landmark, ShieldCheck } from "lucide-react";
+import { CircleDollarSign, Coins, CreditCard, Landmark, ShieldCheck } from "lucide-react";
 
 interface Props {
   totalAmount: string;
@@ -44,6 +44,7 @@ export function PaymentStep({
             placeholder="e.g. 15000"
             type="number"
             onEnter={onEnter}
+            icon={Coins}
           />
           <Input
             label="Paid Online"
@@ -51,6 +52,7 @@ export function PaymentStep({
             onChange={setAmountPaidOnline}
             placeholder="0"
             type="number"
+            icon={CreditCard}
           />
         </div>
 
@@ -121,6 +123,7 @@ export function PaymentStep({
           value={currency}
           onChange={setCurrency}
           options={["INR", "USD", "EUR"]}
+          icon={CircleDollarSign}
         />
       </div>
     </StepCard>

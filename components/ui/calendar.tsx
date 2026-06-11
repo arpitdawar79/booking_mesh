@@ -32,6 +32,7 @@ interface CalendarProps {
   rangeEnd?: Date | null;
   placeholder?: string;
   label?: string;
+  icon?: React.ComponentType<{ className?: string }>;
 }
 
 function getCalendarDays(month: Date) {
@@ -304,12 +305,14 @@ export function DatePicker({
   rangeEnd,
   placeholder = "Pick a date",
   label,
+  icon: Icon,
 }: CalendarProps) {
   const [open, setOpen] = useState(false);
   const anchorRef = useRef<HTMLDivElement>(null);
   const haptic = useHaptic();
 
   const displayValue = value ? format(value, "yyyy-MM-dd") : "";
+  const EffectiveIcon = Icon || CalendarDays;
 
   return (
     <div className="flex flex-col gap-2">
@@ -318,7 +321,13 @@ export function DatePicker({
           {label}
         </label>
       )}
-      <div ref={anchorRef} className="relative">
+      <div ref={anchorRef} className="relative flex items-center">
+        <EffectiveIcon
+          className={cn(
+            "absolute left-4 w-4.5 h-4.5 transition-colors duration-300 pointer-events-none z-10",
+            open ? "text-teal-400" : "text-muted-foreground/35",
+          )}
+        />
         <button
           type="button"
           onClick={() => {
@@ -326,17 +335,16 @@ export function DatePicker({
             haptic("light");
           }}
           className={cn(
-            "w-full rounded-2xl border bg-[#0c0c0c]/90 px-4 py-3.5 text-sm font-medium text-left transition-all duration-300 focus:outline-none",
+            "w-full rounded-2xl border bg-[#0c0c0c]/90 pl-12 pr-4 py-3.5 text-sm font-medium text-left transition-all duration-300 focus:outline-none",
             open
               ? "border-teal-500/40 shadow-[0_0_24px_-6px_rgba(20,184,166,0.2)] ring-1 ring-teal-500/15"
               : "border-white/[0.07] hover:border-white/15",
-            !value && "text-muted-foreground/40",
+            !value && "text-muted-foreground/45",
             value && "text-foreground",
           )}
         >
           {displayValue || placeholder}
         </button>
-        <CalendarDays className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/35 pointer-events-none" />
 
         <AnimatePresence>
           {open && (

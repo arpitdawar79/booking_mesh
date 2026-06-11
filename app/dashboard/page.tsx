@@ -3,10 +3,9 @@
 import { KpiCard } from "@/components/dashboard/kpi-card";
 import { ModuleCard } from "@/components/dashboard/module-card";
 import { StatCard } from "@/components/dashboard/stat-card";
-import { MagicCard } from "@/components/ui/magic-card";
 import { NumberTicker } from "@/components/magicui/number-ticker";
 import { DashboardSkeleton } from "@/components/pwa/skeleton";
-import { WorkflowShowcase } from "@/components/dashboard/workflow-showcase";
+import { MagicCard } from "@/components/ui/magic-card";
 import { formatDate } from "@/lib/utils";
 import { motion } from "framer-motion";
 import {
@@ -235,13 +234,13 @@ export default function DashboardPage() {
       </motion.div>
 
       {/* Visual Pipeline Showcase */}
-      <motion.div
+      {/* <motion.div
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.3 }}
       >
         <WorkflowShowcase />
-      </motion.div>
+      </motion.div> */}
 
       {/* Upcoming Check-ins */}
       {bookingStats && bookingStats.upcomingCheckins.length > 0 && (
@@ -252,7 +251,9 @@ export default function DashboardPage() {
                 <div className="p-1 rounded bg-teal-500/10 border border-teal-500/15">
                   <TrendingUp className="w-3.5 h-3.5 text-teal-400" />
                 </div>
-                <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground/80">Upcoming Check-ins</h2>
+                <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground/80">
+                  Upcoming Check-ins
+                </h2>
               </div>
               <Link
                 href="/dashboard/bookings"
@@ -343,7 +344,9 @@ export default function DashboardPage() {
                 <div className="p-1 rounded bg-violet-500/10 border border-violet-500/15">
                   <Users className="w-3.5 h-3.5 text-violet-400" />
                 </div>
-                <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground/80">Top Guests</h2>
+                <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground/80">
+                  Top Guests
+                </h2>
               </div>
               <Link
                 href="/dashboard/guests"

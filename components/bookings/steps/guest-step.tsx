@@ -10,8 +10,11 @@ import {
   BedDouble,
   ClipboardCheck,
   Home,
+  Mail,
   Minus,
+  Phone,
   Plus,
+  User,
   Users,
 } from "lucide-react";
 
@@ -67,6 +70,7 @@ export function GuestStep({
             onChange={setGuestFullName}
             placeholder="e.g. Rahul Sharma"
             onEnter={onEnter}
+            icon={User}
           />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input
@@ -75,6 +79,7 @@ export function GuestStep({
               onChange={setGuestPhone}
               placeholder="+91 ..."
               type="tel"
+              icon={Phone}
             />
             <Input
               label="Email"
@@ -82,6 +87,7 @@ export function GuestStep({
               onChange={setGuestEmail}
               placeholder="guest@example.com"
               type="email"
+              icon={Mail}
             />
           </div>
         </div>
