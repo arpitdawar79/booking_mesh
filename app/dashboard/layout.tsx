@@ -346,7 +346,7 @@ export default function DashboardLayout({
             </div>
           </header>
 
-          <main className="p-2.5 sm:p-2.5 md:p-3.5 lg:p-5 max-w-none lg:max-w-7xl lg:mx-auto">
+          <main className="p-3.5 sm:p-3.5 md:p-3.5 lg:p-5 max-w-none lg:max-w-7xl lg:mx-auto">
             <PullToRefresh onRefresh={handleRefresh}>{children}</PullToRefresh>
           </main>
         </div>

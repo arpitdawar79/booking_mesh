@@ -230,7 +230,7 @@ export function BookingWizard() {
   const progressPct = ((step - 1) / (stepMeta.length - 1)) * 100;
 
   return (
-    <div className="max-w-none sm:max-w-2xl sm:mx-auto relative pb-4">
+    <div className="max-w-none sm:max-w-2xl sm:mx-auto relative pb-4 px-2">
       {/* Ambient layered glows */}
       <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[700px] h-[500px] bg-teal-500/3 blur-[120px] rounded-full pointer-events-none -z-10" />
       <div className="fixed bottom-0 right-0 w-[400px] h-[300px] bg-emerald-500/3 blur-[100px] rounded-full pointer-events-none -z-10" />
