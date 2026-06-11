@@ -6,6 +6,7 @@ import {
     ArrowLeft,
     IndianRupee,
     MapPin,
+    MessageCircle,
     Moon,
     Pencil,
     Phone,
@@ -156,6 +157,26 @@ export default function GuestDetailPage() {
                 </div>
               )}
             </div>
+            {guest.phone && (
+              <div className="flex gap-2 mt-3">
+                <a
+                  href={`tel:${guest.phone}`}
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-primary/10 border border-primary/20 px-3 py-2 text-xs font-bold text-primary hover:bg-primary/20 active:scale-95 transition-all"
+                >
+                  <Phone className="w-3.5 h-3.5" />
+                  Call
+                </a>
+                <a
+                  href={`https://wa.me/${guest.phone.replace(/\D/g, "")}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 px-3 py-2 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 active:scale-95 transition-all"
+                >
+                  <MessageCircle className="w-3.5 h-3.5" />
+                  WhatsApp
+                </a>
+              </div>
+            )}
           </div>
         </div>
         {!editing && (
@@ -186,6 +207,7 @@ export default function GuestDetailPage() {
                 onChange={(e) =>
                   setEditForm((p) => ({ ...p, name: e.target.value }))
                 }
+                autoComplete="name"
                 className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
               />
             </div>
@@ -197,6 +219,8 @@ export default function GuestDetailPage() {
                 onChange={(e) =>
                   setEditForm((p) => ({ ...p, phone: e.target.value }))
                 }
+                inputMode="tel"
+                autoComplete="tel"
                 className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
               />
             </div>
@@ -208,6 +232,8 @@ export default function GuestDetailPage() {
                 onChange={(e) =>
                   setEditForm((p) => ({ ...p, email: e.target.value }))
                 }
+                inputMode="email"
+                autoComplete="email"
                 className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
               />
             </div>
@@ -240,6 +266,7 @@ export default function GuestDetailPage() {
                 onChange={(e) =>
                   setEditForm((p) => ({ ...p, address: e.target.value }))
                 }
+                autoComplete="street-address"
                 className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
               />
             </div>
@@ -280,7 +307,9 @@ export default function GuestDetailPage() {
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <StatCard
-          icon={<IndianRupee className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />}
+          icon={
+            <IndianRupee className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+          }
           label="Total Revenue"
           value={`₹${stats.totalRevenue.toLocaleString("en-IN")}`}
         />
@@ -295,7 +324,9 @@ export default function GuestDetailPage() {
           value={stats.totalStays}
         />
         <StatCard
-          icon={<User className="w-5 h-5 text-purple-600 dark:text-purple-400" />}
+          icon={
+            <User className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+          }
           label="Avg Stay"
           value={`${stats.avgStayLength} nights`}
         />

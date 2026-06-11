@@ -18,6 +18,9 @@ export function Input({
   autoFocus,
   onEnter,
   icon: Icon,
+  inputMode,
+  autoComplete,
+  name,
 }: {
   label: string;
   value: string;
@@ -27,6 +30,9 @@ export function Input({
   autoFocus?: boolean;
   onEnter?: () => void;
   icon?: React.ComponentType<{ className?: string }>;
+  inputMode?: React.HTMLAttributes<HTMLInputElement>["inputMode"];
+  autoComplete?: string;
+  name?: string;
 }) {
   const [isFocused, setIsFocused] = useState(false);
   const haptic = useHaptic();
@@ -36,7 +42,9 @@ export function Input({
       <label
         className={cn(
           "text-xs font-semibold uppercase tracking-wider transition-colors duration-200",
-          isFocused ? "text-primary" : "text-muted-foreground/85 dark:text-muted-foreground/60",
+          isFocused
+            ? "text-primary"
+            : "text-muted-foreground/85 dark:text-muted-foreground/60",
         )}
       >
         {label}
@@ -69,6 +77,9 @@ export function Input({
           }}
           placeholder={placeholder}
           autoFocus={autoFocus}
+          inputMode={inputMode}
+          autoComplete={autoComplete}
+          name={name}
           className={cn(
             "w-full rounded-2xl border bg-secondary/50 focus:bg-card dark:bg-secondary/30 py-3 sm:py-3.5 text-sm font-medium text-foreground transition-all duration-300 placeholder:text-muted-foreground/30 focus:outline-none shadow-xs",
             Icon ? "pl-12 pr-4" : "px-3.5 sm:px-4",
@@ -114,7 +125,9 @@ export function Select({
       <label
         className={cn(
           "text-xs font-semibold uppercase tracking-wider transition-colors duration-200",
-          isFocused ? "text-primary" : "text-muted-foreground/85 dark:text-muted-foreground/70",
+          isFocused
+            ? "text-primary"
+            : "text-muted-foreground/85 dark:text-muted-foreground/70",
         )}
       >
         {label}

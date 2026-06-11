@@ -1,53 +1,45 @@
 "use client";
 
-import {
-  // useHaptic,
-  useNetworkState,
-} from "@/lib/pwa-hooks";
-import {
-  // useSerwist
-  SerwistProvider,
-} from "@serwist/turbopack/react";
+import { useHaptic, useNetworkState } from "@/lib/pwa-hooks";
+import { SerwistProvider, useSerwist } from "@serwist/turbopack/react";
 import { AnimatePresence, motion } from "framer-motion";
-import { CloudOff, Wifi } from "lucide-react";
-import {
-  useEffect,
-  // useRef,
-  useState,
-} from "react";
+import { CloudOff, RefreshCw, Wifi } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { InstallPrompt } from "./install-prompt";
+import { OfflineSyncBadge } from "./offline-sync";
+import { PushNotificationPrompt } from "./push-prompt";
 
 function PWAStatus() {
-  // const { serwist } = useSerwist();
+  const { serwist } = useSerwist();
   const { online } = useNetworkState();
-  // const [updateReady, setUpdateReady] = useState(false);
+  const [updateReady, setUpdateReady] = useState(false);
   const [showOnline, setShowOnline] = useState(false);
-  // const haptic = useHaptic();
-  // const pendingReload = useRef(false);
+  const haptic = useHaptic();
+  const pendingReload = useRef(false);
 
-  // useEffect(() => {
-  //   if (!serwist) return;
+  useEffect(() => {
+    if (!serwist) return;
 
-  //   const onWaiting = () => {
-  //     haptic("medium");
-  //     setUpdateReady(true);
-  //   };
-  //   const onControlling = () => {
-  //     if (pendingReload.current) {
-  //       window.location.reload();
-  //     }
-  //     pendingReload.current = false;
-  //     setUpdateReady(false);
-  //   };
+    const onWaiting = () => {
+      haptic("medium");
+      setUpdateReady(true);
+    };
+    const onControlling = () => {
+      if (pendingReload.current) {
+        window.location.reload();
+      }
+      pendingReload.current = false;
+      setUpdateReady(false);
+    };
 
-  //   serwist.addEventListener("waiting", onWaiting);
-  //   serwist.addEventListener("controlling", onControlling);
+    serwist.addEventListener("waiting", onWaiting);
+    serwist.addEventListener("controlling", onControlling);
 
-  //   return () => {
-  //     serwist.removeEventListener("waiting", onWaiting);
-  //     serwist.removeEventListener("controlling", onControlling);
-  //   };
-  // }, [serwist, haptic]);
+    return () => {
+      serwist.removeEventListener("waiting", onWaiting);
+      serwist.removeEventListener("controlling", onControlling);
+    };
+  }, [serwist, haptic]);
 
   useEffect(() => {
     if (online) {
@@ -87,7 +79,7 @@ function PWAStatus() {
         </motion.div>
       )}
 
-      {/* {updateReady && (
+      {updateReady && (
         <motion.div
           initial={{ opacity: 0, y: 50, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -109,7 +101,7 @@ function PWAStatus() {
             Refresh
           </button>
         </motion.div>
-      )} */}
+      )}
     </AnimatePresence>
   );
 }
@@ -126,6 +118,8 @@ export function PWAShell({ children }: { children: React.ReactNode }) {
       {children}
       <PWAStatus />
       <InstallPrompt />
+      <OfflineSyncBadge />
+      <PushNotificationPrompt />
     </SerwistProvider>
   );
 }

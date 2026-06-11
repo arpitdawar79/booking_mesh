@@ -3,8 +3,17 @@
 import { FlipText } from "@/components/magicui/flip-text";
 import { Particles } from "@/components/magicui/particles";
 import { ShineBorder } from "@/components/magicui/shine-border";
+import { usePasskeys } from "@/lib/passkeys-client";
 import { motion } from "framer-motion";
-import { Eye, EyeOff, Loader2, Lock, Mail, Sparkles } from "lucide-react";
+import {
+    Eye,
+    EyeOff,
+    Fingerprint,
+    Loader2,
+    Lock,
+    Mail,
+    Sparkles,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -36,6 +45,11 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
+  const {
+    isSupported,
+    login: loginWithPasskey,
+    loading: passkeyLoading,
+  } = usePasskeys();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -126,6 +140,9 @@ export default function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  inputMode="email"
+                  autoComplete="email"
+                  name="email"
                   className="w-full rounded-xl border border-border/60 bg-muted/15 pl-11 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 transition-all duration-300 placeholder:text-muted-foreground/40"
                   placeholder="admin@ekantah.com"
                 />
@@ -143,6 +160,8 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  autoComplete="current-password"
+                  name="password"
                   className="w-full rounded-xl border border-border/60 bg-muted/15 pl-11 pr-11 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 transition-all duration-300 placeholder:text-muted-foreground/40"
                   placeholder="••••••••"
                 />
@@ -188,6 +207,22 @@ export default function LoginPage() {
               >
                 {error}
               </motion.div>
+            )}
+
+            {isSupported && (
+              <button
+                type="button"
+                onClick={() => loginWithPasskey(email)}
+                disabled={passkeyLoading || !email}
+                className="w-full rounded-xl border border-border bg-muted/30 py-3 text-xs font-bold text-foreground hover:bg-muted/50 active:scale-[0.97] disabled:opacity-50 transition-all duration-200 flex items-center justify-center gap-2"
+              >
+                {passkeyLoading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Fingerprint className="w-4 h-4 text-primary" />
+                )}
+                Sign in with Passkey
+              </button>
             )}
 
             <button

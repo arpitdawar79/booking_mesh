@@ -31,6 +31,7 @@ import {
   Phone,
   Printer,
   Settings,
+  Share2,
   ShieldCheck,
   Smartphone,
   User,
@@ -386,6 +387,28 @@ export default function BookingDetailPage() {
       `);
       w.document.close();
       setTimeout(() => w.print(), 400);
+    }
+  }
+
+  async function handleShare() {
+    if (!booking) return;
+    haptic("medium");
+    const shareData = {
+      title: `Booking ${booking.bookingId}`,
+      text: `${booking.guestFullName} — ${booking.checkInDate} to ${booking.checkOutDate} (${booking.nightCount} nights)`,
+      url: typeof window !== "undefined" ? window.location.href : "",
+    };
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(
+          `${shareData.title}\n${shareData.text}\n${shareData.url}`,
+        );
+        showSuccessToast("Booking summary copied to clipboard!");
+      }
+    } catch {
+      // User cancelled or share failed silently
     }
   }
 
@@ -843,6 +866,11 @@ We look forward to hosting you!
             disabled={waSending || !waStatus?.isConnected}
           />
           <ActionButton
+            icon={<Share2 className="w-4.5 h-4.5" />}
+            label="Share"
+            onClick={handleShare}
+          />
+          <ActionButton
             icon={
               copied ? (
                 <Check className="w-4.5 h-4.5 text-emerald-600 dark:text-emerald-400" />
@@ -1098,6 +1126,7 @@ We look forward to hosting you!
             setEditForm((prev) => ({ ...prev, guestFullName: v }))
           }
           placeholder="Rahul Sharma"
+          autoComplete="name"
         />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Input
@@ -1108,6 +1137,8 @@ We look forward to hosting you!
             }
             placeholder="guest@example.com"
             type="email"
+            inputMode="email"
+            autoComplete="email"
           />
           <Input
             label="WhatsApp Phone"
@@ -1117,6 +1148,8 @@ We look forward to hosting you!
             }
             placeholder="+91 ..."
             type="tel"
+            inputMode="tel"
+            autoComplete="tel"
           />
         </div>
       </div>
@@ -1195,6 +1228,7 @@ We look forward to hosting you!
               setEditForm((prev) => ({ ...prev, totalAmount: Number(v) }))
             }
             type="number"
+            inputMode="decimal"
           />
           <Input
             label="Amount Paid Online (₹)"
@@ -1203,6 +1237,7 @@ We look forward to hosting you!
               setEditForm((prev) => ({ ...prev, amountPaidOnline: Number(v) }))
             }
             type="number"
+            inputMode="decimal"
           />
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1375,10 +1410,24 @@ We look forward to hosting you!
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeMobileTab}
-                initial={{ opacity: 0, y: 5 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -5 }}
-                transition={{ duration: 0.15 }}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.2 }}
+                drag="x"
+                dragConstraints={{ left: 0, right: 0 }}
+                dragElastic={0.15}
+                onDragEnd={(_, info) => {
+                  const tabs = ["details", "ledger", "manage"] as const;
+                  const idx = tabs.indexOf(activeMobileTab);
+                  if (info.offset.x < -60 && idx < tabs.length - 1) {
+                    setActiveMobileTab(tabs[idx + 1]);
+                    haptic("light");
+                  } else if (info.offset.x > 60 && idx > 0) {
+                    setActiveMobileTab(tabs[idx - 1]);
+                    haptic("light");
+                  }
+                }}
               >
                 {activeMobileTab === "details" && <DetailsGroup />}
                 {activeMobileTab === "ledger" && <LedgerGroup />}

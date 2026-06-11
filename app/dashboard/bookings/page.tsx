@@ -2,9 +2,12 @@
 
 import { StatCard } from "@/components/dashboard/stat-card";
 import { NumberTicker } from "@/components/magicui/number-ticker";
+import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
 import { MagicCard } from "@/components/ui/magic-card";
 import { Pagination } from "@/components/ui/pagination";
+import { SmartLink } from "@/components/ui/smart-link";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { useHaptic, useLongPress } from "@/lib/pwa-hooks";
 import { formatDate } from "@/lib/utils";
 import { motion } from "framer-motion";
 import {
@@ -14,12 +17,15 @@ import {
     Copy,
     Eye,
     IndianRupee,
+    MessageCircle,
+    Phone,
     PlusCircle,
     Search,
     TrendingUp,
     Users,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 interface Booking {
@@ -27,6 +33,7 @@ interface Booking {
   bookingId: string;
   guestFullName: string;
   guestEmail: string | null;
+  guestPhone: string | null;
   checkInDate: string | Date;
   checkOutDate: string | Date;
   nightCount: number;
@@ -76,6 +83,11 @@ export default function BookingsPage() {
   const [page, setPage] = useState(1);
   const [pageSize] = useState(20);
   const [total, setTotal] = useState(0);
+  const [contextMenuBooking, setContextMenuBooking] = useState<Booking | null>(
+    null,
+  );
+  const haptic = useHaptic();
+  const router = useRouter();
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [markingPaidId, setMarkingPaidId] = useState<string | null>(null);
 
@@ -235,7 +247,7 @@ export default function BookingsPage() {
             </div>
             <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 snap-x snap-mandatory scrollbar-hide">
               {stats.upcomingCheckins.map((u) => (
-                <Link
+                <SmartLink
                   key={u.id}
                   href={`/dashboard/booking/${u.id}`}
                   className="relative group min-w-[170px] snap-start rounded-2xl border border-border bg-muted/30 p-3 hover:bg-muted/60 hover:border-primary/50 transition-all duration-300 overflow-hidden shrink-0"
@@ -255,7 +267,7 @@ export default function BookingsPage() {
                       </span>
                     </div>
                   </div>
-                </Link>
+                </SmartLink>
               ))}
             </div>
           </div>
@@ -350,149 +362,159 @@ export default function BookingsPage() {
         <>
           {/* Mobile: Ticket styled Card List */}
           <div className="lg:hidden space-y-3.5">
-            {bookings.map((b) => (
-              <MagicCard key={b.id} borderBeam backlight className="w-full">
-                <div className="p-4 space-y-3.5">
-                  {/* Header Row */}
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="space-y-1 min-w-0">
-                      <div className="flex items-center gap-1.5">
-                        <span className="font-mono text-[9px] text-muted-foreground/45 bg-muted px-1.5 py-0.5 rounded-sm">
-                          #{b.bookingId}
-                        </span>
-                        {b.status === "confirmed" && (
-                          <span className="inline-flex w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                        )}
-                      </div>
-                      <div className="font-extrabold text-sm tracking-tight text-foreground truncate">
-                        {b.guestFullName}
-                      </div>
-                      <div className="text-[11px] text-muted-foreground/60 truncate font-semibold">
-                        {b.guestEmail || "No Email"}
-                      </div>
-                    </div>
-                    <div className="flex flex-col items-end gap-1.5 shrink-0">
-                      <StatusBadge
-                        status={b.status}
-                        className="!text-[9px] !px-2 !py-0.5 font-bold uppercase tracking-wider"
-                      />
-                      <span
-                        className={`text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-md ${
-                          b.paymentStatus === "paid_in_full"
-                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-500/10"
-                            : b.paymentStatus === "partially_paid"
-                              ? "bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-500/10"
-                              : "bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-950/30 dark:text-rose-400 dark:border-rose-500/10"
-                        }`}
-                      >
-                        {b.paymentStatus.replace("_", " ")}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Stay Visual Line */}
-                  <div className="rounded-xl border border-border bg-muted/40 p-2.5 flex items-center justify-between text-xs font-semibold gap-2">
-                    <div className="flex flex-col">
-                      <span className="text-[9px] text-muted-foreground/40 uppercase font-black">
-                        Check-In
-                      </span>
-                      <span className="text-foreground">
-                        {formatDate(b.checkInDate)}
-                      </span>
-                    </div>
-                    <div className="flex-1 flex flex-col items-center justify-center px-2">
-                      <span className="text-[9px] text-primary/80 font-black">
-                        {b.nightCount} Night{b.nightCount > 1 ? "s" : ""}
-                      </span>
-                      <div className="w-full h-[1px] bg-linear-to-r from-transparent via-primary/35 to-transparent relative my-0.5">
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-primary/60" />
-                      </div>
-                    </div>
-                    <div className="flex flex-col items-end">
-                      <span className="text-[9px] text-muted-foreground/40 uppercase font-black">
-                        Check-Out
-                      </span>
-                      <span className="text-foreground">
-                        {formatDate(b.checkOutDate)}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Room Allocation Info */}
-                  <div className="flex items-center justify-between text-[11px] font-medium text-muted-foreground/80 border-b border-border pb-2">
-                    <span className="flex items-center gap-1.5">
-                      <Users className="w-3.5 h-3.5 text-primary/70" />
-                      <span>
-                        {b.roomCount} × {b.roomType}
-                      </span>
-                    </span>
-                    <span className="text-[10px] text-muted-foreground/40 font-semibold">
-                      Created {formatDate(b.createdAt)}
-                    </span>
-                  </div>
-
-                  {/* Card Footer Actions & Pricing */}
-                  <div className="flex items-center justify-between pt-1">
-                    <div className="space-y-0.5">
-                      <div className="text-[9px] text-muted-foreground/40 uppercase font-black">
-                        Total Cost
-                      </div>
-                      <div className="text-base font-black text-emerald-600 dark:text-emerald-400">
-                        ₹{Number(b.totalAmount).toLocaleString("en-IN")}
-                      </div>
-                      {(b.amountPaidOnline > 0 || b.balanceAmount > 0) && (
-                        <div className="text-[9px] text-muted-foreground/50 font-bold">
-                          Paid: ₹
-                          {Number(b.amountPaidOnline).toLocaleString("en-IN")} |
-                          Bal: ₹
-                          {Number(b.balanceAmount).toLocaleString("en-IN")}
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <Link
-                        href={`/dashboard/booking/${b.id}`}
-                        className="w-10 h-10 rounded-xl bg-muted/50 border border-border flex items-center justify-center hover:bg-primary/10 hover:border-primary/20 active:scale-95 transition-all text-muted-foreground hover:text-primary"
-                        title="View Details"
-                      >
-                        <Eye className="w-4.5 h-4.5" />
-                      </Link>
-                      <button
-                        onClick={() => handleCopy(b.id)}
-                        className="w-10 h-10 rounded-xl bg-muted/50 border border-border flex items-center justify-center hover:bg-primary/10 hover:border-primary/20 active:scale-95 transition-all text-muted-foreground hover:text-primary cursor-pointer"
-                        title="Copy Summary"
-                      >
-                        {copiedId === b.id ? (
-                          <span className="text-[9px] text-emerald-600 dark:text-emerald-400 font-extrabold">
-                            Done
+            {bookings.map((b) => {
+              const longPress = useLongPress(
+                () => {
+                  haptic("medium");
+                  setContextMenuBooking(b);
+                },
+                undefined,
+                500,
+              );
+              return (
+                <MagicCard key={b.id} borderBeam backlight className="w-full">
+                  <div className="p-4 space-y-3.5 select-none" {...longPress}>
+                    {/* Header Row */}
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="space-y-1 min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-mono text-[9px] text-muted-foreground/45 bg-muted px-1.5 py-0.5 rounded-sm">
+                            #{b.bookingId}
                           </span>
-                        ) : (
-                          <Copy className="w-4.5 h-4.5" />
-                        )}
-                      </button>
-                      {b.paymentStatus !== "paid_in_full" && (
-                        <button
-                          onClick={() =>
-                            handleMarkFullyPaid(b.id, b.totalAmount)
-                          }
-                          disabled={markingPaidId === b.id}
-                          className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center hover:bg-emerald-500/20 active:scale-95 transition-all text-emerald-600 dark:text-emerald-400 disabled:opacity-40 cursor-pointer"
-                          title="Mark Fully Paid"
+                          {b.status === "confirmed" && (
+                            <span className="inline-flex w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                          )}
+                        </div>
+                        <div className="font-extrabold text-sm tracking-tight text-foreground truncate">
+                          {b.guestFullName}
+                        </div>
+                        <div className="text-[11px] text-muted-foreground/60 truncate font-semibold">
+                          {b.guestEmail || "No Email"}
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end gap-1.5 shrink-0">
+                        <StatusBadge
+                          status={b.status}
+                          className="!text-[9px] !px-2 !py-0.5 font-bold uppercase tracking-wider"
+                        />
+                        <span
+                          className={`text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-md ${
+                            b.paymentStatus === "paid_in_full"
+                              ? "bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-500/10"
+                              : b.paymentStatus === "partially_paid"
+                                ? "bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-500/10"
+                                : "bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-950/30 dark:text-rose-400 dark:border-rose-500/10"
+                          }`}
                         >
-                          {markingPaidId === b.id ? (
-                            <span className="text-[9px] font-extrabold">
-                              ...
+                          {b.paymentStatus.replace("_", " ")}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Stay Visual Line */}
+                    <div className="rounded-xl border border-border bg-muted/40 p-2.5 flex items-center justify-between text-xs font-semibold gap-2">
+                      <div className="flex flex-col">
+                        <span className="text-[9px] text-muted-foreground/40 uppercase font-black">
+                          Check-In
+                        </span>
+                        <span className="text-foreground">
+                          {formatDate(b.checkInDate)}
+                        </span>
+                      </div>
+                      <div className="flex-1 flex flex-col items-center justify-center px-2">
+                        <span className="text-[9px] text-primary/80 font-black">
+                          {b.nightCount} Night{b.nightCount > 1 ? "s" : ""}
+                        </span>
+                        <div className="w-full h-[1px] bg-linear-to-r from-transparent via-primary/35 to-transparent relative my-0.5">
+                          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-primary/60" />
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end">
+                        <span className="text-[9px] text-muted-foreground/40 uppercase font-black">
+                          Check-Out
+                        </span>
+                        <span className="text-foreground">
+                          {formatDate(b.checkOutDate)}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Room Allocation Info */}
+                    <div className="flex items-center justify-between text-[11px] font-medium text-muted-foreground/80 border-b border-border pb-2">
+                      <span className="flex items-center gap-1.5">
+                        <Users className="w-3.5 h-3.5 text-primary/70" />
+                        <span>
+                          {b.roomCount} × {b.roomType}
+                        </span>
+                      </span>
+                      <span className="text-[10px] text-muted-foreground/40 font-semibold">
+                        Created {formatDate(b.createdAt)}
+                      </span>
+                    </div>
+
+                    {/* Card Footer Actions & Pricing */}
+                    <div className="flex items-center justify-between pt-1">
+                      <div className="space-y-0.5">
+                        <div className="text-[9px] text-muted-foreground/40 uppercase font-black">
+                          Total Cost
+                        </div>
+                        <div className="text-base font-black text-emerald-600 dark:text-emerald-400">
+                          ₹{Number(b.totalAmount).toLocaleString("en-IN")}
+                        </div>
+                        {(b.amountPaidOnline > 0 || b.balanceAmount > 0) && (
+                          <div className="text-[9px] text-muted-foreground/50 font-bold">
+                            Paid: ₹
+                            {Number(b.amountPaidOnline).toLocaleString("en-IN")}{" "}
+                            | Bal: ₹
+                            {Number(b.balanceAmount).toLocaleString("en-IN")}
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <SmartLink
+                          href={`/dashboard/booking/${b.id}`}
+                          className="w-10 h-10 rounded-xl bg-muted/50 border border-border flex items-center justify-center hover:bg-primary/10 hover:border-primary/20 active:scale-95 transition-all text-muted-foreground hover:text-primary"
+                          title="View Details"
+                        >
+                          <Eye className="w-4.5 h-4.5" />
+                        </SmartLink>
+                        <button
+                          onClick={() => handleCopy(b.id)}
+                          className="w-10 h-10 rounded-xl bg-muted/50 border border-border flex items-center justify-center hover:bg-primary/10 hover:border-primary/20 active:scale-95 transition-all text-muted-foreground hover:text-primary cursor-pointer"
+                          title="Copy Summary"
+                        >
+                          {copiedId === b.id ? (
+                            <span className="text-[9px] text-emerald-600 dark:text-emerald-400 font-extrabold">
+                              Done
                             </span>
                           ) : (
-                            <CheckCircle className="w-4.5 h-4.5" />
+                            <Copy className="w-4.5 h-4.5" />
                           )}
                         </button>
-                      )}
+                        {b.paymentStatus !== "paid_in_full" && (
+                          <button
+                            onClick={() =>
+                              handleMarkFullyPaid(b.id, b.totalAmount)
+                            }
+                            disabled={markingPaidId === b.id}
+                            className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center hover:bg-emerald-500/20 active:scale-95 transition-all text-emerald-600 dark:text-emerald-400 disabled:opacity-40 cursor-pointer"
+                            title="Mark Fully Paid"
+                          >
+                            {markingPaidId === b.id ? (
+                              <span className="text-[9px] font-extrabold">
+                                ...
+                              </span>
+                            ) : (
+                              <CheckCircle className="w-4.5 h-4.5" />
+                            )}
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              </MagicCard>
-            ))}
+                </MagicCard>
+              );
+            })}
           </div>
 
           {/* Desktop: Elegant details table with glass panel wrapper */}
@@ -578,13 +600,13 @@ export default function BookingsPage() {
                         </td>
                         <td>
                           <div className="flex items-center gap-1.5">
-                            <Link
+                            <SmartLink
                               href={`/dashboard/booking/${b.id}`}
                               className="w-7 h-7 rounded-lg bg-muted/50 border border-border flex items-center justify-center hover:bg-primary/10 hover:border-primary/20 transition-all text-muted-foreground hover:text-primary"
                               title="View Details"
                             >
                               <Eye className="w-3.5 h-3.5" />
-                            </Link>
+                            </SmartLink>
                             <button
                               onClick={() => handleCopy(b.id)}
                               className="w-7 h-7 rounded-lg bg-muted/50 border border-border flex items-center justify-center hover:bg-primary/10 hover:border-primary/20 transition-all text-muted-foreground hover:text-primary cursor-pointer"
@@ -631,6 +653,89 @@ export default function BookingsPage() {
             total={total}
             onPageChange={setPage}
           />
+
+          {/* Mobile Long-Press Context Menu Drawer */}
+          <Drawer
+            open={!!contextMenuBooking}
+            onOpenChange={(open) => {
+              if (!open) setContextMenuBooking(null);
+            }}
+          >
+            <DrawerContent className="p-4 bg-card border-t border-border">
+              <DrawerTitle className="text-sm font-black text-foreground uppercase tracking-wider mb-1">
+                Quick Actions
+              </DrawerTitle>
+              {contextMenuBooking && (
+                <div className="space-y-2 mt-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      router.push(
+                        `/dashboard/booking/${contextMenuBooking.id}`,
+                      );
+                      setContextMenuBooking(null);
+                    }}
+                    className="w-full flex items-center gap-3 rounded-xl border border-border bg-muted/40 px-4 py-3 text-xs font-bold text-foreground hover:bg-primary/10 hover:border-primary/20 active:scale-[0.98] transition-all"
+                  >
+                    <Eye className="w-4 h-4 text-primary" />
+                    View Details
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleCopy(contextMenuBooking.id);
+                      setContextMenuBooking(null);
+                    }}
+                    className="w-full flex items-center gap-3 rounded-xl border border-border bg-muted/40 px-4 py-3 text-xs font-bold text-foreground hover:bg-primary/10 hover:border-primary/20 active:scale-[0.98] transition-all"
+                  >
+                    <Copy className="w-4 h-4 text-primary" />
+                    Copy Summary
+                  </button>
+                  {contextMenuBooking.guestPhone && (
+                    <>
+                      <a
+                        href={`tel:${contextMenuBooking.guestPhone}`}
+                        onClick={() => setContextMenuBooking(null)}
+                        className="w-full flex items-center gap-3 rounded-xl border border-border bg-primary/10 px-4 py-3 text-xs font-bold text-primary hover:bg-primary/20 active:scale-[0.98] transition-all"
+                      >
+                        <Phone className="w-4 h-4" />
+                        Call Guest
+                      </a>
+                      <a
+                        href={`https://wa.me/${contextMenuBooking.guestPhone.replace(/\D/g, "")}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={() => setContextMenuBooking(null)}
+                        className="w-full flex items-center gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 active:scale-[0.98] transition-all"
+                      >
+                        <MessageCircle className="w-4 h-4" />
+                        WhatsApp Guest
+                      </a>
+                    </>
+                  )}
+                  {contextMenuBooking.paymentStatus !== "paid_in_full" && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleMarkFullyPaid(
+                          contextMenuBooking.id,
+                          contextMenuBooking.totalAmount,
+                        );
+                        setContextMenuBooking(null);
+                      }}
+                      disabled={markingPaidId === contextMenuBooking.id}
+                      className="w-full flex items-center gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 active:scale-[0.98] transition-all disabled:opacity-40"
+                    >
+                      <CheckCircle className="w-4 h-4" />
+                      {markingPaidId === contextMenuBooking.id
+                        ? "Processing..."
+                        : "Mark Fully Paid"}
+                    </button>
+                  )}
+                </div>
+              )}
+            </DrawerContent>
+          </Drawer>
         </>
       )}
     </div>

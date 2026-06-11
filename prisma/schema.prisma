@@ -335,6 +335,8 @@ model User {
   updatedAt    DateTime  @updatedAt @map("updated_at")
 
   refreshTokens RefreshToken[]
+  pushSubscriptions PushSubscription[]
+  passkeyCredentials PasskeyCredential[]
 
   @@map("users")
 }
@@ -350,4 +352,36 @@ model RefreshToken {
 
   @@index([userId])
   @@map("refresh_tokens")
+}
+
+model PushSubscription {
+  id       String   @id @default(cuid())
+  userId   String   @map("user_id")
+  endpoint String   @unique
+  p256dh   String
+  auth     String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("push_subscriptions")
+}
+
+model PasskeyCredential {
+  id           String   @id @default(cuid())
+  userId       String   @map("user_id")
+  credentialId String   @unique @map("credential_id")
+  publicKey    String   @map("public_key")
+  counter      Int      @default(0)
+  transports   String   @default("internal") // comma-separated
+  deviceName   String?  @map("device_name")
+  createdAt    DateTime @default(now()) @map("created_at")
+  lastUsedAt   DateTime @default(now()) @map("last_used_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([credentialId])
+  @@map("passkey_credentials")
 }

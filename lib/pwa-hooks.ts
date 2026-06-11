@@ -1,28 +1,31 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocalStorage } from "usehooks-ts";
 
 /* ─── Haptic Feedback ─── */
 
-export type HapticPattern = "light" | "medium" | "heavy" | "success" | "warning" | "error";
+export type HapticPattern =
+  | "light"
+  | "medium"
+  | "heavy"
+  | "success"
+  | "warning"
+  | "error";
 
 export function useHaptic() {
-  const vibrate = useCallback(
-    (pattern: HapticPattern = "light") => {
-      if (typeof window === "undefined" || !navigator.vibrate) return;
-      const patterns: Record<HapticPattern, number | number[]> = {
-        light: 10,
-        medium: 25,
-        heavy: 50,
-        success: [20, 40, 20],
-        warning: [30, 60, 30],
-        error: [40, 80, 40, 80, 40],
-      };
-      navigator.vibrate(patterns[pattern]);
-    },
-    []
-  );
+  const vibrate = useCallback((pattern: HapticPattern = "light") => {
+    if (typeof window === "undefined" || !navigator.vibrate) return;
+    const patterns: Record<HapticPattern, number | number[]> = {
+      light: 10,
+      medium: 25,
+      heavy: 50,
+      success: [20, 40, 20],
+      warning: [30, 60, 30],
+      error: [40, 80, 40, 80, 40],
+    };
+    navigator.vibrate(patterns[pattern]);
+  }, []);
   return vibrate;
 }
 
@@ -37,13 +40,17 @@ export function useStandalone() {
       const standalone =
         window.matchMedia("(display-mode: standalone)").matches ||
         ("standalone" in window.navigator &&
-          (window.navigator as Navigator & { standalone?: boolean }).standalone === true);
+          (window.navigator as Navigator & { standalone?: boolean })
+            .standalone === true);
       setIsStandalone(standalone);
 
       const mode =
-        (window.matchMedia("(display-mode: fullscreen)").matches && "fullscreen") ||
-        (window.matchMedia("(display-mode: standalone)").matches && "standalone") ||
-        (window.matchMedia("(display-mode: minimal-ui)").matches && "minimal-ui") ||
+        (window.matchMedia("(display-mode: fullscreen)").matches &&
+          "fullscreen") ||
+        (window.matchMedia("(display-mode: standalone)").matches &&
+          "standalone") ||
+        (window.matchMedia("(display-mode: minimal-ui)").matches &&
+          "minimal-ui") ||
         "browser";
       setDisplayMode(mode);
     };
@@ -103,16 +110,22 @@ export function useInstallPrompt() {
   const [canInstall, setCanInstall] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
   const [installed, setInstalled] = useState(false);
-  const [dismissed, setDismissed] = useLocalStorage("stream-pwa-install-dismissed", false);
+  const [dismissed, setDismissed] = useLocalStorage(
+    "stream-pwa-install-dismissed",
+    false,
+  );
 
   useEffect(() => {
     const checkStandalone = () =>
       window.matchMedia("(display-mode: standalone)").matches ||
       ("standalone" in window.navigator &&
-        (window.navigator as Navigator & { standalone?: boolean }).standalone === true);
+        (window.navigator as Navigator & { standalone?: boolean })
+          .standalone === true);
 
     setInstalled(checkStandalone());
-    setIsIOS(/iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream);
+    setIsIOS(
+      /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream,
+    );
 
     const onBeforeInstallPrompt = (event: Event) => {
       event.preventDefault();
@@ -159,7 +172,9 @@ export function useScrollDirection() {
   useEffect(() => {
     const update = () => {
       const current = window.scrollY;
-      setScrollDirection(current > lastScrollY.current && current > 60 ? "down" : "up");
+      setScrollDirection(
+        current > lastScrollY.current && current > 60 ? "down" : "up",
+      );
       lastScrollY.current = current;
     };
 
@@ -182,7 +197,7 @@ export function useTouchFeedback() {
       target.style.transition = "transform 80ms ease";
       haptic("light");
     },
-    [haptic]
+    [haptic],
   );
 
   const onTouchEnd = useCallback((e: React.TouchEvent | React.MouseEvent) => {
@@ -194,4 +209,55 @@ export function useTouchFeedback() {
   }, []);
 
   return { onTouchStart, onTouchEnd };
+}
+
+export function useLongPress(
+  onLongPress: (e: React.TouchEvent | React.MouseEvent) => void,
+  onClick?: (e: React.TouchEvent | React.MouseEvent) => void,
+  ms = 500,
+) {
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isLongPress = useRef(false);
+
+  const start = useCallback(
+    (e: React.TouchEvent | React.MouseEvent) => {
+      isLongPress.current = false;
+      timerRef.current = setTimeout(() => {
+        isLongPress.current = true;
+        onLongPress(e);
+      }, ms);
+    },
+    [onLongPress, ms],
+  );
+
+  const end = useCallback(
+    (e: React.TouchEvent | React.MouseEvent) => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
+      if (!isLongPress.current && onClick) {
+        onClick(e);
+      }
+      isLongPress.current = false;
+    },
+    [onClick],
+  );
+
+  const move = useCallback(() => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+  }, []);
+
+  return {
+    onTouchStart: start,
+    onTouchEnd: end,
+    onTouchMove: move,
+    onMouseDown: start,
+    onMouseUp: end,
+    onMouseMove: move,
+    onContextMenu: (e: React.MouseEvent) => e.preventDefault(),
+  };
 }

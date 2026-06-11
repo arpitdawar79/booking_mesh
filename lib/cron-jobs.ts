@@ -2,10 +2,10 @@ import { renderAdminDigestHtml, sendEmail, sendRawEmail } from "@/lib/email";
 import { prisma } from "@/lib/prisma";
 import { formatDate } from "@/lib/utils";
 import {
-    generatePdfFromHtml,
-    sendBookingWhatsApp,
-    sendWhatsAppGroupMessage,
-    sendWhatsAppGroupPdf,
+  generatePdfFromHtml,
+  sendBookingWhatsApp,
+  sendWhatsAppGroupMessage,
+  sendWhatsAppGroupPdf,
 } from "@/lib/whatsapp";
 import { format } from "date-fns";
 
@@ -66,15 +66,31 @@ export async function runJob(
 
 function getTodayRange() {
   const now = new Date();
-  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+  const istStr = now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" });
+  const parts = istStr.split(/[\/\,\:]/);
+  const istMonth = parseInt(parts[0]) - 1;
+  const istDay = parseInt(parts[1]);
+  const istYear = parseInt(parts[2].split(" ")[0]);
+
+  const todayIST = new Date(Date.UTC(istYear, istMonth, istDay, 0, 0, 0));
+  const start = new Date(todayIST.getTime() - 5.5 * 60 * 60 * 1000);
+  const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
   return { start, end };
 }
 
 function getTomorrowRange() {
   const now = new Date();
-  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
-  const end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 2);
+  const istStr = now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" });
+  const parts = istStr.split(/[\/\,\:]/);
+  const istMonth = parseInt(parts[0]) - 1;
+  const istDay = parseInt(parts[1]);
+  const istYear = parseInt(parts[2].split(" ")[0]);
+
+  const tomorrowIST = new Date(
+    Date.UTC(istYear, istMonth, istDay + 1, 0, 0, 0),
+  );
+  const start = new Date(tomorrowIST.getTime() - 5.5 * 60 * 60 * 1000);
+  const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
   return { start, end };
 }
 

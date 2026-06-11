@@ -6,7 +6,7 @@ import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
 import { MobileBottomNav } from "@/components/ui/mobile-bottom-nav";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { ToastProvider } from "@/components/ui/toast";
-import { useHaptic } from "@/lib/pwa-hooks";
+import { useHaptic, useScrollDirection } from "@/lib/pwa-hooks";
 import { motion } from "framer-motion";
 import {
   Banknote,
@@ -122,6 +122,7 @@ export default function DashboardLayout({
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const scrollDirection = useScrollDirection();
 
   const dockItems = [
     {
@@ -320,7 +321,13 @@ export default function DashboardLayout({
         {/* Main content */}
         <div className="flex-1 min-w-0">
           {/* Top bar */}
-          <header className="h-[calc(2.75rem+env(safe-area-inset-top))] pt-[env(safe-area-inset-top)] border-b border-border/30 flex items-center justify-between px-4 lg:h-11 lg:pt-0 lg:px-5 sticky top-0 bg-background/50 backdrop-blur-3xl z-30">
+          <motion.header
+            animate={{
+              y: scrollDirection === "down" ? "-100%" : "0%",
+            }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            className="h-[calc(2.75rem+env(safe-area-inset-top))] pt-[env(safe-area-inset-top)] border-b border-border/30 flex items-center justify-between px-4 lg:h-11 lg:pt-0 lg:px-5 sticky top-0 bg-background/50 backdrop-blur-3xl z-30 lg:translate-y-0"
+          >
             <button
               onClick={() => {
                 haptic("light");
@@ -344,7 +351,7 @@ export default function DashboardLayout({
             <div className="flex items-center">
               <ThemeToggle />
             </div>
-          </header>
+          </motion.header>
 
           <main className="p-3.5 sm:p-3.5 md:p-3.5 lg:p-5 max-w-none lg:max-w-7xl lg:mx-auto">
             <PullToRefresh onRefresh={handleRefresh}>{children}</PullToRefresh>

@@ -1,9 +1,10 @@
-import { ThemeProvider } from "@/lib/theme-context";
-import { getThemeCssVariablesString } from "@/lib/theme-config";
 import { PWAShell } from "@/components/pwa/pwa-shell";
+import { getThemeCssVariablesString } from "@/lib/theme-config";
+import { ThemeProvider } from "@/lib/theme-context";
 import type { Metadata, Viewport } from "next";
 import { ViewTransitions } from "next-view-transitions";
 import { Outfit, Plus_Jakarta_Sans, Space_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 
 const outfit = Outfit({
@@ -114,8 +115,14 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="/" />
         <link rel="dns-prefetch" href="/" />
-        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
-        <style dangerouslySetInnerHTML={{ __html: getThemeCssVariablesString() }} />
+        <Script
+          id="theme-init"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{ __html: themeInitScript }}
+        />
+        <style
+          dangerouslySetInnerHTML={{ __html: getThemeCssVariablesString() }}
+        />
       </head>
       <body
         className={`${outfit.variable} ${plusJakartaSans.variable} ${spaceMono.variable} font-sans min-h-screen bg-background text-foreground overflow-x-hidden`}
