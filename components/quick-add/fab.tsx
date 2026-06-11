@@ -83,9 +83,11 @@ export function QuickAddFAB() {
                   transition={{ delay: i * 0.05, type: "spring", damping: 20 }}
                   className="flex items-center gap-3"
                 >
-                  <span className="text-xs font-medium bg-background/90 backdrop-blur border border-border rounded-lg px-2.5 py-1 shadow-sm select-none">
+                  <span
+                    className={`text-xs font-medium ${action.color} text-white rounded-lg px-2.5 py-1 shadow-sm select-none`}
+                  >
                     {action.label}
-                    <span className="ml-1.5 text-muted-foreground">
+                    <span className="ml-1.5 text-white/80">
                       {cmdKey}+{action.shortcut.toUpperCase()}
                     </span>
                   </span>

@@ -55,6 +55,20 @@ function checkRateLimit(
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Temporary: redirect root to login (logged out) or dashboard (logged in)
+  if (pathname === "/") {
+    const token = request.cookies.get("access_token")?.value;
+    const refreshToken = request.cookies.get("refresh_token")?.value;
+    let isAuthenticated = token ? !!(await verifySessionToken(token)) : false;
+    if (!isAuthenticated && refreshToken) {
+      isAuthenticated = !!(await verifyRefreshToken(refreshToken));
+    }
+    if (isAuthenticated) {
+      return NextResponse.redirect(new URL("/dashboard", request.url));
+    }
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
+
   if (PUBLIC.some((p) => pathname === p || pathname.startsWith(p + "/"))) {
     return NextResponse.next();
   }
@@ -108,7 +122,12 @@ export async function middleware(request: NextRequest) {
   }
 
   // Redirect logged-in users away from public auth pages to dashboard
-  if (pathname === "/" || pathname === "/login") {
+  if (
+    pathname === "/" ||
+    pathname === "/login" ||
+    pathname === "/signup" ||
+    pathname === "/forgot-password"
+  ) {
     const token = request.cookies.get("access_token")?.value;
     const refreshToken = request.cookies.get("refresh_token")?.value;
     let isAuthenticated = token ? !!(await verifySessionToken(token)) : false;

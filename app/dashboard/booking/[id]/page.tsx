@@ -17,6 +17,7 @@ import {
   BedDouble,
   CalendarCheck,
   Check,
+  CheckCircle,
   Copy,
   CreditCard,
   Download,
@@ -121,6 +122,7 @@ export default function BookingDetailPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState<Partial<Booking>>({});
   const [savingEdit, setSavingEdit] = useState(false);
+  const [markingPaid, setMarkingPaid] = useState(false);
 
   // Mobile navigation tab state
   const [activeMobileTab, setActiveMobileTab] = useState<
@@ -252,6 +254,35 @@ export default function BookingDetailPage() {
       haptic("success");
     } else {
       showErrorToast(json.error || "Failed to cancel booking.");
+      haptic("error");
+    }
+  }
+
+  async function handleMarkFullyPaid() {
+    if (!booking) return;
+    if (
+      !confirm(
+        "Mark this booking as fully paid? Outstanding balance will be cleared.",
+      )
+    )
+      return;
+
+    setMarkingPaid(true);
+    haptic("medium");
+    const res = await fetch("/api/bookings", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: booking.id, markFullyPaid: true }),
+    });
+    const json = await res.json();
+    setMarkingPaid(false);
+
+    if (json.booking) {
+      setBooking(json.booking);
+      showSuccessToast("Booking marked as fully paid.");
+      haptic("success");
+    } else {
+      showErrorToast(json.error || "Failed to mark booking as paid.");
       haptic("error");
     }
   }
@@ -749,6 +780,29 @@ We look forward to hosting you!
               className="py-2 px-4 rounded-xl bg-rose-500/10 border border-rose-500/20 hover:bg-rose-500/20 active:scale-[0.97] transition-all text-xs font-bold text-rose-600 dark:text-rose-400 disabled:opacity-30 cursor-pointer"
             >
               {cancelling ? "Cancelling..." : "Cancel"}
+            </button>
+          </div>
+        )}
+
+        {booking.paymentStatus !== "paid_in_full" && (
+          <div className="flex gap-2 pt-1">
+            <button
+              type="button"
+              onClick={() => {
+                handleMarkFullyPaid();
+                haptic("medium");
+              }}
+              disabled={markingPaid}
+              className="flex-1 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 active:scale-[0.97] transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-40 animate-in fade-in duration-200"
+            >
+              {markingPaid ? (
+                <span>Saving...</span>
+              ) : (
+                <>
+                  <CheckCircle className="w-3.5 h-3.5" />
+                  <span>Mark Fully Paid</span>
+                </>
+              )}
             </button>
           </div>
         )}

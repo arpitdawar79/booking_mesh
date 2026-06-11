@@ -2,21 +2,22 @@
 
 import { StatCard } from "@/components/dashboard/stat-card";
 import { NumberTicker } from "@/components/magicui/number-ticker";
+import { MagicCard } from "@/components/ui/magic-card";
 import { Pagination } from "@/components/ui/pagination";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { MagicCard } from "@/components/ui/magic-card";
 import { formatDate } from "@/lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
-  AlertCircle,
-  CalendarCheck,
-  Copy,
-  Eye,
-  IndianRupee,
-  PlusCircle,
-  Search,
-  TrendingUp,
-  Users,
+    AlertCircle,
+    CalendarCheck,
+    CheckCircle,
+    Copy,
+    Eye,
+    IndianRupee,
+    PlusCircle,
+    Search,
+    TrendingUp,
+    Users,
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -76,6 +77,7 @@ export default function BookingsPage() {
   const [pageSize] = useState(20);
   const [total, setTotal] = useState(0);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [markingPaidId, setMarkingPaidId] = useState<string | null>(null);
 
   useEffect(() => {
     setPage(1);
@@ -123,6 +125,42 @@ export default function BookingsPage() {
     setTimeout(() => setCopiedId(null), 2000);
   }
 
+  async function handleMarkFullyPaid(id: string, totalAmount: number) {
+    if (
+      !confirm(
+        "Mark this booking as fully paid? Outstanding balance will be cleared.",
+      )
+    )
+      return;
+    setMarkingPaidId(id);
+    try {
+      const res = await fetch("/api/bookings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, markFullyPaid: true }),
+      });
+      const json = await res.json();
+      if (json.booking) {
+        setBookings((prev) =>
+          prev.map((b) =>
+            b.id === id
+              ? {
+                  ...b,
+                  paymentStatus: "paid_in_full",
+                  amountPaidOnline: totalAmount,
+                  balanceAmount: 0,
+                }
+              : b,
+          ),
+        );
+      }
+    } catch (err) {
+      console.error("Failed to mark fully paid:", err);
+    } finally {
+      setMarkingPaidId(null);
+    }
+  }
+
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   if (loading && bookings.length === 0) {
@@ -152,19 +190,25 @@ export default function BookingsPage() {
             sub={`+${stats.counts.thisMonth} this month`}
           />
           <StatCard
-            icon={<IndianRupee className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />}
+            icon={
+              <IndianRupee className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+            }
             label="Revenue"
             value={`₹${(stats.revenue.total / 1000).toFixed(1)}k`}
             sub={`₹${stats.revenue.outstanding.toLocaleString("en-IN")} outstanding`}
           />
           <StatCard
-            icon={<Users className="w-4 h-4 text-blue-600 dark:text-blue-400" />}
+            icon={
+              <Users className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+            }
             label="Confirmed"
             value={<NumberTicker value={stats.counts.confirmed} />}
             sub={`${stats.occupancy.totalNights} nights booked`}
           />
           <StatCard
-            icon={<AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400" />}
+            icon={
+              <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+            }
             label="Cancelled"
             value={<NumberTicker value={stats.counts.cancelled} />}
             sub="Lost bookings"
@@ -181,8 +225,12 @@ export default function BookingsPage() {
                 <TrendingUp className="w-4 h-4 text-primary" />
               </div>
               <div>
-                <h2 className="text-xs font-black uppercase tracking-wider text-primary">Upcoming Check-ins</h2>
-                <p className="text-[10px] text-muted-foreground/50 font-medium">Reservations arriving soon</p>
+                <h2 className="text-xs font-black uppercase tracking-wider text-primary">
+                  Upcoming Check-ins
+                </h2>
+                <p className="text-[10px] text-muted-foreground/50 font-medium">
+                  Reservations arriving soon
+                </p>
               </div>
             </div>
             <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 snap-x snap-mandatory scrollbar-hide">
@@ -202,7 +250,9 @@ export default function BookingsPage() {
                     </div>
                     <div className="text-[10px] text-muted-foreground/60 font-semibold flex items-center justify-between mt-1">
                       <span>{u.nightCount} nights</span>
-                      <span className="text-emerald-600 dark:text-emerald-400 font-extrabold">₹{Number(u.totalAmount).toLocaleString("en-IN")}</span>
+                      <span className="text-emerald-600 dark:text-emerald-400 font-extrabold">
+                        ₹{Number(u.totalAmount).toLocaleString("en-IN")}
+                      </span>
                     </div>
                   </div>
                 </Link>
@@ -256,7 +306,11 @@ export default function BookingsPage() {
                     <motion.span
                       layoutId="activeFilterBg"
                       className="absolute inset-0 bg-foreground rounded-lg z-[-1]"
-                      transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 380,
+                        damping: 30,
+                      }}
                     />
                   )}
                   {f}
@@ -282,8 +336,12 @@ export default function BookingsPage() {
           animate={{ opacity: 1, scale: 1 }}
           className="rounded-2xl border border-white/5 bg-white/1 p-10 text-center space-y-2"
         >
-          <div className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-lg mx-auto">🔍</div>
-          <h3 className="font-bold text-sm text-foreground">No bookings found</h3>
+          <div className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-lg mx-auto">
+            🔍
+          </div>
+          <h3 className="font-bold text-sm text-foreground">
+            No bookings found
+          </h3>
           <p className="text-xs text-muted-foreground/60 font-medium">
             Try adjusting your search query or status filters.
           </p>
@@ -314,14 +372,19 @@ export default function BookingsPage() {
                       </div>
                     </div>
                     <div className="flex flex-col items-end gap-1.5 shrink-0">
-                      <StatusBadge status={b.status} className="!text-[9px] !px-2 !py-0.5 font-bold uppercase tracking-wider" />
-                      <span className={`text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-md ${
-                        b.paymentStatus === "paid_in_full" 
-                          ? "bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-500/10" 
-                          : b.paymentStatus === "partially_paid"
-                            ? "bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-500/10"
-                            : "bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-950/30 dark:text-rose-400 dark:border-rose-500/10"
-                      }`}>
+                      <StatusBadge
+                        status={b.status}
+                        className="!text-[9px] !px-2 !py-0.5 font-bold uppercase tracking-wider"
+                      />
+                      <span
+                        className={`text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-md ${
+                          b.paymentStatus === "paid_in_full"
+                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-500/10"
+                            : b.paymentStatus === "partially_paid"
+                              ? "bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-500/10"
+                              : "bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-950/30 dark:text-rose-400 dark:border-rose-500/10"
+                        }`}
+                      >
                         {b.paymentStatus.replace("_", " ")}
                       </span>
                     </div>
@@ -330,18 +393,28 @@ export default function BookingsPage() {
                   {/* Stay Visual Line */}
                   <div className="rounded-xl border border-border bg-muted/40 p-2.5 flex items-center justify-between text-xs font-semibold gap-2">
                     <div className="flex flex-col">
-                      <span className="text-[9px] text-muted-foreground/40 uppercase font-black">Check-In</span>
-                      <span className="text-foreground">{formatDate(b.checkInDate)}</span>
+                      <span className="text-[9px] text-muted-foreground/40 uppercase font-black">
+                        Check-In
+                      </span>
+                      <span className="text-foreground">
+                        {formatDate(b.checkInDate)}
+                      </span>
                     </div>
                     <div className="flex-1 flex flex-col items-center justify-center px-2">
-                      <span className="text-[9px] text-primary/80 font-black">{b.nightCount} Night{b.nightCount > 1 ? "s" : ""}</span>
+                      <span className="text-[9px] text-primary/80 font-black">
+                        {b.nightCount} Night{b.nightCount > 1 ? "s" : ""}
+                      </span>
                       <div className="w-full h-[1px] bg-linear-to-r from-transparent via-primary/35 to-transparent relative my-0.5">
                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-primary/60" />
                       </div>
                     </div>
                     <div className="flex flex-col items-end">
-                      <span className="text-[9px] text-muted-foreground/40 uppercase font-black">Check-Out</span>
-                      <span className="text-foreground">{formatDate(b.checkOutDate)}</span>
+                      <span className="text-[9px] text-muted-foreground/40 uppercase font-black">
+                        Check-Out
+                      </span>
+                      <span className="text-foreground">
+                        {formatDate(b.checkOutDate)}
+                      </span>
                     </div>
                   </div>
 
@@ -349,7 +422,9 @@ export default function BookingsPage() {
                   <div className="flex items-center justify-between text-[11px] font-medium text-muted-foreground/80 border-b border-border pb-2">
                     <span className="flex items-center gap-1.5">
                       <Users className="w-3.5 h-3.5 text-primary/70" />
-                      <span>{b.roomCount} × {b.roomType}</span>
+                      <span>
+                        {b.roomCount} × {b.roomType}
+                      </span>
                     </span>
                     <span className="text-[10px] text-muted-foreground/40 font-semibold">
                       Created {formatDate(b.createdAt)}
@@ -359,13 +434,18 @@ export default function BookingsPage() {
                   {/* Card Footer Actions & Pricing */}
                   <div className="flex items-center justify-between pt-1">
                     <div className="space-y-0.5">
-                      <div className="text-[9px] text-muted-foreground/40 uppercase font-black">Total Cost</div>
+                      <div className="text-[9px] text-muted-foreground/40 uppercase font-black">
+                        Total Cost
+                      </div>
                       <div className="text-base font-black text-emerald-600 dark:text-emerald-400">
                         ₹{Number(b.totalAmount).toLocaleString("en-IN")}
                       </div>
                       {(b.amountPaidOnline > 0 || b.balanceAmount > 0) && (
                         <div className="text-[9px] text-muted-foreground/50 font-bold">
-                          Paid: ₹{Number(b.amountPaidOnline).toLocaleString("en-IN")} | Bal: ₹{Number(b.balanceAmount).toLocaleString("en-IN")}
+                          Paid: ₹
+                          {Number(b.amountPaidOnline).toLocaleString("en-IN")} |
+                          Bal: ₹
+                          {Number(b.balanceAmount).toLocaleString("en-IN")}
                         </div>
                       )}
                     </div>
@@ -390,6 +470,24 @@ export default function BookingsPage() {
                           <Copy className="w-4.5 h-4.5" />
                         )}
                       </button>
+                      {b.paymentStatus !== "paid_in_full" && (
+                        <button
+                          onClick={() =>
+                            handleMarkFullyPaid(b.id, b.totalAmount)
+                          }
+                          disabled={markingPaidId === b.id}
+                          className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center hover:bg-emerald-500/20 active:scale-95 transition-all text-emerald-600 dark:text-emerald-400 disabled:opacity-40 cursor-pointer"
+                          title="Mark Fully Paid"
+                        >
+                          {markingPaidId === b.id ? (
+                            <span className="text-[9px] font-extrabold">
+                              ...
+                            </span>
+                          ) : (
+                            <CheckCircle className="w-4.5 h-4.5" />
+                          )}
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -416,37 +514,64 @@ export default function BookingsPage() {
                   </thead>
                   <tbody>
                     {bookings.map((b) => (
-                      <tr key={b.id} className="group transition-colors duration-200">
-                        <td className="font-mono text-xs text-muted-foreground/60">{b.bookingId}</td>
+                      <tr
+                        key={b.id}
+                        className="group transition-colors duration-200"
+                      >
+                        <td className="font-mono text-xs text-muted-foreground/60">
+                          {b.bookingId}
+                        </td>
                         <td>
-                          <div className="font-extrabold text-xs text-foreground group-hover:text-primary transition-colors">{b.guestFullName}</div>
-                          <div className="text-[10px] text-muted-foreground/60">{b.guestEmail}</div>
+                          <div className="font-extrabold text-xs text-foreground group-hover:text-primary transition-colors">
+                            {b.guestFullName}
+                          </div>
+                          <div className="text-[10px] text-muted-foreground/60">
+                            {b.guestEmail}
+                          </div>
                         </td>
                         <td className="text-muted-foreground/80 text-xs font-semibold">
-                          <span className="text-foreground">{formatDate(b.checkInDate)}</span>
-                          <span className="text-muted-foreground/45 mx-1.5">→</span>
-                          <span className="text-foreground">{formatDate(b.checkOutDate)}</span>
+                          <span className="text-foreground">
+                            {formatDate(b.checkInDate)}
+                          </span>
+                          <span className="text-muted-foreground/45 mx-1.5">
+                            →
+                          </span>
+                          <span className="text-foreground">
+                            {formatDate(b.checkOutDate)}
+                          </span>
                         </td>
-                        <td className="font-bold text-primary">{b.nightCount}</td>
-                        <td className="text-xs font-semibold text-muted-foreground/85">{b.roomCount} × {b.roomType}</td>
+                        <td className="font-bold text-primary">
+                          {b.nightCount}
+                        </td>
+                        <td className="text-xs font-semibold text-muted-foreground/85">
+                          {b.roomCount} × {b.roomType}
+                        </td>
                         <td>
                           <div className="font-black text-emerald-600 dark:text-emerald-400 text-xs">
                             ₹{Number(b.totalAmount).toLocaleString("en-IN")}
                           </div>
                           <div className="text-[9px] text-muted-foreground/60 mt-0.5 font-semibold leading-none">
-                            Paid: ₹{Number(b.amountPaidOnline).toLocaleString("en-IN")} | Bal: ₹{Number(b.balanceAmount).toLocaleString("en-IN")}
+                            Paid: ₹
+                            {Number(b.amountPaidOnline).toLocaleString("en-IN")}{" "}
+                            | Bal: ₹
+                            {Number(b.balanceAmount).toLocaleString("en-IN")}
                           </div>
                         </td>
                         <td>
                           <div className="flex flex-col gap-1 items-start">
-                            <StatusBadge status={b.status} className="!text-[9px] !px-2 !py-0.5 font-bold uppercase tracking-wider" />
-                            <span className={`text-[8px] font-black uppercase px-1.5 py-0.5 rounded-sm ${
-                              b.paymentStatus === "paid_in_full" 
-                                ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400" 
-                                : b.paymentStatus === "partially_paid"
-                                  ? "bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400"
-                                  : "bg-rose-50 text-rose-700 dark:bg-rose-950/30 dark:text-rose-400"
-                            }`}>
+                            <StatusBadge
+                              status={b.status}
+                              className="!text-[9px] !px-2 !py-0.5 font-bold uppercase tracking-wider"
+                            />
+                            <span
+                              className={`text-[8px] font-black uppercase px-1.5 py-0.5 rounded-sm ${
+                                b.paymentStatus === "paid_in_full"
+                                  ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400"
+                                  : b.paymentStatus === "partially_paid"
+                                    ? "bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400"
+                                    : "bg-rose-50 text-rose-700 dark:bg-rose-950/30 dark:text-rose-400"
+                              }`}
+                            >
                               {b.paymentStatus.replace("_", " ")}
                             </span>
                           </div>
@@ -466,11 +591,31 @@ export default function BookingsPage() {
                               title="Copy Summary"
                             >
                               {copiedId === b.id ? (
-                                <span className="text-[9px] text-emerald-600 dark:text-emerald-400 font-extrabold">Copied</span>
+                                <span className="text-[9px] text-emerald-600 dark:text-emerald-400 font-extrabold">
+                                  Copied
+                                </span>
                               ) : (
                                 <Copy className="w-3.5 h-3.5" />
                               )}
                             </button>
+                            {b.paymentStatus !== "paid_in_full" && (
+                              <button
+                                onClick={() =>
+                                  handleMarkFullyPaid(b.id, b.totalAmount)
+                                }
+                                disabled={markingPaidId === b.id}
+                                className="w-7 h-7 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center hover:bg-emerald-500/20 active:scale-95 transition-all text-emerald-600 dark:text-emerald-400 disabled:opacity-40 cursor-pointer"
+                                title="Mark Fully Paid"
+                              >
+                                {markingPaidId === b.id ? (
+                                  <span className="text-[8px] font-extrabold">
+                                    ...
+                                  </span>
+                                ) : (
+                                  <CheckCircle className="w-3.5 h-3.5" />
+                                )}
+                              </button>
+                            )}
                           </div>
                         </td>
                       </tr>

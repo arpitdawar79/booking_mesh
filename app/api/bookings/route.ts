@@ -276,6 +276,43 @@ export async function POST(request: Request) {
 export async function PATCH(request: Request) {
   const body = await request.json().catch(() => ({}));
 
+  // Dedicated mark-fully-paid action
+  if (body.markFullyPaid) {
+    const { id } = body;
+    const existing = await prisma.booking.findUnique({ where: { id } });
+    if (!existing) {
+      return NextResponse.json({ error: "Booking not found" }, { status: 404 });
+    }
+
+    const balance = Number(existing.balanceAmount);
+    const booking = await prisma.booking.update({
+      where: { id },
+      data: {
+        amountPaidOnline: existing.totalAmount,
+        balanceAmount: 0,
+        paymentStatus: "paid_in_full",
+      },
+    });
+
+    // Record an audit Payment if there was still an outstanding balance
+    if (balance > 0) {
+      await prisma.payment.create({
+        data: {
+          bookingId: id,
+          amount: balance,
+          method: "cash",
+          referenceNumber: "Auto-settled: mark fully paid",
+          recordedBy: "System",
+        },
+      });
+    }
+
+    logger.info("booking", `Marked fully paid ${booking.bookingId}`, {
+      bookingId: booking.id,
+    });
+    return NextResponse.json({ booking });
+  }
+
   // Support both simple status update and full booking update
   if (body.status && !body.guestFullName && !body.checkInDate) {
     const parsed = bookingStatusSchema.safeParse(body);
