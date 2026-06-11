@@ -15,6 +15,7 @@ import {
     BedDouble,
     CalendarDays,
     Clock,
+    FileText,
     Minus,
     Moon,
     Plus,
@@ -55,6 +56,8 @@ interface Props {
   mealPlan: string[];
   setMealPlan: (v: string[] | ((prev: string[]) => string[])) => void;
   nightCount: number;
+  specialRequests?: string;
+  setSpecialRequests?: (v: string) => void;
 }
 
 export function StayStep({
@@ -75,6 +78,8 @@ export function StayStep({
   mealPlan,
   setMealPlan,
   nightCount,
+  specialRequests,
+  setSpecialRequests,
 }: Props) {
   const haptic = useHaptic();
 
@@ -323,6 +328,25 @@ export function StayStep({
             onChange={setExtraMattressCount}
           />
         </div>
+
+        {/* Special Requests */}
+        {setSpecialRequests && (
+          <div className="flex flex-col gap-2 w-full">
+            <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/70 pl-0.5">
+              Special Requests (Optional)
+            </label>
+            <div className="relative flex items-start">
+              <FileText className="absolute left-4 top-3.5 w-4.5 h-4.5 text-muted-foreground/45 pointer-events-none" />
+              <textarea
+                rows={2}
+                placeholder="e.g. Early check-in, birthday setup, dietary restrictions..."
+                value={specialRequests || ""}
+                onChange={(e) => setSpecialRequests(e.target.value)}
+                className="w-full rounded-2xl border border-border bg-secondary/50 dark:bg-secondary/30 pl-12 pr-4 py-3 text-sm font-medium text-foreground transition-all duration-300 placeholder:text-muted-foreground/30 focus:outline-none hover:border-border/80 focus:border-primary/60 focus:ring-2 focus:ring-primary/20 shadow-xs"
+              />
+            </div>
+          </div>
+        )}
 
         {/* Meal Plan */}
         <div className="rounded-3xl border border-border bg-card p-5 space-y-3.5">

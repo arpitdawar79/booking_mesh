@@ -1,35 +1,36 @@
 "use client";
 
+import { DatePicker } from "@/components/ui/calendar";
+import { Input } from "@/components/ui/form-primitives";
 import { useToast } from "@/components/ui/toast";
 import { useHaptic } from "@/lib/pwa-hooks";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  Activity,
-  ArrowLeft,
-  ArrowRight,
-  CalendarDays,
-  CalendarPlus,
-  Check,
-  ClipboardList,
-  Clock,
-  Coins,
-  CreditCard,
-  FileText,
-  HelpCircle,
-  Home,
-  Info,
-  Link as LinkIcon,
-  Loader2,
-  Receipt,
-  ShoppingBag,
-  ShoppingCart,
-  Sparkles,
-  User,
-  Users,
-  Utensils,
-  Wallet,
-  X,
+    Activity,
+    ArrowLeft,
+    ArrowRight,
+    CalendarDays,
+    CalendarPlus,
+    Check,
+    ClipboardList,
+    Coins,
+    CreditCard,
+    FileText,
+    HelpCircle,
+    Home,
+    Info,
+    Link as LinkIcon,
+    Loader2,
+    Receipt,
+    ShoppingBag,
+    ShoppingCart,
+    Sparkles,
+    User,
+    Users,
+    Utensils,
+    Wallet,
+    X,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -40,13 +41,11 @@ import { ReviewStep } from "../bookings/steps/review-step";
 import { StayStep } from "../bookings/steps/stay-step";
 import { Dialog } from "../ui/dialog";
 import {
-  Drawer,
-  DrawerContent,
-  DrawerDescription,
-  DrawerTitle,
+    Drawer,
+    DrawerContent,
+    DrawerDescription,
+    DrawerTitle,
 } from "../ui/drawer";
-import { DatePicker } from "@/components/ui/calendar";
-import { Input, Select } from "@/components/ui/form-primitives";
 
 interface QuickAddDrawerProps {
   open: boolean;
@@ -257,6 +256,7 @@ export function QuickAddDrawer({
   const [checkOutTime, setCheckOutTime] = useState("10:00 AM");
   const [extraMattressCount, setExtraMattressCount] = useState(0);
   const [mealPlan, setMealPlan] = useState<string[]>(["Breakfast"]);
+  const [specialRequests, setSpecialRequests] = useState("");
 
   // Payment state
   const [totalAmount, setTotalAmount] = useState("");
@@ -484,7 +484,7 @@ export function QuickAddDrawer({
             "https://maps.google.com/?q=The%20Stream%20by%20Ekantah%20Tirthan%20Valley",
           cancellationPolicy:
             "As per the booking terms shared at the time of reservation.",
-          specialRequests: "None shared.",
+          specialRequests: specialRequests.trim() || "None shared.",
         }),
       });
 
@@ -509,6 +509,7 @@ export function QuickAddDrawer({
         setCheckOutTime("10:00 AM");
         setExtraMattressCount(0);
         setMealPlan(["Breakfast"]);
+        setSpecialRequests("");
         setTotalAmount("");
         setAmountPaidOnline("0");
         setCurrency("INR");
@@ -800,9 +801,7 @@ export function QuickAddDrawer({
                               onChange={(d) =>
                                 setExpenseData((p) => ({
                                   ...p,
-                                  date: d
-                                    ? d.toISOString().split("T")[0]
-                                    : "",
+                                  date: d ? d.toISOString().split("T")[0] : "",
                                 }))
                               }
                             />
@@ -1187,6 +1186,8 @@ export function QuickAddDrawer({
                           mealPlan={mealPlan}
                           setMealPlan={setMealPlan}
                           nightCount={nightCount}
+                          specialRequests={specialRequests}
+                          setSpecialRequests={setSpecialRequests}
                         />
                       )}
                       {bookingStep === 3 && (
@@ -1219,6 +1220,7 @@ export function QuickAddDrawer({
                           amountPaidOnline={amountPaidOnline}
                           currency={currency}
                           nightCount={nightCount}
+                          specialRequests={specialRequests}
                         />
                       )}
                     </motion.div>
@@ -1266,7 +1268,7 @@ export function QuickAddDrawer({
                           "relative flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-bold overflow-hidden transition-all duration-200 min-h-[48px] text-primary-foreground",
                           !saving && canProceed()
                             ? "bg-primary hover:opacity-95 shadow-lg shadow-primary/15"
-                            : "bg-muted text-muted-foreground/30 cursor-not-allowed"
+                            : "bg-muted text-muted-foreground/30 cursor-not-allowed",
                         )}
                       >
                         {saving ? (

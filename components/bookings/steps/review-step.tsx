@@ -40,6 +40,7 @@ interface Props {
   amountPaidOnline: string;
   currency: string;
   nightCount: number;
+  specialRequests?: string;
 }
 
 export function ReviewStep({
@@ -60,6 +61,7 @@ export function ReviewStep({
   amountPaidOnline,
   currency,
   nightCount,
+  specialRequests,
 }: Props) {
   const total = Number(totalAmount || 0);
   const paid = Number(amountPaidOnline || 0);
@@ -162,6 +164,16 @@ export function ReviewStep({
               )
             }
           />
+          {specialRequests && specialRequests.trim() && (
+            <ReviewRow
+              label="Special Requests"
+              value={
+                <span className="text-xs text-primary font-semibold max-w-[200px] text-right">
+                  {specialRequests.trim()}
+                </span>
+              }
+            />
+          )}
         </ReviewSection>
 
         {/* Ledger and Bills Card */}

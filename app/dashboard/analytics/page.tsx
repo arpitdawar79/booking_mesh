@@ -310,8 +310,16 @@ export default function AnalyticsPage() {
             <AreaChart data={data.monthly}>
               <defs>
                 <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="var(--primary)" stopOpacity={0} />
+                  <stop
+                    offset="5%"
+                    stopColor="var(--primary)"
+                    stopOpacity={0.3}
+                  />
+                  <stop
+                    offset="95%"
+                    stopColor="var(--primary)"
+                    stopOpacity={0}
+                  />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
@@ -331,7 +339,7 @@ export default function AnalyticsPage() {
                   background: "var(--card)",
                   border: "1px solid var(--border)",
                   borderRadius: 8,
-                  color: "var(--card-foreground)"
+                  color: "var(--card-foreground)",
                 }}
                 labelStyle={{ color: "var(--card-foreground)" }}
                 formatter={(v: any) => formatCurrency(Number(v))}
@@ -363,12 +371,20 @@ export default function AnalyticsPage() {
                   background: "var(--card)",
                   border: "1px solid var(--border)",
                   borderRadius: 8,
-                  color: "var(--card-foreground)"
+                  color: "var(--card-foreground)",
                 }}
                 labelStyle={{ color: "var(--card-foreground)" }}
               />
-              <Bar dataKey="bookings" fill="var(--accent)" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="nights" fill="var(--primary)" radius={[4, 4, 0, 0]} />
+              <Bar
+                dataKey="bookings"
+                fill="var(--accent)"
+                radius={[4, 4, 0, 0]}
+              />
+              <Bar
+                dataKey="nights"
+                fill="var(--primary)"
+                radius={[4, 4, 0, 0]}
+              />
             </BarChart>
           </ResponsiveContainer>
         </ChartCard>
@@ -403,7 +419,7 @@ export default function AnalyticsPage() {
                   background: "var(--card)",
                   border: "1px solid var(--border)",
                   borderRadius: 8,
-                  color: "var(--card-foreground)"
+                  color: "var(--card-foreground)",
                 }}
                 labelStyle={{ color: "var(--card-foreground)" }}
               />
@@ -449,12 +465,16 @@ export default function AnalyticsPage() {
                   background: "var(--card)",
                   border: "1px solid var(--border)",
                   borderRadius: 8,
-                  color: "var(--card-foreground)"
+                  color: "var(--card-foreground)",
                 }}
                 labelStyle={{ color: "var(--card-foreground)" }}
                 formatter={(v: any) => formatCurrency(Number(v))}
               />
-              <Bar dataKey="revenue" fill="var(--primary)" radius={[0, 4, 4, 0]} />
+              <Bar
+                dataKey="revenue"
+                fill="var(--primary)"
+                radius={[0, 4, 4, 0]}
+              />
             </BarChart>
           </ResponsiveContainer>
         </ChartCard>
@@ -481,7 +501,7 @@ export default function AnalyticsPage() {
                   background: "var(--card)",
                   border: "1px solid var(--border)",
                   borderRadius: 8,
-                  color: "var(--card-foreground)"
+                  color: "var(--card-foreground)",
                 }}
                 labelStyle={{ color: "var(--card-foreground)" }}
               />
@@ -521,7 +541,7 @@ export default function AnalyticsPage() {
                   background: "var(--card)",
                   border: "1px solid var(--border)",
                   borderRadius: 8,
-                  color: "var(--card-foreground)"
+                  color: "var(--card-foreground)",
                 }}
                 labelStyle={{ color: "var(--card-foreground)" }}
                 formatter={(v: any, n: any) => [formatCurrency(Number(v)), n]}
@@ -582,7 +602,7 @@ export default function AnalyticsPage() {
                   background: "var(--card)",
                   border: "1px solid var(--border)",
                   borderRadius: 8,
-                  color: "var(--card-foreground)"
+                  color: "var(--card-foreground)",
                 }}
                 labelStyle={{ color: "var(--card-foreground)" }}
                 formatter={(v: any) => formatCurrency(Number(v))}
@@ -622,8 +642,16 @@ export default function AnalyticsPage() {
               <AreaChart data={data.monthlyAdditionalSales}>
                 <defs>
                   <linearGradient id="rsGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="var(--primary)" stopOpacity={0} />
+                    <stop
+                      offset="5%"
+                      stopColor="var(--primary)"
+                      stopOpacity={0.3}
+                    />
+                    <stop
+                      offset="95%"
+                      stopColor="var(--primary)"
+                      stopOpacity={0}
+                    />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
@@ -643,7 +671,7 @@ export default function AnalyticsPage() {
                     background: "var(--card)",
                     border: "1px solid var(--border)",
                     borderRadius: 8,
-                    color: "var(--card-foreground)"
+                    color: "var(--card-foreground)",
                   }}
                   labelStyle={{ color: "var(--card-foreground)" }}
                   formatter={(v: any) => formatCurrency(Number(v))}
@@ -710,7 +738,7 @@ export default function AnalyticsPage() {
                   background: "var(--card)",
                   border: "1px solid var(--border)",
                   borderRadius: 8,
-                  color: "var(--card-foreground)"
+                  color: "var(--card-foreground)",
                 }}
                 labelStyle={{ color: "var(--card-foreground)" }}
                 formatter={(v: any, n: any) => [
@@ -741,7 +769,7 @@ export default function AnalyticsPage() {
           <div className="space-y-2 max-h-[200px] overflow-y-auto pr-1">
             {data.topGuests.map((g, i) => (
               <div
-                key={g.email}
+                key={g.email ?? i}
                 className="flex items-center justify-between text-sm border-b border-border pb-2 last:border-0"
               >
                 <div className="flex items-center gap-2 min-w-0">
@@ -778,8 +806,16 @@ export default function AnalyticsPage() {
             <AreaChart data={data.upcomingOccupancy}>
               <defs>
                 <linearGradient id="occGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="var(--primary)" stopOpacity={0} />
+                  <stop
+                    offset="5%"
+                    stopColor="var(--primary)"
+                    stopOpacity={0.3}
+                  />
+                  <stop
+                    offset="95%"
+                    stopColor="var(--primary)"
+                    stopOpacity={0}
+                  />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
@@ -795,7 +831,7 @@ export default function AnalyticsPage() {
                   background: "var(--card)",
                   border: "1px solid var(--border)",
                   borderRadius: 8,
-                  color: "var(--card-foreground)"
+                  color: "var(--card-foreground)",
                 }}
                 labelStyle={{ color: "var(--card-foreground)" }}
                 formatter={(v: any, n: any) => [

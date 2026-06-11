@@ -74,6 +74,7 @@ export function BookingWizard() {
   const [checkOutTime, setCheckOutTime] = useState("10:00 AM");
   const [extraMattressCount, setExtraMattressCount] = useState(0);
   const [mealPlan, setMealPlan] = useState<string[]>(["Breakfast"]);
+  const [specialRequests, setSpecialRequests] = useState("");
 
   // Payment state
   const [totalAmount, setTotalAmount] = useState("");
@@ -199,7 +200,7 @@ export function BookingWizard() {
         "https://maps.google.com/?q=The%20Stream%20by%20Ekantah%20Tirthan%20Valley",
       cancellationPolicy:
         "As per the booking terms shared at the time of reservation.",
-      specialRequests: "None shared.",
+      specialRequests: specialRequests.trim() || "None shared.",
     };
 
     const res = await fetch("/api/bookings", {
@@ -449,6 +450,8 @@ export function BookingWizard() {
                 mealPlan={mealPlan}
                 setMealPlan={setMealPlan}
                 nightCount={nightCount}
+                specialRequests={specialRequests}
+                setSpecialRequests={setSpecialRequests}
               />
             )}
             {step === 3 && (
@@ -481,6 +484,7 @@ export function BookingWizard() {
                 amountPaidOnline={amountPaidOnline}
                 currency={currency}
                 nightCount={nightCount}
+                specialRequests={specialRequests}
               />
             )}
           </motion.div>
@@ -575,7 +579,7 @@ export function BookingWizard() {
               "relative flex items-center gap-1.5 px-4 sm:px-5 py-2 rounded-xl text-xs font-bold overflow-hidden transition-all duration-200 min-h-[40px] text-primary-foreground",
               !saving && canProceed()
                 ? "bg-primary hover:opacity-95 shadow-lg shadow-primary/15"
-                : "bg-muted text-muted-foreground/45 cursor-not-allowed"
+                : "bg-muted text-muted-foreground/45 cursor-not-allowed",
             )}
           >
             {saving ? (
