@@ -240,7 +240,7 @@ export function BookingWizard() {
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-        className="mb-5 sm:mb-9"
+        className="mb-3 sm:mb-5"
       >
         <div className="flex items-center gap-2.5 mb-1">
           <div className="w-7 h-7 rounded-lg bg-teal-500/15 border border-teal-500/20 flex items-center justify-center">
@@ -262,7 +262,7 @@ export function BookingWizard() {
         </h1>
         <TextReveal
           text="Configure stay, allocate rooms, record guest credentials in 4 stages."
-          className="text-sm text-muted-foreground/55 font-medium mt-2.5 max-w-sm leading-relaxed"
+          className="text-xs text-muted-foreground/55 font-medium mt-1.5 max-w-sm leading-relaxed"
           delay={0.05}
         />
       </motion.div>
@@ -272,7 +272,7 @@ export function BookingWizard() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.55, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-        className="mb-5 sm:mb-7 relative"
+        className="mb-3.5 sm:mb-5 relative"
       >
         {/* Progress track */}
         <div className="absolute top-[22px] left-6 right-6 h-px bg-white/5 z-0" />
@@ -489,11 +489,11 @@ export function BookingWizard() {
 
       {/* Bottom Floating Navigation Capsule */}
       <motion.div
-        initial={{ opacity: 0, y: 28 }}
+        initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.55, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
-        className="flex items-center justify-between gap-3 mt-8 px-3 py-2.5 border border-white/[0.07] sticky bg-background/75 backdrop-blur-3xl rounded-[26px] z-40 shadow-[0_8px_60px_rgba(0,0,0,0.6),0_0_0_1px_rgba(255,255,255,0.03)]"
-        style={{ bottom: "calc(1rem + env(safe-area-inset-bottom))" }}
+        className="flex items-center justify-between gap-2.5 mt-5 px-3 py-2 border border-white/[0.05] sticky bg-background/75 backdrop-blur-3xl rounded-[20px] z-40 shadow-[0_8px_50px_rgba(0,0,0,0.55),0_0_0_1px_rgba(255,255,255,0.02)]"
+        style={{ bottom: "calc(0.75rem + env(safe-area-inset-bottom))" }}
       >
         {/* Back button */}
         <motion.button
@@ -505,9 +505,9 @@ export function BookingWizard() {
           onTouchEnd={touch.onTouchEnd}
           onMouseDown={touch.onTouchStart}
           onMouseUp={touch.onTouchEnd}
-          className="flex items-center justify-center gap-1.5 px-4 sm:px-5 py-3 rounded-xl border border-white/[0.07] bg-white/3 text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-white/6 active:bg-white/8 transition-all duration-200 disabled:opacity-20 disabled:cursor-not-allowed min-h-[48px]"
+          className="flex items-center justify-center gap-1.5 px-4 sm:px-5 py-2 rounded-xl border border-white/[0.07] bg-white/3 text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-white/6 active:bg-white/8 transition-all duration-200 disabled:opacity-20 disabled:cursor-not-allowed min-h-[40px]"
         >
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeft className="w-3.5 h-3.5" />
           <span className="hidden sm:inline tracking-tight">Back</span>
         </motion.button>
 
@@ -552,14 +552,14 @@ export function BookingWizard() {
             onMouseDown={touch.onTouchStart}
             onMouseUp={touch.onTouchEnd}
             className={cn(
-              "relative flex items-center gap-2 px-5 sm:px-6 py-3 rounded-xl text-sm font-bold tracking-tight overflow-hidden transition-all duration-200 min-h-[48px]",
+              "relative flex items-center gap-1.5 px-4 sm:px-5 py-2 rounded-xl text-xs font-bold tracking-tight overflow-hidden transition-all duration-200 min-h-[40px]",
               canProceed()
                 ? "bg-white text-background shadow-[0_4px_24px_rgba(255,255,255,0.12)] hover:bg-zinc-100"
                 : "bg-white/10 text-white/30 cursor-not-allowed",
             )}
           >
             <span>Continue</span>
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRight className="w-3.5 h-3.5" />
           </motion.button>
         ) : (
           <motion.button
@@ -571,7 +571,7 @@ export function BookingWizard() {
             onTouchEnd={touch.onTouchEnd}
             onMouseDown={touch.onTouchStart}
             onMouseUp={touch.onTouchEnd}
-            className="relative flex items-center gap-2 px-5 sm:px-6 py-3 rounded-xl text-sm font-bold overflow-hidden disabled:opacity-30 transition-all duration-200 min-h-[48px] text-white"
+            className="relative flex items-center gap-1.5 px-4 sm:px-5 py-2 rounded-xl text-xs font-bold overflow-hidden disabled:opacity-30 transition-all duration-200 min-h-[40px] text-white"
             style={{
               background:
                 !saving && canProceed()
@@ -593,14 +593,14 @@ export function BookingWizard() {
                     repeat: Infinity,
                     ease: "linear",
                   }}
-                  className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white"
+                  className="w-3.5 h-3.5 rounded-full border-2 border-white/30 border-t-white"
                 />
                 <span>Creating…</span>
               </>
             ) : (
               <>
                 <span>Create Booking</span>
-                <Check className="w-4 h-4" />
+                <Check className="w-3.5 h-3.5" />
               </>
             )}
           </motion.button>

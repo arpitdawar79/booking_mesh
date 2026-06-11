@@ -91,7 +91,7 @@ export default function LoginPage() {
           <div className="flex justify-center">
             <FlipText
               text="Dashboard Sign In"
-              className="text-3xl sm:text-4xl font-black tracking-tight bg-linear-to-b from-white via-zinc-200 to-zinc-500 bg-clip-text text-transparent"
+              className="text-3xl sm:text-4xl font-black tracking-tight bg-linear-to-b from-foreground via-foreground/90 to-foreground/70 bg-clip-text text-transparent"
               delay={0.05}
               duration={0.5}
             />

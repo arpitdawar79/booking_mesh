@@ -83,7 +83,7 @@ export default function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-            className="text-5xl sm:text-7xl font-black tracking-tighter leading-[0.95] bg-linear-to-b from-white via-zinc-100 to-zinc-500 bg-clip-text text-transparent"
+            className="text-5xl sm:text-7xl font-black tracking-tighter leading-[0.95] bg-linear-to-b from-foreground via-foreground/90 to-foreground/70 bg-clip-text text-transparent"
           >
             Digital Ecosystem
           </motion.h1>

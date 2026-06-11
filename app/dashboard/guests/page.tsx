@@ -2,6 +2,7 @@
 
 import { Pagination } from "@/components/ui/pagination";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { MagicCard } from "@/components/ui/magic-card";
 import { PlusCircle, Search, User, Users, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -63,7 +64,7 @@ export default function GuestsPage() {
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   return (
-    <div className="space-y-5 lg:space-y-6">
+    <div className="space-y-4 lg:space-y-5">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
           <Users className="w-5 h-5 text-teal-400" />
@@ -102,53 +103,54 @@ export default function GuestsPage() {
       </div>
 
       {showForm && (
-        <div className="rounded-xl border border-border p-3 sm:p-6 space-y-4 bg-muted/10">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold">Add Guest</h2>
-            <button
-              onClick={() => setShowForm(false)}
-              className="p-1 rounded-md hover:bg-muted transition"
+        <MagicCard className="w-full">
+          <div className="p-4 sm:p-5 space-y-3">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground/80">Add Guest</h2>
+              <button
+                onClick={() => setShowForm(false)}
+                className="p-1 rounded-md hover:bg-muted transition"
+              >
+                <X className="w-4 h-4 text-muted-foreground hover:text-foreground" />
+              </button>
+            </div>
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                setSaving(true);
+                const res = await fetch("/api/guests", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    ...formData,
+                    phone: formData.phone || undefined,
+                    email: formData.email || undefined,
+                    idType: formData.idType || undefined,
+                    idNumber: formData.idNumber || undefined,
+                    address: formData.address || undefined,
+                    preferences: formData.preferences || undefined,
+                  }),
+                });
+                setSaving(false);
+                if (res.ok) {
+                  setShowForm(false);
+                  setPage(1);
+                  const params = new URLSearchParams();
+                  params.set("page", String(1));
+                  params.set("pageSize", String(pageSize));
+                  if (search.trim()) params.set("search", search.trim());
+                  fetch(`/api/guests?${params}`)
+                    .then((r) => r.json())
+                    .then((data) => {
+                      setGuests(data.guests || []);
+                      setTotal(data.total || 0);
+                    });
+                } else {
+                  alert("Failed to add guest.");
+                }
+              }}
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"
             >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-          <form
-            onSubmit={async (e) => {
-              e.preventDefault();
-              setSaving(true);
-              const res = await fetch("/api/guests", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  ...formData,
-                  phone: formData.phone || undefined,
-                  email: formData.email || undefined,
-                  idType: formData.idType || undefined,
-                  idNumber: formData.idNumber || undefined,
-                  address: formData.address || undefined,
-                  preferences: formData.preferences || undefined,
-                }),
-              });
-              setSaving(false);
-              if (res.ok) {
-                setShowForm(false);
-                setPage(1);
-                const params = new URLSearchParams();
-                params.set("page", String(1));
-                params.set("pageSize", String(pageSize));
-                if (search.trim()) params.set("search", search.trim());
-                fetch(`/api/guests?${params}`)
-                  .then((r) => r.json())
-                  .then((data) => {
-                    setGuests(data.guests || []);
-                    setTotal(data.total || 0);
-                  });
-              } else {
-                alert("Failed to add guest.");
-              }
-            }}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
-          >
             <div>
               <label className="block text-xs font-medium mb-1">
                 Name <span className="text-red-400">*</span>
@@ -246,6 +248,7 @@ export default function GuestsPage() {
             </div>
           </form>
         </div>
+      </MagicCard>
       )}
 
       {loading && guests.length === 0 ? (
@@ -256,76 +259,74 @@ export default function GuestsPage() {
         </div>
       ) : (
         <>
-          {/* Mobile cards */}
-          <div className="lg:hidden space-y-3">
+          {/* Mobile cards with MagicCard wrapper */}
+          <div className="lg:hidden space-y-2.5">
             {guests.map((g) => (
-              <Link
-                key={g.id}
-                href={`/dashboard/guests/${g.id}`}
-                className="block rounded-xl border border-border bg-card/30 p-3 sm:p-4 space-y-2 hover:bg-muted/20 transition"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-teal-500/10 flex items-center justify-center">
-                      <User className="w-4 h-4 text-teal-400" />
-                    </div>
-                    <div>
-                      <div className="font-medium text-sm">{g.name}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {g.phone || g.email || "No contact info"}
+              <MagicCard key={g.id}>
+                <Link
+                  href={`/dashboard/guests/${g.id}`}
+                  className="block p-3.5 space-y-2 relative z-10"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-full bg-teal-500/10 flex items-center justify-center">
+                        <User className="w-3.5 h-3.5 text-teal-400" />
+                      </div>
+                      <div>
+                        <div className="font-bold text-sm leading-none">{g.name}</div>
+                        <div className="text-xs text-muted-foreground/75 mt-1 font-medium">
+                          {g.phone || g.email || "No contact info"}
+                        </div>
                       </div>
                     </div>
+                    <StatusBadge
+                      status={g._count.bookings > 1 ? "confirmed" : "pending"}
+                      className="!text-[9px] !px-1.5 !py-0.5"
+                    />
                   </div>
-                  <StatusBadge
-                    status={g._count.bookings > 1 ? "confirmed" : "pending"}
-                    className="!text-[10px] !px-1.5"
-                  />
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  {g._count.bookings} booking
-                  {g._count.bookings !== 1 ? "s" : ""}
-                </div>
-              </Link>
+                  <div className="text-[11px] text-muted-foreground/70 font-semibold uppercase tracking-wider pl-9">
+                    {g._count.bookings} booking{g._count.bookings !== 1 ? "s" : ""}
+                  </div>
+                </Link>
+              </MagicCard>
             ))}
           </div>
 
-          {/* Desktop table */}
-          <div className="hidden lg:block overflow-x-auto rounded-xl border border-border">
-            <table className="w-full text-sm">
-              <thead className="bg-muted/50">
-                <tr>
-                  <th className="text-left px-4 py-3 font-medium">Name</th>
-                  <th className="text-left px-4 py-3 font-medium">Phone</th>
-                  <th className="text-left px-4 py-3 font-medium">Email</th>
-                  <th className="text-left px-4 py-3 font-medium">Bookings</th>
-                  <th className="text-left px-4 py-3 font-medium">ID Type</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {guests.map((g) => (
-                  <tr key={g.id} className="hover:bg-muted/30 cursor-pointer">
-                    <td className="px-4 py-3">
-                      <Link
-                        href={`/dashboard/guests/${g.id}`}
-                        className="font-medium hover:text-teal-400 transition"
-                      >
-                        {g.name}
-                      </Link>
-                    </td>
-                    <td className="px-4 py-3 text-muted-foreground">
-                      {g.phone || "—"}
-                    </td>
-                    <td className="px-4 py-3 text-muted-foreground">
-                      {g.email || "—"}
-                    </td>
-                    <td className="px-4 py-3">{g._count.bookings}</td>
-                    <td className="px-4 py-3 text-muted-foreground">
-                      {g.idType || "—"}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          {/* Desktop table with MagicCard wrapper */}
+          <div className="hidden lg:block">
+            <MagicCard className="overflow-visible">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr>
+                      <th className="text-left">Name</th>
+                      <th className="text-left">Phone</th>
+                      <th className="text-left">Email</th>
+                      <th className="text-left">Bookings</th>
+                      <th className="text-left">ID Type</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {guests.map((g) => (
+                      <tr key={g.id}>
+                        <td className="font-semibold text-xs">
+                          <Link
+                            href={`/dashboard/guests/${g.id}`}
+                            className="hover:text-teal-400 transition"
+                          >
+                            {g.name}
+                          </Link>
+                        </td>
+                        <td className="text-muted-foreground/80">{g.phone || "—"}</td>
+                        <td className="text-muted-foreground/80">{g.email || "—"}</td>
+                        <td className="font-medium">{g._count.bookings}</td>
+                        <td className="text-muted-foreground/85 text-xs">{g.idType || "—"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </MagicCard>
           </div>
 
           <Pagination

@@ -1,3 +1,4 @@
+import { ThemeProvider } from "@/lib/theme-context";
 import { PWAShell } from "@/components/pwa/pwa-shell";
 import type { Metadata, Viewport } from "next";
 import { ViewTransitions } from "next-view-transitions";
@@ -81,10 +82,26 @@ export const viewport: Viewport = {
   userScalable: false,
   themeColor: [
     { media: "(prefers-color-scheme: dark)", color: "#0a0a0a" },
-    { media: "(prefers-color-scheme: light)", color: "#0a0a0a" },
+    { media: "(prefers-color-scheme: light)", color: "#fafafa" },
   ],
-  colorScheme: "dark",
 };
+
+const themeInitScript = `
+  (function() {
+    try {
+      var theme = localStorage.getItem('theme');
+      if (theme === 'light') {
+        document.documentElement.classList.add('light');
+        document.documentElement.classList.remove('dark');
+        document.documentElement.style.colorScheme = 'light';
+      } else {
+        document.documentElement.classList.add('dark');
+        document.documentElement.classList.remove('light');
+        document.documentElement.style.colorScheme = 'dark';
+      }
+    } catch (e) {}
+  })();
+`;
 
 export default function RootLayout({
   children,
@@ -96,12 +113,15 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="/" />
         <link rel="dns-prefetch" href="/" />
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
       <body
         className={`${outfit.variable} ${plusJakartaSans.variable} ${spaceMono.variable} font-sans min-h-screen bg-background text-foreground overflow-x-hidden`}
       >
         <ViewTransitions>
-          <PWAShell>{children}</PWAShell>
+          <ThemeProvider>
+            <PWAShell>{children}</PWAShell>
+          </ThemeProvider>
         </ViewTransitions>
       </body>
     </html>

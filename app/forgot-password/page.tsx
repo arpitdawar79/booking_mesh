@@ -91,7 +91,7 @@ export default function ForgotPasswordPage() {
           >
             <Mail className="w-6 h-6 animate-pulse" />
           </motion.div>
-          <h1 className="text-3xl font-extrabold tracking-tight bg-linear-to-b from-white via-zinc-200 to-zinc-500 bg-clip-text text-transparent">
+          <h1 className="text-3xl font-extrabold tracking-tight bg-linear-to-b from-foreground via-foreground/90 to-foreground/70 bg-clip-text text-transparent">
             Reset Password
           </h1>
           <p className="text-xs font-bold text-muted-foreground/80 uppercase tracking-widest flex items-center justify-center gap-1.5">

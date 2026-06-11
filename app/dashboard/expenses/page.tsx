@@ -3,6 +3,7 @@
 import { Pagination } from "@/components/ui/pagination";
 import { SlideOver } from "@/components/ui/slide-over";
 import { useToast } from "@/components/ui/toast";
+import { MagicCard } from "@/components/ui/magic-card";
 import {
     CalendarDays,
     ClipboardList,
@@ -151,7 +152,7 @@ export default function ExpensesPage() {
   }
 
   return (
-    <div className="space-y-5 lg:space-y-6">
+    <div className="space-y-4 lg:space-y-5">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
           <Receipt className="w-5 h-5 text-rose-400" />
@@ -255,67 +256,59 @@ export default function ExpensesPage() {
         </div>
       ) : (
         <>
-          <div className="overflow-x-auto rounded-xl border border-border">
-            <table className="w-full text-sm">
-              <thead className="bg-muted/50">
-                <tr>
-                  <th className="text-left px-4 py-3 font-medium">Date</th>
-                  <th className="text-left px-4 py-3 font-medium">Category</th>
-                  <th className="text-left px-4 py-3 font-medium">
-                    Description
-                  </th>
-                  <th className="text-left px-4 py-3 font-medium">Amount</th>
-                  <th className="text-left px-4 py-3 font-medium">Method</th>
-                  <th className="text-left px-4 py-3 font-medium">
-                    Recorded By
-                  </th>
-                  <th className="text-left px-4 py-3 font-medium">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {expenses.map((e) => (
-                  <tr key={e.id} className="hover:bg-muted/30">
-                    <td className="px-4 py-3 text-muted-foreground">
-                      {fmtDate(e.date)}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className="rounded-full bg-muted px-2 py-0.5 text-xs">
-                        {CATEGORY_LABELS[e.category] || e.category}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">{e.description}</td>
-                    <td className="px-4 py-3 font-medium">
-                      {fmtCurrency(Number(e.amount))}
-                    </td>
-                    <td className="px-4 py-3 text-muted-foreground capitalize">
-                      {e.paymentMethod.replace("_", " ")}
-                    </td>
-                    <td className="px-4 py-3 text-muted-foreground">
-                      {e.recordedBy || "—"}
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={() => openEdit(e.id)}
-                          className="p-1.5 rounded-md hover:bg-muted transition"
-                          title="Edit"
-                        >
-                          <Pencil className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(e.id)}
-                          className="p-1.5 rounded-md hover:bg-muted transition text-red-400"
-                          title="Delete"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </td>
+          <MagicCard className="overflow-visible">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr>
+                    <th className="text-left">Date</th>
+                    <th className="text-left">Category</th>
+                    <th className="text-left">Description</th>
+                    <th className="text-left">Amount</th>
+                    <th className="text-left">Method</th>
+                    <th className="text-left">Recorded By</th>
+                    <th className="text-left">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {expenses.map((e) => (
+                    <tr key={e.id}>
+                      <td className="text-muted-foreground">{fmtDate(e.date)}</td>
+                      <td>
+                        <span className="rounded-full bg-zinc-900 border border-zinc-800 px-2 py-0.5 text-[10px] font-bold">
+                          {CATEGORY_LABELS[e.category] || e.category}
+                        </span>
+                      </td>
+                      <td className="font-medium">{e.description}</td>
+                      <td className="font-bold text-rose-400">{fmtCurrency(Number(e.amount))}</td>
+                      <td className="text-muted-foreground capitalize text-xs">
+                        {e.paymentMethod.replace("_", " ")}
+                      </td>
+                      <td className="text-muted-foreground text-xs">{e.recordedBy || "—"}</td>
+                      <td>
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => openEdit(e.id)}
+                            className="p-1 rounded hover:bg-muted/50 transition"
+                            title="Edit"
+                          >
+                            <Pencil className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(e.id)}
+                            className="p-1.5 rounded hover:bg-muted/50 transition text-rose-400 hover:text-rose-300"
+                            title="Delete"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </MagicCard>
           <Pagination
             page={page}
             totalPages={totalPages}
@@ -338,15 +331,19 @@ function SummaryCard({
   value: string | number;
 }) {
   return (
-    <div className="rounded-lg border border-border p-3 sm:p-4 space-y-2">
-      <div className="flex items-center gap-2">
-        {icon}
-        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-          {label}
-        </span>
+    <MagicCard className="p-3 sm:p-3.5">
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <div className="p-1 rounded bg-muted/20 border border-border/40 shrink-0">
+            {icon}
+          </div>
+          <span className="text-[9px] font-bold text-muted-foreground/60 uppercase tracking-widest truncate">
+            {label}
+          </span>
+        </div>
+        <div className="text-lg font-black tracking-tight text-foreground pl-0.5">{value}</div>
       </div>
-      <div className="text-xl font-bold">{value}</div>
-    </div>
+    </MagicCard>
   );
 }
 

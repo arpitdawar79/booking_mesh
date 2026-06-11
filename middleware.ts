@@ -1,4 +1,4 @@
-import { refreshAccessToken, verifySessionToken } from "@/lib/auth";
+import { verifyRefreshToken, verifySessionToken } from "@/lib/auth-edge";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
@@ -95,31 +95,15 @@ export async function middleware(request: NextRequest) {
 
     if (!isValidAccess) {
       const refreshToken = request.cookies.get("refresh_token")?.value;
-      if (refreshToken) {
-        const result = await refreshAccessToken(refreshToken);
-        if (result.success) {
-          const res = NextResponse.next();
-          res.cookies.set("access_token", result.accessToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
-            maxAge: 60 * 60 * 8,
-            path: "/",
-          });
-          res.cookies.set("refresh_token", result.refreshToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
-            maxAge: 60 * 60 * 24 * 30,
-            path: "/",
-          });
-          return res;
-        }
-      }
+      const isValidRefresh = refreshToken
+        ? !!(await verifyRefreshToken(refreshToken))
+        : false;
 
-      const loginUrl = new URL("/login", request.url);
-      loginUrl.searchParams.set("redirect", pathname);
-      return NextResponse.redirect(loginUrl);
+      if (!isValidRefresh) {
+        const loginUrl = new URL("/login", request.url);
+        loginUrl.searchParams.set("redirect", pathname);
+        return NextResponse.redirect(loginUrl);
+      }
     }
   }
 
@@ -130,25 +114,7 @@ export async function middleware(request: NextRequest) {
     let isAuthenticated = token ? !!(await verifySessionToken(token)) : false;
 
     if (!isAuthenticated && refreshToken) {
-      const result = await refreshAccessToken(refreshToken);
-      if (result.success) {
-        const res = NextResponse.redirect(new URL("/dashboard", request.url));
-        res.cookies.set("access_token", result.accessToken, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
-          sameSite: "lax",
-          maxAge: 60 * 60 * 8,
-          path: "/",
-        });
-        res.cookies.set("refresh_token", result.refreshToken, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
-          sameSite: "lax",
-          maxAge: 60 * 60 * 24 * 30,
-          path: "/",
-        });
-        return res;
-      }
+      isAuthenticated = !!(await verifyRefreshToken(refreshToken));
     }
 
     if (isAuthenticated) {

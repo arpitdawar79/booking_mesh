@@ -1,33 +1,72 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useMotionTemplate, useMotionValue } from "framer-motion";
+import { MouseEvent } from "react";
 import { cn } from "@/lib/utils";
+import { BorderBeam } from "@/components/magicui/border-beam";
+import { Backlight } from "@/components/ui/backlight";
 
 export function MagicCard({
   children,
   className,
-  glowColor = "rgba(20,184,166,0.15)",
+  glowColor = "rgba(20, 184, 166, 0.12)",
+  borderBeam = false,
+  backlight = false,
+  backlightColorFrom = "from-teal-500/10",
+  backlightColorTo = "to-indigo-500/5",
 }: {
   children: React.ReactNode;
   className?: string;
   glowColor?: string;
+  borderBeam?: boolean;
+  backlight?: boolean;
+  backlightColorFrom?: string;
+  backlightColorTo?: string;
 }) {
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+
+  function handleMouseMove({ currentTarget, clientX, clientY }: MouseEvent) {
+    const { left, top } = currentTarget.getBoundingClientRect();
+    mouseX.set(clientX - left);
+    mouseY.set(clientY - top);
+  }
+
   return (
     <motion.div
-      whileHover={{ scale: 1.01 }}
-      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+      onMouseMove={handleMouseMove}
+      whileHover={{ y: -2 }}
+      transition={{ type: "spring", stiffness: 400, damping: 24 }}
       className={cn(
-        "relative rounded-xl border border-border bg-card/50 backdrop-blur-sm overflow-hidden",
+        "group relative rounded-2xl border border-border/60 bg-card/25 backdrop-blur-xl overflow-hidden hover:border-teal-500/25 transition-colors duration-500 shadow-sm",
         className
       )}
     >
-      <div
-        className="absolute -inset-px opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+      {backlight && (
+        <Backlight
+          className="-top-10 -left-10 w-32 h-32 opacity-40 group-hover:opacity-75 transition-opacity duration-500"
+          colorFrom={backlightColorFrom}
+          colorTo={backlightColorTo}
+        />
+      )}
+
+      {borderBeam && (
+        <BorderBeam
+          size={160}
+          duration={8}
+          colorFrom="#14b8a6"
+          colorTo="#8b5cf6"
+          className="opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+        />
+      )}
+
+      <motion.div
+        className="absolute -inset-px opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-0"
         style={{
-          background: `radial-gradient(600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), ${glowColor}, transparent 40%)`,
+          background: useMotionTemplate`radial-gradient(320px circle at ${mouseX}px ${mouseY}px, ${glowColor}, transparent 80%)`,
         }}
       />
-      <div className="relative">{children}</div>
+      <div className="relative z-10 h-full w-full">{children}</div>
     </motion.div>
   );
 }

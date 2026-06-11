@@ -3,6 +3,7 @@
 import { NumberTicker } from "@/components/magicui/number-ticker";
 import { Pagination } from "@/components/ui/pagination";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { MagicCard } from "@/components/ui/magic-card";
 import { formatDate } from "@/lib/utils";
 import { motion } from "framer-motion";
 import {
@@ -126,7 +127,7 @@ export default function BookingsPage() {
   }
 
   return (
-    <div className="space-y-6 lg:space-y-8">
+    <div className="space-y-4 lg:space-y-5">
       {/* Stats Cards with NumberTicker */}
       {stats && (
         <motion.div
@@ -163,38 +164,36 @@ export default function BookingsPage() {
 
       {/* Upcoming Check-ins */}
       {stats && stats.upcomingCheckins.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="rounded-2xl border border-border/60 bg-card/20 backdrop-blur-xl p-3 sm:p-4 space-y-3"
-        >
-          <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded-lg bg-teal-500/10 border border-teal-500/15">
-              <TrendingUp className="w-4 h-4 text-teal-400" />
+        <MagicCard className="p-3 sm:p-3.5">
+          <div className="space-y-2.5">
+            <div className="flex items-center gap-2">
+              <div className="p-1 rounded bg-teal-500/10 border border-teal-500/15">
+                <TrendingUp className="w-3.5 h-3.5 text-teal-400" />
+              </div>
+              <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground/80">Upcoming Check-ins</h2>
             </div>
-            <h2 className="text-sm font-bold">Upcoming Check-ins</h2>
+            <div className="flex gap-2.5 overflow-x-auto pb-1.5 -mx-1 px-1 snap-x snap-mandatory scrollbar-hide">
+              {stats.upcomingCheckins.map((u) => (
+                <Link
+                  key={u.id}
+                  href={`/dashboard/booking/${u.id}`}
+                  className="min-w-[160px] snap-start rounded-xl border border-border/40 bg-zinc-900/30 p-2.5 hover:bg-muted/20 hover:border-teal-500/20 transition-all duration-300"
+                >
+                  <div className="text-[10px] font-bold text-teal-400 mb-0.5">
+                    {formatDate(u.checkInDate)}
+                  </div>
+                  <div className="font-semibold text-xs truncate">
+                    {u.guestFullName}
+                  </div>
+                  <div className="text-[10px] text-muted-foreground/70 mt-0.5 font-medium">
+                    {u.nightCount} nights · ₹
+                    {Number(u.totalAmount).toLocaleString("en-IN")}
+                  </div>
+                </Link>
+              ))}
+            </div>
           </div>
-          <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 snap-x snap-mandatory scrollbar-hide">
-            {stats.upcomingCheckins.map((u) => (
-              <Link
-                key={u.id}
-                href={`/dashboard/booking/${u.id}`}
-                className="min-w-[180px] snap-start rounded-xl border border-border/50 bg-muted/10 p-3 hover:bg-muted/30 hover:border-teal-500/20 transition-all duration-300"
-              >
-                <div className="text-[11px] font-medium text-teal-400 mb-1">
-                  {formatDate(u.checkInDate)}
-                </div>
-                <div className="font-semibold text-sm truncate">
-                  {u.guestFullName}
-                </div>
-                <div className="text-xs text-muted-foreground/70 mt-1 font-medium">
-                  {u.nightCount} nights · ₹
-                  {Number(u.totalAmount).toLocaleString("en-IN")}
-                </div>
-              </Link>
-            ))}
-          </div>
-        </motion.div>
+        </MagicCard>
       )}
 
       {/* Bookings Header */}
@@ -259,164 +258,133 @@ export default function BookingsPage() {
         </motion.div>
       ) : (
         <>
-          {/* Mobile: Card List with motion */}
-          <div className="lg:hidden space-y-3">
-            {bookings.map((b, i) => (
-              <motion.div
-                key={b.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.03 }}
-                className="rounded-2xl border border-border/60 bg-card/20 backdrop-blur-xl p-3 sm:p-4 space-y-3 hover:border-teal-500/15 transition-colors"
-              >
-                <div className="flex items-start justify-between">
-                  <div>
-                    <div className="font-mono text-[11px] text-muted-foreground/60">
-                      #{b.bookingId}
+          {/* Mobile: Card List with MagicCard */}
+          <div className="lg:hidden space-y-2.5">
+            {bookings.map((b) => (
+              <MagicCard key={b.id}>
+                <div className="p-3.5 space-y-2.5">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <div className="font-mono text-[10px] text-muted-foreground/50 leading-none mb-1">
+                        #{b.bookingId}
+                      </div>
+                      <div className="font-bold text-sm leading-tight">
+                        {b.guestFullName}
+                      </div>
+                      <div className="text-xs text-muted-foreground/75 mt-0.5 font-medium">
+                        {b.guestEmail}
+                      </div>
                     </div>
-                    <div className="font-semibold text-sm">
-                      {b.guestFullName}
+                    <StatusBadge status={b.status} className="!text-[10px] !px-1.5 !py-0.5" />
+                  </div>
+                  <div className="text-xs text-muted-foreground/85 font-medium">
+                    {formatDate(b.checkInDate)} → {formatDate(b.checkOutDate)} ·{" "}
+                    {b.nightCount} nights
+                  </div>
+                  <div className="text-xs font-semibold text-muted-foreground/90">
+                    {b.roomCount} × {b.roomType}
+                  </div>
+                  <div className="flex items-center justify-between pt-1 border-t border-border/20">
+                    <div className="text-sm font-extrabold text-emerald-400">
+                      ₹{Number(b.totalAmount).toLocaleString("en-IN")}
                     </div>
-                    <div className="text-xs text-muted-foreground/70">
-                      {b.guestEmail}
+                    <div className="flex items-center gap-1">
+                      <Link
+                        href={`/dashboard/booking/${b.id}`}
+                        className="p-1.5 rounded-lg hover:bg-muted/50 transition-colors"
+                        title="View"
+                      >
+                        <Eye className="w-4 h-4 text-muted-foreground hover:text-foreground" />
+                      </Link>
+                      <button
+                        onClick={() => handleCopy(b.id)}
+                        className="p-1.5 rounded-lg hover:bg-muted/50 transition-colors min-w-[36px] flex items-center justify-center"
+                        title="Copy Summary"
+                      >
+                        {copiedId === b.id ? (
+                          <span className="text-[10px] text-emerald-400 font-bold">
+                            Copied
+                          </span>
+                        ) : (
+                          <Copy className="w-4 h-4 text-muted-foreground hover:text-foreground" />
+                        )}
+                      </button>
                     </div>
                   </div>
-                  <StatusBadge status={b.status} />
                 </div>
-                <div className="text-xs text-muted-foreground/70 font-medium">
-                  {formatDate(b.checkInDate)} → {formatDate(b.checkOutDate)} ·{" "}
-                  {b.nightCount} nights
-                </div>
-                <div className="text-xs font-medium">
-                  {b.roomCount} × {b.roomType}
-                </div>
-                <div className="flex items-center justify-between pt-1">
-                  <div className="text-sm font-bold text-emerald-400">
-                    ₹{Number(b.totalAmount).toLocaleString("en-IN")}
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Link
-                      href={`/dashboard/booking/${b.id}`}
-                      className="p-2 rounded-lg hover:bg-muted/50 transition-colors"
-                      title="View"
-                    >
-                      <Eye className="w-4 h-4" />
-                    </Link>
-                    <button
-                      onClick={() => handleCopy(b.id)}
-                      className="p-2 rounded-lg hover:bg-muted/50 transition-colors min-w-[44px]"
-                      title="Copy Summary"
-                    >
-                      {copiedId === b.id ? (
-                        <span className="text-[10px] text-emerald-400 font-bold">
-                          Copied
-                        </span>
-                      ) : (
-                        <Copy className="w-4 h-4" />
-                      )}
-                    </button>
-                  </div>
-                </div>
-              </motion.div>
+              </MagicCard>
             ))}
           </div>
 
-          {/* Desktop: Table */}
-          <div className="hidden lg:block overflow-x-auto rounded-2xl border border-border/60 bg-card/10 backdrop-blur-xl">
-            <table className="w-full text-sm">
-              <thead className="bg-muted/30">
-                <tr>
-                  <th className="text-left px-4 py-3 font-semibold text-xs uppercase tracking-wider text-muted-foreground/70">
-                    ID
-                  </th>
-                  <th className="text-left px-4 py-3 font-semibold text-xs uppercase tracking-wider text-muted-foreground/70">
-                    Guest
-                  </th>
-                  <th className="text-left px-4 py-3 font-semibold text-xs uppercase tracking-wider text-muted-foreground/70">
-                    Dates
-                  </th>
-                  <th className="text-left px-4 py-3 font-semibold text-xs uppercase tracking-wider text-muted-foreground/70">
-                    Nights
-                  </th>
-                  <th className="text-left px-4 py-3 font-semibold text-xs uppercase tracking-wider text-muted-foreground/70">
-                    Rooms
-                  </th>
-                  <th className="text-left px-4 py-3 font-semibold text-xs uppercase tracking-wider text-muted-foreground/70">
-                    Total
-                  </th>
-                  <th className="text-left px-4 py-3 font-semibold text-xs uppercase tracking-wider text-muted-foreground/70">
-                    Status
-                  </th>
-                  <th className="text-left px-4 py-3 font-semibold text-xs uppercase tracking-wider text-muted-foreground/70">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border/40">
-                {bookings.map((b) => (
-                  <tr
-                    key={b.id}
-                    className="hover:bg-muted/20 transition-colors"
-                  >
-                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground/60">
-                      {b.bookingId}
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="font-semibold text-sm">
-                        {b.guestFullName}
-                      </div>
-                      <div className="text-xs text-muted-foreground/70">
-                        {b.guestEmail}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-muted-foreground/80 text-xs">
-                      {formatDate(b.checkInDate)} → {formatDate(b.checkOutDate)}
-                    </td>
-                    <td className="px-4 py-3 font-medium">{b.nightCount}</td>
-                    <td className="px-4 py-3 text-xs">
-                      {b.roomCount} × {b.roomType}
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="font-bold text-emerald-400">
-                        ₹{Number(b.totalAmount).toLocaleString("en-IN")}
-                      </div>
-                      <div className="text-xs text-muted-foreground/60">
-                        Paid: ₹
-                        {Number(b.amountPaidOnline).toLocaleString("en-IN")} |{" "}
-                        Bal: ₹{Number(b.balanceAmount).toLocaleString("en-IN")}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <StatusBadge status={b.status} />
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-1">
-                        <Link
-                          href={`/dashboard/booking/${b.id}`}
-                          className="p-2 rounded-lg hover:bg-muted/50 transition-colors"
-                          title="View"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </Link>
-                        <button
-                          onClick={() => handleCopy(b.id)}
-                          className="p-2 rounded-lg hover:bg-muted/50 transition-colors"
-                          title="Copy Summary"
-                        >
-                          {copiedId === b.id ? (
-                            <span className="text-xs text-emerald-400 font-bold">
-                              Copied
-                            </span>
-                          ) : (
-                            <Copy className="w-4 h-4" />
-                          )}
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          {/* Desktop: Table with MagicCard wrapper */}
+          <div className="hidden lg:block">
+            <MagicCard className="overflow-visible">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr>
+                      <th className="text-left">ID</th>
+                      <th className="text-left">Guest</th>
+                      <th className="text-left">Dates</th>
+                      <th className="text-left">Nights</th>
+                      <th className="text-left">Rooms</th>
+                      <th className="text-left">Total</th>
+                      <th className="text-left">Status</th>
+                      <th className="text-left">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {bookings.map((b) => (
+                      <tr key={b.id}>
+                        <td className="font-mono text-xs text-muted-foreground/60">{b.bookingId}</td>
+                        <td>
+                          <div className="font-semibold text-xs">{b.guestFullName}</div>
+                          <div className="text-[10px] text-muted-foreground/70">{b.guestEmail}</div>
+                        </td>
+                        <td className="text-muted-foreground/80 text-xs">
+                          {formatDate(b.checkInDate)} → {formatDate(b.checkOutDate)}
+                        </td>
+                        <td className="font-medium">{b.nightCount}</td>
+                        <td className="text-xs">{b.roomCount} × {b.roomType}</td>
+                        <td>
+                          <div className="font-bold text-emerald-400">
+                            ₹{Number(b.totalAmount).toLocaleString("en-IN")}
+                          </div>
+                          <div className="text-[10px] text-muted-foreground/50 mt-0.5 leading-none">
+                            Paid: ₹{Number(b.amountPaidOnline).toLocaleString("en-IN")} | Bal: ₹{Number(b.balanceAmount).toLocaleString("en-IN")}
+                          </div>
+                        </td>
+                        <td>
+                          <StatusBadge status={b.status} className="!text-[10px] !px-1.5 !py-0.5" />
+                        </td>
+                        <td>
+                          <div className="flex items-center gap-1">
+                            <Link
+                              href={`/dashboard/booking/${b.id}`}
+                              className="p-1 rounded hover:bg-muted/50 transition-colors"
+                              title="View"
+                            >
+                              <Eye className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground" />
+                            </Link>
+                            <button
+                              onClick={() => handleCopy(b.id)}
+                              className="p-1 rounded hover:bg-muted/50 transition-colors"
+                              title="Copy Summary"
+                            >
+                              {copiedId === b.id ? (
+                                <span className="text-[10px] text-emerald-400 font-bold">Copied</span>
+                              ) : (
+                                <Copy className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground" />
+                              )}
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </MagicCard>
           </div>
           <Pagination
             page={page}

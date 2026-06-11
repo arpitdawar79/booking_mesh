@@ -5,6 +5,7 @@ import { QuickAddFAB } from "@/components/quick-add/fab";
 import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
 import { MobileBottomNav } from "@/components/ui/mobile-bottom-nav";
 import { ToastProvider } from "@/components/ui/toast";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useHaptic } from "@/lib/pwa-hooks";
 import { motion } from "framer-motion";
 import {
@@ -158,7 +159,7 @@ export default function DashboardLayout({
 
   return (
     <ToastProvider>
-      <div className="min-h-dvh bg-background text-foreground flex pb-[calc(5.5rem+env(safe-area-inset-bottom))] lg:pb-0">
+      <div className="min-h-dvh bg-background text-foreground flex pb-[calc(4.5rem+env(safe-area-inset-bottom))] lg:pb-0">
         {/* Mobile overlay */}
         {mobileOpen && (
           <div
@@ -167,14 +168,13 @@ export default function DashboardLayout({
           />
         )}
 
-        {/* Desktop Sidebar */}
         <aside
-          className={`fixed lg:sticky top-0 left-0 z-50 h-screen bg-zinc-950/25 backdrop-blur-2xl border-r border-border/40 flex-col transition-all duration-300 hidden lg:flex ${
-            collapsed ? "w-16" : "w-60"
+          className={`fixed lg:sticky top-0 left-0 z-50 h-screen bg-card/25 backdrop-blur-2xl border-r border-border/30 flex-col transition-all duration-300 hidden lg:flex ${
+            collapsed ? "w-14" : "w-56"
           }`}
         >
           {/* Header */}
-          <div className="h-14 flex items-center justify-between px-4 border-b border-border/40 shrink-0">
+          <div className="h-11 flex items-center justify-between px-3.5 border-b border-border/30 shrink-0">
             <Link
               href="/"
               className={`font-bold text-lg flex items-center gap-2.5 ${collapsed ? "hidden" : ""}`}
@@ -182,7 +182,7 @@ export default function DashboardLayout({
               <div className="p-1.5 rounded-lg bg-teal-500/10 border border-teal-500/20">
                 <LayoutDashboard className="w-5 h-5 text-teal-400" />
               </div>
-              <span className="truncate bg-linear-to-b from-white to-zinc-400 bg-clip-text text-transparent">
+              <span className="truncate bg-linear-to-b from-foreground to-foreground/60 bg-clip-text text-transparent">
                 The Stream
               </span>
             </Link>
@@ -205,7 +205,7 @@ export default function DashboardLayout({
           </div>
 
           {/* Nav */}
-          <nav className="flex-1 overflow-y-auto py-5 px-3 space-y-1">
+          <nav className="flex-1 overflow-y-auto py-3.5 px-2 space-y-0.5">
             {navItems.map((item) => {
               const isActive =
                 pathname === item.href || pathname.startsWith(item.href + "/");
@@ -215,7 +215,7 @@ export default function DashboardLayout({
                   key={item.href}
                   href={item.href}
                   onClick={() => haptic("light")}
-                  className={`relative flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-bold transition-all duration-200 ${
+                  className={`relative flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all duration-150 ${
                     isActive
                       ? "text-teal-400"
                       : "text-muted-foreground hover:text-foreground"
@@ -233,7 +233,7 @@ export default function DashboardLayout({
                       }}
                     />
                   )}
-                  <Icon className="w-4.5 h-4.5 shrink-0 transition-transform group-hover:scale-105" />
+                  <Icon className="w-4 h-4 shrink-0 transition-transform group-hover:scale-105" />
                   {!collapsed && <span className="truncate">{item.label}</span>}
                 </Link>
               );
@@ -248,11 +248,11 @@ export default function DashboardLayout({
 
         {/* Mobile Sidebar (drawer style) */}
         <aside
-          className={`fixed lg:hidden top-0 left-0 z-50 h-screen w-72 bg-background/95 backdrop-blur-3xl border-r border-border/40 flex flex-col transition-transform duration-300 ${
+          className={`fixed lg:hidden top-0 left-0 z-50 h-screen w-64 bg-background/85 backdrop-blur-3xl border-r border-border/30 flex flex-col transition-transform duration-300 ${
             mobileOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >
-          <div className="h-14 flex items-center justify-between px-5 border-b border-border/40 shrink-0">
+          <div className="h-12 flex items-center justify-between px-4 border-b border-border/30 shrink-0">
             <Link
               href="/"
               className="font-bold text-lg flex items-center gap-2.5"
@@ -260,7 +260,7 @@ export default function DashboardLayout({
               <div className="p-1.5 rounded-lg bg-teal-500/10 border border-teal-500/20">
                 <LayoutDashboard className="w-5 h-5 text-teal-400" />
               </div>
-              <span className="bg-linear-to-b from-white to-zinc-400 bg-clip-text text-transparent">
+              <span className="bg-linear-to-b from-foreground to-foreground/60 bg-clip-text text-transparent">
                 The Stream
               </span>
             </Link>
@@ -272,7 +272,7 @@ export default function DashboardLayout({
             </button>
           </div>
 
-          <nav className="flex-1 overflow-y-auto py-5 px-4 space-y-1">
+          <nav className="flex-1 overflow-y-auto py-3.5 px-3.5 space-y-0.5">
             {navItems.map((item) => {
               const isActive =
                 pathname === item.href || pathname.startsWith(item.href + "/");
@@ -285,7 +285,7 @@ export default function DashboardLayout({
                     haptic("light");
                     setMobileOpen(false);
                   }}
-                  className={`relative flex items-center gap-3.5 px-3 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ${
+                  className={`relative flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-bold transition-all duration-150 ${
                     isActive
                       ? "text-teal-400"
                       : "text-muted-foreground hover:text-foreground"
@@ -302,7 +302,7 @@ export default function DashboardLayout({
                       }}
                     />
                   )}
-                  <Icon className="w-5 h-5 shrink-0" />
+                  <Icon className="w-4 h-4 shrink-0" />
                   <span>{item.label}</span>
                 </Link>
               );
@@ -317,15 +317,15 @@ export default function DashboardLayout({
         {/* Main content */}
         <div className="flex-1 min-w-0">
           {/* Top bar */}
-          <header className="h-[calc(3.5rem+env(safe-area-inset-top))] pt-[env(safe-area-inset-top)] border-b border-border/40 flex items-center justify-between px-5 lg:h-14 lg:pt-0 lg:px-6 sticky top-0 bg-background/60 backdrop-blur-3xl z-30">
+          <header className="h-[calc(2.75rem+env(safe-area-inset-top))] pt-[env(safe-area-inset-top)] border-b border-border/30 flex items-center justify-between px-4 lg:h-11 lg:pt-0 lg:px-5 sticky top-0 bg-background/50 backdrop-blur-3xl z-30">
             <button
               onClick={() => {
                 haptic("light");
                 setMobileOpen(true);
               }}
-              className="lg:hidden p-2 -ml-2 rounded-xl hover:bg-muted/80 active:scale-95 transition-all"
+              className="lg:hidden p-1.5 -ml-1 rounded-lg hover:bg-muted/80 active:scale-95 transition-all"
             >
-              <Menu className="w-5 h-5 text-muted-foreground hover:text-foreground transition-colors" />
+              <Menu className="w-4 h-4 text-muted-foreground hover:text-foreground transition-colors" />
             </button>
             <motion.div
               key={pathname}
@@ -338,10 +338,12 @@ export default function DashboardLayout({
                 (n) => pathname === n.href || pathname.startsWith(n.href + "/"),
               )?.label || "Dashboard"}
             </motion.div>
-            <div className="w-8" />
+            <div className="flex items-center">
+              <ThemeToggle />
+            </div>
           </header>
 
-          <main className="p-2 sm:p-3 md:p-4 lg:p-6 max-w-none lg:max-w-7xl lg:mx-auto">
+          <main className="p-1.5 sm:p-2.5 md:p-3.5 lg:p-5 max-w-none lg:max-w-7xl lg:mx-auto">
             <PullToRefresh onRefresh={handleRefresh}>{children}</PullToRefresh>
           </main>
         </div>
