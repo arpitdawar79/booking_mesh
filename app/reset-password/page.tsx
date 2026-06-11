@@ -69,8 +69,8 @@ function ResetPasswordForm() {
           animate={{ opacity: 1, scale: 1 }}
           className="relative z-10 w-full max-w-sm text-center space-y-4"
         >
-          <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mx-auto">
-            <Lock className="w-8 h-8 text-red-400" />
+          <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mx-auto">
+            <Lock className="w-8 h-8 text-destructive" />
           </div>
           <h2 className="text-2xl font-bold">Invalid Link</h2>
           <p className="text-sm text-muted-foreground">
@@ -78,7 +78,7 @@ function ResetPasswordForm() {
           </p>
           <a
             href="/forgot-password"
-            className="inline-flex items-center gap-2 text-sm text-teal-400 hover:text-teal-300 transition"
+            className="inline-flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition"
           >
             <ArrowLeft className="w-4 h-4" />
             Request new link
@@ -97,9 +97,9 @@ function ResetPasswordForm() {
           animate={{ opacity: 1, scale: 1 }}
           className="relative z-10 w-full max-w-sm text-center space-y-4"
         >
-          <div className="w-16 h-16 rounded-full bg-teal-500/10 flex items-center justify-center mx-auto">
+          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
             <svg
-              className="w-8 h-8 text-teal-400"
+              className="w-8 h-8 text-primary"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -132,7 +132,7 @@ function ResetPasswordForm() {
         className="relative z-10 w-full max-w-sm space-y-6"
       >
         <div className="text-center space-y-3">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-teal-500/10 text-teal-400 mb-2">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-primary/10 text-primary mb-2">
             <Lock className="w-6 h-6" />
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold">New Password</h1>
@@ -193,7 +193,7 @@ function ResetPasswordForm() {
             <motion.p
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
-              className="text-sm text-red-400 bg-red-500/5 rounded-lg px-3 py-2"
+              className="text-sm text-destructive bg-destructive/10 border border-destructive/15 rounded-xl px-4 py-3"
             >
               {error}
             </motion.p>

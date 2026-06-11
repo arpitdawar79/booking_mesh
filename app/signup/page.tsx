@@ -46,9 +46,9 @@ export default function SignupPage() {
           animate={{ opacity: 1, scale: 1 }}
           className="relative z-10 text-center space-y-4"
         >
-          <div className="w-16 h-16 rounded-full bg-teal-500/10 flex items-center justify-center mx-auto">
+          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
             <svg
-              className="w-8 h-8 text-teal-400"
+              className="w-8 h-8 text-primary"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -68,7 +68,7 @@ export default function SignupPage() {
           </p>
           <a
             href="/login"
-            className="inline-block mt-4 text-sm text-teal-400 hover:text-teal-300 transition"
+            className="inline-block mt-4 text-sm text-primary hover:text-primary/80 transition"
           >
             Go to Login →
           </a>
@@ -88,7 +88,7 @@ export default function SignupPage() {
         className="relative z-10 w-full max-w-sm space-y-6"
       >
         <div className="text-center space-y-3">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-teal-500/10 text-teal-400 mb-2">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-primary/10 text-primary mb-2">
             <User className="w-6 h-6" />
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold">Create Account</h1>
@@ -159,7 +159,7 @@ export default function SignupPage() {
             <motion.p
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
-              className="text-sm text-red-400 bg-red-500/5 rounded-lg px-3 py-2"
+              className="text-sm text-destructive bg-destructive/10 border border-destructive/15 rounded-xl px-4 py-3"
             >
               {error}
             </motion.p>
@@ -185,7 +185,7 @@ export default function SignupPage() {
           Already have an account?{" "}
           <a
             href="/login"
-            className="text-teal-400 hover:text-teal-300 transition"
+            className="text-primary hover:text-primary/80 transition"
           >
             Sign in
           </a>

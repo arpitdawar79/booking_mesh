@@ -50,56 +50,56 @@ export function SummaryCards({ summary, daysInMonth }: SummaryCardsProps) {
 
   const cards = [
     {
-      icon: <BedDouble className="w-4 h-4 text-teal-400" />,
+      icon: <BedDouble className="w-4 h-4 text-teal-600 dark:text-teal-400" />,
       label: "Avg Occupancy",
       value: `${occupancyPercent}%`,
       sub: `${summary.avgRooms.toFixed(1)} rooms/night`,
       color: "teal",
     },
     {
-      icon: <Users className="w-4 h-4 text-blue-400" />,
+      icon: <Users className="w-4 h-4 text-blue-600 dark:text-blue-400" />,
       label: "Total Guests",
       value: summary.totalGuests.toLocaleString("en-IN"),
       sub: `${summary.totalCheckins} check-ins`,
       color: "blue",
     },
     {
-      icon: <IndianRupee className="w-4 h-4 text-emerald-400" />,
+      icon: <IndianRupee className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />,
       label: "Room Revenue",
       value: formatCurrency(summary.totalRevenue),
       sub: `${formatCurrency(summary.avgRevenue)}/night avg`,
       color: "emerald",
     },
     {
-      icon: <TrendingUp className="w-4 h-4 text-violet-400" />,
+      icon: <TrendingUp className="w-4 h-4 text-violet-600 dark:text-violet-400" />,
       label: "ADR",
       value: formatCurrency(adr),
       sub: "Avg daily rate",
       color: "violet",
     },
     {
-      icon: <DollarSign className="w-4 h-4 text-amber-400" />,
+      icon: <DollarSign className="w-4 h-4 text-amber-600 dark:text-amber-400" />,
       label: "RevPAR",
       value: formatCurrency(revpar),
       sub: "Per available room",
       color: "amber",
     },
     {
-      icon: <ShoppingCart className="w-4 h-4 text-cyan-400" />,
+      icon: <ShoppingCart className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />,
       label: "Add-on Sales",
       value: formatCurrency(summary.totalAdditionalSales),
       sub: "Food & extras",
       color: "cyan",
     },
     {
-      icon: <Receipt className="w-4 h-4 text-rose-400" />,
+      icon: <Receipt className="w-4 h-4 text-red-600 dark:text-red-400" />,
       label: "Expenses",
       value: formatCurrency(summary.totalExpenses),
       sub: "For the month",
       color: "rose",
     },
     {
-      icon: <DoorOpen className="w-4 h-4 text-orange-400" />,
+      icon: <DoorOpen className="w-4 h-4 text-orange-600 dark:text-orange-400" />,
       label: "Movements",
       value: `${summary.totalCheckins}`,
       sub: `${summary.totalCheckouts} check-outs`,
@@ -129,7 +129,7 @@ function SummaryCard({ card, index }: { card: any; index: number }) {
     violet: "group-hover:border-violet-500/30 from-violet-500/[0.08]",
     amber: "group-hover:border-amber-500/30 from-amber-500/[0.08]",
     cyan: "group-hover:border-cyan-500/30 from-cyan-500/[0.08]",
-    rose: "group-hover:border-rose-500/30 from-rose-500/[0.08]",
+    rose: "group-hover:border-red-500/30 from-red-500/[0.08]",
     orange: "group-hover:border-orange-500/30 from-orange-500/[0.08]",
   };
 
@@ -140,7 +140,7 @@ function SummaryCard({ card, index }: { card: any; index: number }) {
       transition={{ duration: 0.4, delay: 0.15 + index * 0.03 }}
       whileHover={{ y: -2, scale: 1.01 }}
       whileTap={{ scale: 0.99 }}
-      className={`relative rounded-xl sm:rounded-2xl border border-border/60 bg-card/30 backdrop-blur-xl p-2.5 sm:p-4 space-y-1 overflow-hidden group hover:border-teal-500/20 transition-all cursor-pointer`}
+      className="relative rounded-xl sm:rounded-2xl border border-border bg-card p-2.5 sm:p-4 space-y-1 overflow-hidden group hover:border-primary/20 hover:shadow-[var(--glow-shadow)] transition-all cursor-pointer shadow-sm"
     >
       <div className={`absolute -inset-px bg-linear-to-br ${colorClasses[card.color]} via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none`} />
       <div className="relative z-10">

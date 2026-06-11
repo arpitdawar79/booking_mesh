@@ -20,12 +20,12 @@ import {
 } from "recharts";
 
 const COLORS = [
-  "#14b8a6",
-  "#3b82f6",
-  "#f59e0b",
-  "#ef4444",
-  "#8b5cf6",
-  "#ec4899",
+  "#2c4a3f", // deep spruce sage
+  "#e2c29d", // champagne gold / brass
+  "#8f7a66", // warm taupe
+  "#5c7f70", // lighter sage
+  "#c86b5c", // terracotta / rust
+  "#a39274", // clay / olive
 ];
 
 interface AnalyticsData {
@@ -200,7 +200,7 @@ export default function RevenueReportPage() {
         <div className="flex items-center gap-3">
           <Link
             href="/dashboard/analytics"
-            className="p-2 -ml-2 rounded-xl hover:bg-muted/50 transition-colors"
+            className="p-2 -ml-2 rounded-xl hover:bg-secondary transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
           </Link>
@@ -249,7 +249,7 @@ export default function RevenueReportPage() {
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
-        className="rounded-2xl border border-border/60 bg-card/10 backdrop-blur-xl overflow-x-auto"
+        className="rounded-2xl border border-border bg-card overflow-x-auto shadow-sm"
       >
         <table className="w-full text-sm">
           <thead className="bg-muted/30">
@@ -286,7 +286,7 @@ export default function RevenueReportPage() {
                 <td className="px-4 py-3 font-mono text-xs text-muted-foreground/60">
                   {formatMonth(row.month)}
                 </td>
-                <td className="px-4 py-3 text-right font-bold text-emerald-400">
+                <td className="px-4 py-3 text-right font-bold text-emerald-600 dark:text-emerald-400">
                   {formatCurrency(row.revenue)}
                 </td>
                 <td className="px-4 py-3 text-right font-medium">
@@ -306,8 +306,8 @@ export default function RevenueReportPage() {
                     <span
                       className={
                         row.change >= 0
-                          ? "text-emerald-400 font-bold"
-                          : "text-rose-400 font-bold"
+                          ? "text-emerald-600 dark:text-emerald-400 font-bold"
+                          : "text-red-600 dark:text-red-400 font-bold"
                       }
                     >
                       {row.change >= 0 ? "+" : ""}
@@ -355,10 +355,12 @@ export default function RevenueReportPage() {
               </Pie>
               <Tooltip
                 contentStyle={{
-                  background: "#1e293b",
-                  border: "1px solid #334155",
+                  background: "var(--card)",
+                  border: "1px solid var(--border)",
                   borderRadius: 8,
+                  color: "var(--card-foreground)"
                 }}
+                labelStyle={{ color: "var(--card-foreground)" }}
                 formatter={(v: any) => formatCurrency(Number(v))}
               />
             </PieChart>
@@ -368,30 +370,32 @@ export default function RevenueReportPage() {
         <ChartCard title="Payment Status" subtitle="Outstanding vs collected">
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={data.paymentStatus}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-              <XAxis dataKey="status" stroke="#94a3b8" fontSize={12} />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+              <XAxis dataKey="status" stroke="var(--muted-foreground)" fontSize={12} />
               <YAxis
-                stroke="#94a3b8"
+                stroke="var(--muted-foreground)"
                 fontSize={12}
                 tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}k`}
               />
               <Tooltip
                 contentStyle={{
-                  background: "#1e293b",
-                  border: "1px solid #334155",
+                  background: "var(--card)",
+                  border: "1px solid var(--border)",
                   borderRadius: 8,
+                  color: "var(--card-foreground)"
                 }}
+                labelStyle={{ color: "var(--card-foreground)" }}
                 formatter={(v: any) => formatCurrency(Number(v))}
               />
               <Bar
                 dataKey="revenue"
-                fill="#14b8a6"
+                fill="var(--primary)"
                 radius={[4, 4, 0, 0]}
                 name="Revenue"
               />
               <Bar
                 dataKey="outstanding"
-                fill="#ef4444"
+                fill="#b24a37"
                 radius={[4, 4, 0, 0]}
                 name="Outstanding"
               />
@@ -405,7 +409,7 @@ export default function RevenueReportPage() {
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.4 }}
-        className="rounded-2xl border border-border/60 bg-card/10 backdrop-blur-xl overflow-x-auto"
+        className="rounded-2xl border border-border bg-card overflow-x-auto shadow-sm"
       >
         <table className="w-full text-sm">
           <thead className="bg-muted/30">
@@ -454,17 +458,17 @@ export default function RevenueReportPage() {
                 <td className="px-4 py-3 text-right font-bold">
                   {formatCurrency(row.revenue + row.additionalSales)}
                 </td>
-                <td className="px-4 py-3 text-right text-rose-400 font-medium">
+                <td className="px-4 py-3 text-right text-red-600 dark:text-red-400 font-medium">
                   {formatCurrency(row.expenses)}
                 </td>
-                <td className="px-4 py-3 text-right text-rose-400 font-medium">
+                <td className="px-4 py-3 text-right text-red-600 dark:text-red-400 font-medium">
                   {formatCurrency(row.salaries)}
                 </td>
-                <td className="px-4 py-3 text-right font-bold text-rose-400">
+                <td className="px-4 py-3 text-right font-bold text-red-600 dark:text-red-400">
                   {formatCurrency(row.expenses + row.salaries)}
                 </td>
                 <td
-                  className={`px-4 py-3 text-right font-bold ${row.net >= 0 ? "text-emerald-400" : "text-rose-400"}`}
+                  className={`px-4 py-3 text-right font-bold ${row.net >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}`}
                 >
                   {formatCurrency(row.net)}
                 </td>
@@ -499,38 +503,40 @@ export default function RevenueReportPage() {
             >
               <defs>
                 <linearGradient id="curGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#14b8a6" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#14b8a6" stopOpacity={0} />
+                  <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="var(--primary)" stopOpacity={0} />
                 </linearGradient>
                 <linearGradient id="lyGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#94a3b8" stopOpacity={0.15} />
-                  <stop offset="95%" stopColor="#94a3b8" stopOpacity={0} />
+                  <stop offset="5%" stopColor="var(--muted-foreground)" stopOpacity={0.15} />
+                  <stop offset="95%" stopColor="var(--muted-foreground)" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
               <XAxis
                 dataKey="month"
                 tickFormatter={formatMonth}
-                stroke="#94a3b8"
+                stroke="var(--muted-foreground)"
                 fontSize={12}
               />
               <YAxis
-                stroke="#94a3b8"
+                stroke="var(--muted-foreground)"
                 fontSize={12}
                 tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}k`}
               />
               <Tooltip
                 contentStyle={{
-                  background: "#1e293b",
-                  border: "1px solid #334155",
+                  background: "var(--card)",
+                  border: "1px solid var(--border)",
                   borderRadius: 8,
+                  color: "var(--card-foreground)"
                 }}
+                labelStyle={{ color: "var(--card-foreground)" }}
                 formatter={(v: any) => formatCurrency(Number(v))}
               />
               <Area
                 type="monotone"
                 dataKey="current"
-                stroke="#14b8a6"
+                stroke="var(--primary)"
                 fill="url(#curGrad)"
                 strokeWidth={2}
                 name="This Year"
@@ -538,7 +544,7 @@ export default function RevenueReportPage() {
               <Area
                 type="monotone"
                 dataKey="lastYear"
-                stroke="#94a3b8"
+                stroke="var(--muted-foreground)"
                 fill="url(#lyGrad)"
                 strokeWidth={2}
                 strokeDasharray="5 5"
@@ -557,9 +563,9 @@ function Kpi({ label, value }: { label: string; value: string }) {
     <motion.div
       whileHover={{ y: -4, scale: 1.01 }}
       transition={{ type: "spring", stiffness: 350, damping: 25 }}
-      className="relative rounded-2xl border border-border/60 bg-card/20 backdrop-blur-xl p-3 sm:p-4 space-y-1 overflow-hidden group hover:border-teal-500/20 transition-colors"
+      className="relative rounded-2xl border border-border bg-card p-3 sm:p-4 space-y-1 overflow-hidden group hover:border-primary/20 transition-all shadow-sm"
     >
-      <div className="absolute -inset-px bg-linear-to-br from-teal-500/[0.07] via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+      <div className="absolute -inset-px bg-linear-to-br from-primary/[0.07] via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
       <div className="relative z-10">
         <div className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest truncate">
           {label}
@@ -582,7 +588,7 @@ function ChartCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-2xl border border-border/60 bg-card/15 backdrop-blur-xl p-4 sm:p-5 space-y-4 hover:border-teal-500/10 transition-colors">
+    <div className="rounded-2xl border border-border bg-card p-4 sm:p-5 space-y-4 hover:border-primary/20 transition-all shadow-sm">
       <div>
         <h3 className="font-bold text-sm sm:text-base">{title}</h3>
         <p className="text-xs text-muted-foreground/70 font-medium">

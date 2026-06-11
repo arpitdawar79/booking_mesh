@@ -93,9 +93,9 @@ export function GuestStep({
         </div>
 
         {/* Room configuration - high-fidelity interactive cards */}
-        <div className="rounded-3xl border border-white/5 bg-white/1 p-4 sm:p-5 space-y-4 sm:space-y-5">
+        <div className="rounded-3xl border border-border bg-card p-4 sm:p-5 space-y-4 sm:space-y-5">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-teal-500/10 border border-teal-500/15 flex items-center justify-center text-teal-400">
+            <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
               <BedDouble className="w-4.5 h-4.5" />
             </div>
             <div>
@@ -110,7 +110,7 @@ export function GuestStep({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             {/* Custom Rooms Option */}
-            <Ripple color="rgba(20,184,166,0.18)" className="rounded-2xl">
+            <Ripple color="var(--glow-color)" className="rounded-2xl">
               <button
                 type="button"
                 onClick={() => {
@@ -120,14 +120,14 @@ export function GuestStep({
                 className={cn(
                   "relative w-full text-left p-4 rounded-2xl border transition-all duration-300 flex items-start gap-3.5 group cursor-pointer",
                   !isFullProperty
-                    ? "border-teal-500/30 bg-teal-500/5 shadow-[0_0_24px_-6px_rgba(20,184,166,0.2)]"
-                    : "border-white/6 bg-transparent hover:bg-white/2 hover:border-white/10",
+                    ? "border-primary/30 bg-primary/5 shadow-[0_0_24px_-6px_var(--glow-color)]"
+                    : "border-border bg-transparent hover:bg-muted/10 hover:border-border/80",
                 )}
               >
                 {!isFullProperty && (
                   <motion.div
                     layoutId="activeCategoryBorder"
-                    className="absolute inset-0 rounded-2xl border border-teal-500/40 pointer-events-none"
+                    className="absolute inset-0 rounded-2xl border border-primary/40 pointer-events-none"
                     transition={{ type: "spring", stiffness: 380, damping: 30 }}
                   />
                 )}
@@ -135,8 +135,8 @@ export function GuestStep({
                   className={cn(
                     "w-10 h-10 rounded-xl flex items-center justify-center transition-colors duration-300 shrink-0 mt-0.5",
                     !isFullProperty
-                      ? "bg-teal-500/15 text-teal-400 shadow-[0_0_14px_-4px_rgba(20,184,166,0.3)]"
-                      : "bg-white/4 text-muted-foreground/50 group-hover:text-foreground",
+                      ? "bg-primary/15 text-primary shadow-[0_0_14px_-4px_var(--glow-color)]"
+                      : "bg-muted/30 text-muted-foreground/50 group-hover:text-foreground",
                   )}
                 >
                   <BedDouble className="w-4.5 h-4.5" />
@@ -146,7 +146,7 @@ export function GuestStep({
                     className={cn(
                       "text-xs font-extrabold uppercase tracking-wider",
                       !isFullProperty
-                        ? "text-teal-400"
+                        ? "text-primary"
                         : "text-muted-foreground/70",
                     )}
                   >
@@ -160,7 +160,7 @@ export function GuestStep({
             </Ripple>
 
             {/* Full Property Option */}
-            <Ripple color="rgba(20,184,166,0.18)" className="rounded-2xl">
+            <Ripple color="var(--glow-color)" className="rounded-2xl">
               <button
                 type="button"
                 onClick={() => {
@@ -170,14 +170,14 @@ export function GuestStep({
                 className={cn(
                   "relative w-full text-left p-4 rounded-2xl border transition-all duration-300 flex items-start gap-3.5 group cursor-pointer",
                   isFullProperty
-                    ? "border-teal-500/30 bg-teal-500/5 shadow-[0_0_24px_-6px_rgba(20,184,166,0.2)]"
-                    : "border-white/6 bg-transparent hover:bg-white/2 hover:border-white/10",
+                    ? "border-primary/30 bg-primary/5 shadow-[0_0_24px_-6px_var(--glow-color)]"
+                    : "border-border bg-transparent hover:bg-muted/10 hover:border-border/80",
                 )}
               >
                 {isFullProperty && (
                   <motion.div
                     layoutId="activeCategoryBorder"
-                    className="absolute inset-0 rounded-2xl border border-teal-500/40 pointer-events-none"
+                    className="absolute inset-0 rounded-2xl border border-primary/40 pointer-events-none"
                     transition={{ type: "spring", stiffness: 380, damping: 30 }}
                   />
                 )}
@@ -185,8 +185,8 @@ export function GuestStep({
                   className={cn(
                     "w-10 h-10 rounded-xl flex items-center justify-center transition-colors duration-300 shrink-0 mt-0.5",
                     isFullProperty
-                      ? "bg-teal-500/15 text-teal-400 shadow-[0_0_14px_-4px_rgba(20,184,166,0.3)]"
-                      : "bg-white/4 text-muted-foreground/50 group-hover:text-foreground",
+                      ? "bg-primary/15 text-primary shadow-[0_0_14px_-4px_var(--glow-color)]"
+                      : "bg-muted/30 text-muted-foreground/50 group-hover:text-foreground",
                   )}
                 >
                   <Home className="w-4.5 h-4.5" />
@@ -196,7 +196,7 @@ export function GuestStep({
                     className={cn(
                       "text-xs font-extrabold uppercase tracking-wider",
                       isFullProperty
-                        ? "text-teal-400"
+                        ? "text-primary"
                         : "text-muted-foreground/70",
                     )}
                   >
@@ -225,7 +225,7 @@ export function GuestStep({
                     Number of Rooms
                   </label>
                   <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-1 p-1.5 rounded-2xl border border-white/[0.07] bg-[#0e0e0e]/90">
+                    <div className="flex items-center gap-1 p-1.5 rounded-2xl border border-border bg-card">
                       <motion.button
                         type="button"
                         whileTap={{ scale: 0.9 }}
@@ -237,10 +237,10 @@ export function GuestStep({
                         }}
                         disabled={roomCount <= 1}
                         className={cn(
-                          "w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-200",
+                          "w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-200 border border-border/40",
                           roomCount <= 1
-                            ? "text-muted-foreground/15 cursor-not-allowed"
-                            : "bg-white/5 text-foreground hover:bg-white/10",
+                            ? "text-muted-foreground/20 bg-secondary/30 cursor-not-allowed border-transparent"
+                            : "bg-secondary text-foreground hover:bg-muted active:bg-accent/50",
                         )}
                       >
                         <Minus className="w-3.5 h-3.5" />
@@ -265,10 +265,10 @@ export function GuestStep({
                         }}
                         disabled={roomCount >= 8}
                         className={cn(
-                          "w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-200",
+                          "w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-200 border border-border/40",
                           roomCount >= 8
-                            ? "text-muted-foreground/15 cursor-not-allowed"
-                            : "bg-white/5 text-foreground hover:bg-white/10",
+                            ? "text-muted-foreground/20 bg-secondary/30 cursor-not-allowed border-transparent"
+                            : "bg-secondary text-foreground hover:bg-muted active:bg-accent/50",
                         )}
                       >
                         <Plus className="w-3.5 h-3.5" />
@@ -285,7 +285,7 @@ export function GuestStep({
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="pt-2.5 flex items-center gap-2 text-xs text-teal-400 font-extrabold bg-teal-500/5 border border-teal-500/10 rounded-2xl px-4 py-3 animate-in fade-in duration-200"
+                className="pt-2.5 flex items-center gap-2 text-xs text-primary font-extrabold bg-primary/5 border border-primary/10 rounded-2xl px-4 py-3 animate-in fade-in duration-200"
               >
                 <ClipboardCheck className="w-4 h-4 shrink-0 animate-pulse" />
                 <span>
@@ -297,12 +297,12 @@ export function GuestStep({
         </div>
 
         {/* Guests Count Display */}
-        <div className="rounded-3xl border border-white/5 bg-white/1 p-4 sm:p-5 space-y-4">
+        <div className="rounded-3xl border border-border bg-card p-4 sm:p-5 space-y-4">
           <div className="flex items-center justify-between">
             <span className="text-sm font-black tracking-tight">
               Group Details
             </span>
-            <span className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-wider bg-white/4 px-2.5 py-0.5 rounded-lg">
+            <span className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-wider bg-muted/40 px-2.5 py-0.5 rounded-lg">
               Auto-filled from rooms
             </span>
           </div>

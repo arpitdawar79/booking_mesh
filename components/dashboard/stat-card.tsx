@@ -16,11 +16,9 @@ export function StatCard({
   return (
     <MagicCard className="p-3 sm:p-4" borderBeam backlight>
       <div className="space-y-2.5">
-        <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-lg bg-muted/30 border border-border/50 group-hover:scale-105 group-hover:border-teal-500/20 transition-all duration-300 shrink-0">
-            {icon}
-          </div>
-          <span className="text-[9px] font-bold text-muted-foreground/60 uppercase tracking-widest truncate">
+        <div className="flex items-center gap-2.5">
+          {icon}
+          <span className="text-[10px] font-extrabold text-foreground/75 dark:text-foreground/60 uppercase tracking-widest truncate">
             {label}
           </span>
         </div>

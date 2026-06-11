@@ -37,7 +37,7 @@ export default function ForgotPasswordPage() {
     return (
       <main className="relative min-h-screen flex items-center justify-center bg-background px-4 py-16 overflow-hidden">
         <AnimatedGrid />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[450px] bg-teal-500/10 blur-[100px] rounded-full pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[450px] bg-primary/10 blur-[100px] rounded-full pointer-events-none" />
 
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
@@ -47,20 +47,20 @@ export default function ForgotPasswordPage() {
         >
           {/* Glass Card for success */}
           <div className="relative rounded-3xl border border-border/80 bg-card/30 backdrop-blur-xl p-8 shadow-2xl overflow-hidden">
-            <div className="w-16 h-16 rounded-2xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center mx-auto mb-4">
-              <Mail className="w-8 h-8 text-teal-400" />
+            <div className="w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto mb-4">
+              <Mail className="w-8 h-8 text-primary" />
             </div>
             <h2 className="text-2xl font-bold tracking-tight text-foreground">
               Check your email
             </h2>
             <p className="text-sm text-muted-foreground/80 font-medium leading-relaxed mt-2 mb-6">
               If an account exists for{" "}
-              <span className="text-teal-400 font-semibold">{email}</span>,
+              <span className="text-primary font-semibold">{email}</span>,
               we&apos;ve dispatched recovery instructions.
             </p>
             <Link
               href="/login"
-              className="inline-flex items-center gap-2 text-sm font-semibold text-teal-400 hover:text-teal-300 transition-colors"
+              className="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:text-primary/80 transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
               <span>Back to login screen</span>
@@ -75,7 +75,7 @@ export default function ForgotPasswordPage() {
     <main className="relative min-h-screen flex items-center justify-center bg-background px-4 py-16 overflow-hidden">
       {/* Premium Ambient Grid and Blur Aura */}
       <AnimatedGrid />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[450px] bg-teal-500/10 blur-[100px] rounded-full pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[450px] bg-primary/10 blur-[100px] rounded-full pointer-events-none" />
 
       <motion.div
         initial={{ opacity: 0, y: 30, scale: 0.98 }}
@@ -87,7 +87,7 @@ export default function ForgotPasswordPage() {
         <div className="text-center space-y-3">
           <motion.div
             whileHover={{ scale: 1.05, rotate: -3 }}
-            className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-teal-500/10 border border-teal-500/20 text-teal-400 mb-2 shadow-sm"
+            className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary/10 border border-primary/20 text-primary mb-2 shadow-sm"
           >
             <Mail className="w-6 h-6 animate-pulse" />
           </motion.div>
@@ -95,14 +95,14 @@ export default function ForgotPasswordPage() {
             Reset Password
           </h1>
           <p className="text-xs font-bold text-muted-foreground/80 uppercase tracking-widest flex items-center justify-center gap-1.5">
-            <Sparkles className="w-3.5 h-3.5 text-teal-400" />
+            <Sparkles className="w-3.5 h-3.5 text-primary" />
             <span>Identity Verification</span>
           </p>
         </div>
 
         {/* Studio-Grade Glassmorphic Form Card */}
-        <div className="relative rounded-3xl border border-border/80 bg-card/30 backdrop-blur-xl p-6 sm:p-8 shadow-2xl overflow-hidden group hover:border-teal-500/20 transition-all duration-500">
-          <div className="absolute -inset-px bg-linear-to-br from-teal-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+        <div className="relative rounded-3xl border border-border/80 bg-card/30 backdrop-blur-xl p-6 sm:p-8 shadow-2xl overflow-hidden group hover:border-primary/20 transition-all duration-500">
+          <div className="absolute -inset-px bg-linear-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
           <form onSubmit={handleSubmit} className="space-y-5 relative z-10">
             <div className="space-y-1.5">
@@ -110,13 +110,13 @@ export default function ForgotPasswordPage() {
                 Email Address
               </label>
               <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-muted-foreground transition-colors group-focus-within:text-teal-400" />
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-muted-foreground transition-colors group-focus-within:text-primary" />
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="w-full rounded-xl border border-input/60 bg-muted/20 pl-11 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/40 focus:border-teal-500/40 transition"
+                  className="w-full rounded-xl border border-input/60 bg-muted/20 pl-11 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/40 transition"
                   placeholder="admin@ekantah.com"
                 />
               </div>
@@ -126,7 +126,7 @@ export default function ForgotPasswordPage() {
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="text-xs font-semibold text-rose-400 bg-rose-500/10 border border-rose-500/15 rounded-xl px-4 py-3"
+                className="text-xs font-semibold text-destructive bg-destructive/10 border border-destructive/15 rounded-xl px-4 py-3"
               >
                 {error}
               </motion.div>

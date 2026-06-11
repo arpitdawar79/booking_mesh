@@ -2,6 +2,7 @@
 
 import { Pagination } from "@/components/ui/pagination";
 import { SlideOver } from "@/components/ui/slide-over";
+import { MagicCard } from "@/components/ui/magic-card";
 import { useToast } from "@/components/ui/toast";
 import {
     CalendarDays,
@@ -201,17 +202,17 @@ export default function AdditionalSalesPage() {
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <SummaryCard
-          icon={<ClipboardList className="w-5 h-5 text-teal-400" />}
+          icon={<ClipboardList className="w-5 h-5 text-primary" />}
           label="Total Entries"
           value={total}
         />
         <SummaryCard
-          icon={<IndianRupee className="w-5 h-5 text-emerald-400" />}
+          icon={<IndianRupee className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />}
           label="Total Amount"
           value={fmtCurrency(totalAmount)}
         />
         <SummaryCard
-          icon={<CalendarDays className="w-5 h-5 text-blue-400" />}
+          icon={<CalendarDays className="w-5 h-5 text-blue-600 dark:text-blue-400" />}
           label="Period"
           value={month || "All time"}
         />
@@ -242,67 +243,71 @@ export default function AdditionalSalesPage() {
         </div>
       ) : (
         <>
-          <div className="overflow-x-auto rounded-xl border border-border">
-            <table className="w-full text-sm">
-              <thead className="bg-muted/50">
-                <tr>
-                  <th className="text-left px-4 py-3 font-medium">Date</th>
-                  <th className="text-left px-4 py-3 font-medium">Guest</th>
-                  <th className="text-left px-4 py-3 font-medium">Sale Type</th>
-                  <th className="text-left px-4 py-3 font-medium">
-                    Guest Type
-                  </th>
-                  <th className="text-left px-4 py-3 font-medium">Amount</th>
-                  <th className="text-left px-4 py-3 font-medium">Method</th>
-                  <th className="text-left px-4 py-3 font-medium">Notes</th>
-                  <th className="text-left px-4 py-3 font-medium">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {sales.map((s) => (
-                  <tr key={s.id} className="hover:bg-muted/30">
-                    <td className="px-4 py-3 text-muted-foreground">
-                      {fmtDate(s.date)}
-                    </td>
-                    <td className="px-4 py-3">{s.guestName}</td>
-                    <td className="px-4 py-3 capitalize">
-                      {fmtLabel(s.saleType)}
-                    </td>
-                    <td className="px-4 py-3 capitalize">
-                      {fmtLabel(s.guestType)}
-                    </td>
-                    <td className="px-4 py-3 font-medium">
-                      {fmtCurrency(Number(s.amount))}
-                    </td>
-                    <td className="px-4 py-3 text-muted-foreground uppercase">
-                      {s.paymentMethod}
-                    </td>
-                    <td className="px-4 py-3 text-muted-foreground">
-                      {s.notes || "—"}
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={() => openEdit(s.id)}
-                          className="p-1.5 rounded-md hover:bg-muted transition"
-                          title="Edit"
-                        >
-                          <Pencil className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(s.id)}
-                          className="p-1.5 rounded-md hover:bg-muted transition text-red-400"
-                          title="Delete"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </td>
+          <MagicCard className="overflow-visible" backlight>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr>
+                    <th className="text-left">Date</th>
+                    <th className="text-left">Guest</th>
+                    <th className="text-left">Sale Type</th>
+                    <th className="text-left">Guest Type</th>
+                    <th className="text-left">Amount</th>
+                    <th className="text-left">Method</th>
+                    <th className="text-left">Notes</th>
+                    <th className="text-left">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {sales.map((s) => (
+                    <tr key={s.id}>
+                      <td className="text-muted-foreground">
+                        {fmtDate(s.date)}
+                      </td>
+                      <td className="font-semibold">{s.guestName}</td>
+                      <td>
+                        <span className="rounded-full bg-muted border border-border px-2 py-0.5 text-[10px] font-bold text-muted-foreground">
+                          {fmtLabel(s.saleType)}
+                        </span>
+                      </td>
+                      <td>
+                        <span className="rounded-full bg-muted/50 border border-border/80 px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                          {fmtLabel(s.guestType)}
+                        </span>
+                      </td>
+                      <td className="font-bold text-emerald-600 dark:text-emerald-400">
+                        {fmtCurrency(Number(s.amount))}
+                      </td>
+                      <td className="text-muted-foreground uppercase text-xs">
+                        {s.paymentMethod}
+                      </td>
+                      <td className="text-muted-foreground">
+                        {s.notes || "—"}
+                      </td>
+                      <td>
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => openEdit(s.id)}
+                            className="p-1.5 rounded hover:bg-muted/50 transition"
+                            title="Edit"
+                          >
+                            <Pencil className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(s.id)}
+                            className="p-1.5 rounded hover:bg-muted/50 transition text-rose-600 hover:text-rose-400"
+                            title="Delete"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </MagicCard>
           <Pagination
             page={page}
             totalPages={totalPages}
@@ -325,15 +330,19 @@ function SummaryCard({
   value: string | number;
 }) {
   return (
-    <div className="rounded-lg border border-border p-3 sm:p-4 space-y-2">
-      <div className="flex items-center gap-2">
-        {icon}
-        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-          {label}
-        </span>
+    <MagicCard className="p-3 sm:p-3.5">
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <div className="p-1 rounded bg-muted/20 border border-border/40 shrink-0">
+            {icon}
+          </div>
+          <span className="text-[9px] font-bold text-muted-foreground/60 uppercase tracking-widest truncate">
+            {label}
+          </span>
+        </div>
+        <div className="text-lg font-black tracking-tight text-foreground pl-0.5">{value}</div>
       </div>
-      <div className="text-xl font-bold">{value}</div>
-    </div>
+    </MagicCard>
   );
 }
 
@@ -437,20 +446,20 @@ function SaleForm({
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-xs font-medium mb-1">
-            Date <span className="text-red-400">*</span>
+          <label className="block text-xs font-semibold text-muted-foreground mb-1">
+            Date <span className="text-rose-600 dark:text-rose-400">*</span>
           </label>
           <input
             type="date"
             required
             value={formData.date}
             onChange={(e) => update("date", e.target.value)}
-            className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 text-foreground"
           />
         </div>
         <div>
-          <label className="block text-xs font-medium mb-1">
-            Guest Name <span className="text-red-400">*</span>
+          <label className="block text-xs font-semibold text-muted-foreground mb-1">
+            Guest Name <span className="text-rose-600 dark:text-rose-400">*</span>
           </label>
           <input
             id="sale-guest"
@@ -458,47 +467,47 @@ function SaleForm({
             required
             value={formData.guestName}
             onChange={(e) => update("guestName", e.target.value)}
-            className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 text-foreground"
             placeholder="Who is this for?"
           />
         </div>
         <div>
-          <label className="block text-xs font-medium mb-1">
-            Sale Type <span className="text-red-400">*</span>
+          <label className="block text-xs font-semibold text-muted-foreground mb-1">
+            Sale Type <span className="text-rose-600 dark:text-rose-400">*</span>
           </label>
           <select
             required
             value={formData.saleType}
             onChange={(e) => update("saleType", e.target.value)}
-            className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 text-foreground"
           >
             {SALE_TYPE_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>
+              <option key={o.value} value={o.value} className="bg-card text-foreground">
                 {o.label}
               </option>
             ))}
           </select>
         </div>
         <div>
-          <label className="block text-xs font-medium mb-1">
-            Guest Type <span className="text-red-400">*</span>
+          <label className="block text-xs font-semibold text-muted-foreground mb-1">
+            Guest Type <span className="text-rose-600 dark:text-rose-400">*</span>
           </label>
           <select
             required
             value={formData.guestType}
             onChange={(e) => update("guestType", e.target.value)}
-            className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 text-foreground"
           >
             {GUEST_TYPE_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>
+              <option key={o.value} value={o.value} className="bg-card text-foreground">
                 {o.label}
               </option>
             ))}
           </select>
         </div>
         <div>
-          <label className="block text-xs font-medium mb-1">
-            Amount <span className="text-red-400">*</span>
+          <label className="block text-xs font-semibold text-muted-foreground mb-1">
+            Amount <span className="text-rose-600 dark:text-rose-400">*</span>
           </label>
           <input
             type="number"
@@ -507,20 +516,20 @@ function SaleForm({
             step="0.01"
             value={formData.amount}
             onChange={(e) => update("amount", e.target.value)}
-            className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 text-foreground"
           />
         </div>
         <div>
-          <label className="block text-xs font-medium mb-1">
+          <label className="block text-xs font-semibold text-muted-foreground mb-1">
             Payment Method
           </label>
           <select
             value={formData.paymentMethod}
             onChange={(e) => update("paymentMethod", e.target.value)}
-            className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 text-foreground"
           >
             {PAYMENT_OPTIONS.map((m) => (
-              <option key={m} value={m}>
+              <option key={m} value={m} className="bg-card text-foreground">
                 {m.toUpperCase()}
               </option>
             ))}
@@ -528,12 +537,12 @@ function SaleForm({
         </div>
       </div>
       <div>
-        <label className="block text-xs font-medium mb-1">Notes</label>
+        <label className="block text-xs font-semibold text-muted-foreground mb-1">Notes</label>
         <input
           type="text"
           value={formData.notes}
           onChange={(e) => update("notes", e.target.value)}
-          className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+          className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 text-foreground"
           placeholder="Optional notes..."
         />
       </div>
@@ -549,7 +558,7 @@ function SaleForm({
         <button
           type="button"
           onClick={onClose}
-          className="rounded-lg border border-border px-4 py-2 text-xs font-medium hover:bg-muted transition"
+          className="rounded-lg border border-border bg-muted/50 px-4 py-2 text-xs font-medium text-foreground hover:bg-muted transition"
         >
           Cancel
         </button>

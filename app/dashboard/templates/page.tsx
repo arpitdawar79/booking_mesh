@@ -40,7 +40,7 @@ export default function TemplatesPage() {
         <button
           onClick={handlePreview}
           disabled={loading}
-          className="rounded-xl bg-foreground text-background px-4 py-2.5 text-sm font-semibold hover:opacity-90 disabled:opacity-50 active:scale-[0.98] transition"
+          className="rounded-xl bg-primary text-primary-foreground px-4 py-2.5 text-sm font-semibold hover:opacity-90 disabled:opacity-50 active:scale-[0.98] transition shadow-sm"
         >
           {loading ? "Loading..." : "Preview"}
         </button>

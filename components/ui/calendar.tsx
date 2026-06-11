@@ -160,7 +160,7 @@ function CalendarPopover({
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -8, scale: 0.97 }}
       transition={{ type: "spring", stiffness: 400, damping: 30 }}
-      className="absolute left-0 right-0 top-full mt-2 z-50 rounded-2xl border border-white/10 bg-[#171717] shadow-[0_32px_80px_rgba(0,0,0,0.55)] overflow-hidden"
+      className="absolute left-0 right-0 top-full mt-2 z-50 rounded-2xl border border-border bg-card shadow-[0_32px_80px_rgba(0,0,0,0.12)] dark:shadow-[0_32px_80px_rgba(0,0,0,0.55)] overflow-hidden"
       style={{ minWidth: 280 }}
     >
       {/* Header */}
@@ -168,7 +168,7 @@ function CalendarPopover({
         <button
           type="button"
           onClick={goPrev}
-          className="w-8 h-8 rounded-xl flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-white/5 transition-all"
+          className="w-8 h-8 rounded-xl flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary transition-all"
         >
           <ChevronLeft className="w-4 h-4" />
         </button>
@@ -189,7 +189,7 @@ function CalendarPopover({
         <button
           type="button"
           onClick={goNext}
-          className="w-8 h-8 rounded-xl flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-white/5 transition-all"
+          className="w-8 h-8 rounded-xl flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary transition-all"
         >
           <ChevronRight className="w-4 h-4" />
         </button>
@@ -200,7 +200,7 @@ function CalendarPopover({
         {WEEKDAYS.map((wd) => (
           <div
             key={wd}
-            className="text-center text-[10px] font-bold uppercase tracking-wider text-muted-foreground/50 py-1.5"
+            className="text-center text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60 py-1.5"
           >
             {wd}
           </div>
@@ -250,22 +250,22 @@ function CalendarPopover({
                       !rangeStartDay &&
                       !rangeEndDay &&
                       !inRange &&
-                      "text-foreground hover:bg-white/8",
+                      "text-foreground hover:bg-secondary",
                     today &&
                       !selected &&
                       !rangeStartDay &&
                       !rangeEndDay &&
-                      "text-sky-400 font-bold",
+                      "text-primary font-bold bg-primary/10",
                     inRange &&
                       !rangeStartDay &&
                       !rangeEndDay &&
-                      "bg-white/5 text-foreground rounded-none",
+                      "bg-primary/10 dark:bg-primary/20 text-foreground rounded-none",
                     (rangeStartDay || rangeEndDay) &&
-                      "bg-teal-500 text-background font-bold shadow-[0_0_16px_-4px_rgba(20,184,166,0.5)]",
+                      "bg-primary text-primary-foreground font-bold shadow-[0_0_16px_-4px_var(--glow-color)]",
                     selected &&
                       !rangeStartDay &&
                       !rangeEndDay &&
-                      "bg-white text-background font-bold shadow-[0_0_16px_-4px_rgba(255,255,255,0.2)]",
+                      "bg-primary text-primary-foreground font-bold shadow-[0_0_16px_-4px_var(--glow-color)]",
                   )}
                   style={{
                     borderRadius:
@@ -284,7 +284,7 @@ function CalendarPopover({
                 >
                   {format(day, "d")}
                   {today && !selected && !rangeStartDay && !rangeEndDay && (
-                    <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-sky-400" />
+                    <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary" />
                   )}
                 </button>
               );
@@ -317,7 +317,7 @@ export function DatePicker({
   return (
     <div className="flex flex-col gap-2">
       {label && (
-        <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/60">
+        <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/85 dark:text-muted-foreground/60">
           {label}
         </label>
       )}
@@ -325,7 +325,7 @@ export function DatePicker({
         <EffectiveIcon
           className={cn(
             "absolute left-4 w-4.5 h-4.5 transition-colors duration-300 pointer-events-none z-10",
-            open ? "text-teal-400" : "text-muted-foreground/35",
+            open ? "text-primary" : "text-muted-foreground/50",
           )}
         />
         <button
@@ -335,10 +335,10 @@ export function DatePicker({
             haptic("light");
           }}
           className={cn(
-            "w-full rounded-2xl border bg-[#0c0c0c]/90 pl-12 pr-4 py-3.5 text-sm font-medium text-left transition-all duration-300 focus:outline-none",
+            "w-full rounded-2xl border bg-secondary/50 dark:bg-secondary/30 pl-12 pr-4 py-3.5 text-sm font-medium text-left transition-all duration-300 focus:outline-none shadow-xs",
             open
-              ? "border-teal-500/40 shadow-[0_0_24px_-6px_rgba(20,184,166,0.2)] ring-1 ring-teal-500/15"
-              : "border-white/[0.07] hover:border-white/15",
+              ? "border-primary/50 bg-card shadow-[var(--glow-shadow)] ring-2 ring-primary/20"
+              : "border-border hover:border-border/80",
             !value && "text-muted-foreground/45",
             value && "text-foreground",
           )}

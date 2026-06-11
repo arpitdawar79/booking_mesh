@@ -156,7 +156,7 @@ export default function CalendarAnalyticsPage() {
         <div className="flex items-center gap-3">
           <Link
             href="/dashboard/analytics"
-            className="p-2 -ml-2 rounded-xl hover:bg-muted/50 transition-colors"
+            className="p-2 -ml-2 rounded-xl hover:bg-secondary transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
           </Link>
@@ -172,22 +172,22 @@ export default function CalendarAnalyticsPage() {
         <div className="flex items-center gap-1.5 sm:gap-2">
           <button
             onClick={goPrevMonth}
-            className="p-2 rounded-xl border border-border/60 bg-card/20 backdrop-blur-xl hover:bg-muted/50 hover:border-teal-500/20 transition-all"
+            className="p-2 rounded-xl border border-border bg-card hover:bg-secondary hover:border-primary/20 transition-all shadow-sm"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
-          <div className="px-3 sm:px-4 py-2 rounded-xl border border-border/60 bg-card/20 backdrop-blur-xl font-bold min-w-[140px] sm:min-w-[160px] text-center text-sm">
+          <div className="px-3 sm:px-4 py-2 rounded-xl border border-border bg-card font-bold min-w-[140px] sm:min-w-[160px] text-center text-sm shadow-sm">
             {MONTH_NAMES[month - 1]} {year}
           </div>
           <button
             onClick={goNextMonth}
-            className="p-2 rounded-xl border border-border/60 bg-card/20 backdrop-blur-xl hover:bg-muted/50 hover:border-teal-500/20 transition-all"
+            className="p-2 rounded-xl border border-border bg-card hover:bg-secondary hover:border-primary/20 transition-all shadow-sm"
           >
             <ChevronRight className="w-4 h-4" />
           </button>
           <button
             onClick={goToday}
-            className="px-3 py-2 rounded-xl border border-border/60 bg-card/20 backdrop-blur-xl text-xs sm:text-sm font-bold hover:bg-muted/50 hover:border-teal-500/20 transition-all"
+            className="px-3 py-2 rounded-xl border border-border bg-card text-xs sm:text-sm font-bold hover:bg-secondary hover:border-primary/20 transition-all shadow-sm"
           >
             Today
           </button>

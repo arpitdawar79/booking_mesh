@@ -68,7 +68,7 @@ function NavButton({
     "min-w-14 h-14 px-1 rounded-xl",
     "select-none",
     "transition-colors duration-200",
-    isActive ? "text-teal-400" : "text-muted-foreground hover:text-foreground",
+    isActive ? "text-primary" : "text-muted-foreground hover:text-foreground",
   );
 
   const sharedStyle = {
@@ -81,12 +81,12 @@ function NavButton({
       {isActive && (
         <motion.div
           layoutId="activeBottomNavTab"
-          className="absolute inset-x-1.5 inset-y-1 rounded-2xl bg-teal-500/10 border border-teal-500/15 -z-10"
+          className="absolute inset-x-1.5 inset-y-1 rounded-2xl bg-primary/10 border border-primary/15 -z-10"
           transition={{ type: "spring", stiffness: 380, damping: 30 }}
         />
       )}
       {isActive && (
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-1 bg-teal-400 blur-sm rounded-full" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-1 bg-primary/40 blur-sm rounded-full" />
       )}
       <motion.span
         animate={isActive ? { scale: 1.15 } : { scale: 1 }}

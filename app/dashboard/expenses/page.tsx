@@ -215,17 +215,17 @@ export default function ExpensesPage() {
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <SummaryCard
-          icon={<ClipboardList className="w-5 h-5 text-teal-400" />}
+          icon={<ClipboardList className="w-5 h-5 text-primary" />}
           label="Total Entries"
           value={total}
         />
         <SummaryCard
-          icon={<IndianRupee className="w-5 h-5 text-emerald-400" />}
+          icon={<IndianRupee className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />}
           label="Total Amount"
           value={fmtCurrency(totalAmount)}
         />
         <SummaryCard
-          icon={<CalendarDays className="w-5 h-5 text-blue-400" />}
+          icon={<CalendarDays className="w-5 h-5 text-blue-600 dark:text-blue-400" />}
           label="Period"
           value={month || "All time"}
         />
@@ -275,12 +275,14 @@ export default function ExpensesPage() {
                     <tr key={e.id}>
                       <td className="text-muted-foreground">{fmtDate(e.date)}</td>
                       <td>
-                        <span className="rounded-full bg-zinc-900 border border-zinc-800 px-2 py-0.5 text-[10px] font-bold">
+                        <span className="rounded-full bg-muted border border-border px-2 py-0.5 text-[10px] font-bold text-muted-foreground">
                           {CATEGORY_LABELS[e.category] || e.category}
                         </span>
                       </td>
                       <td className="font-medium">{e.description}</td>
-                      <td className="font-bold text-rose-400">{fmtCurrency(Number(e.amount))}</td>
+                      <td className="font-bold text-rose-600 dark:text-rose-400">
+                        {fmtCurrency(Number(e.amount))}
+                      </td>
                       <td className="text-muted-foreground capitalize text-xs">
                         {e.paymentMethod.replace("_", " ")}
                       </td>
@@ -451,37 +453,37 @@ function ExpenseForm({
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-xs font-medium mb-1">
-            Date <span className="text-red-400">*</span>
+          <label className="block text-xs font-semibold text-muted-foreground mb-1">
+            Date <span className="text-rose-600 dark:text-rose-400">*</span>
           </label>
           <input
             type="date"
             required
             value={formData.date}
             onChange={(e) => update("date", e.target.value)}
-            className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 text-foreground"
           />
         </div>
         <div>
-          <label className="block text-xs font-medium mb-1">
-            Category <span className="text-red-400">*</span>
+          <label className="block text-xs font-semibold text-muted-foreground mb-1">
+            Category <span className="text-rose-600 dark:text-rose-400">*</span>
           </label>
           <select
             required
             value={formData.category}
             onChange={(e) => update("category", e.target.value)}
-            className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 text-foreground"
           >
             {CATEGORY_OPTIONS.map((c) => (
-              <option key={c.value} value={c.value}>
+              <option key={c.value} value={c.value} className="bg-card text-foreground">
                 {c.label}
               </option>
             ))}
           </select>
         </div>
         <div>
-          <label className="block text-xs font-medium mb-1">
-            Amount <span className="text-red-400">*</span>
+          <label className="block text-xs font-semibold text-muted-foreground mb-1">
+            Amount <span className="text-rose-600 dark:text-rose-400">*</span>
           </label>
           <input
             type="number"
@@ -490,20 +492,20 @@ function ExpenseForm({
             step="0.01"
             value={formData.amount}
             onChange={(e) => update("amount", e.target.value)}
-            className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 text-foreground"
           />
         </div>
         <div>
-          <label className="block text-xs font-medium mb-1">
+          <label className="block text-xs font-semibold text-muted-foreground mb-1">
             Payment Method
           </label>
           <select
             value={formData.paymentMethod}
             onChange={(e) => update("paymentMethod", e.target.value)}
-            className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 text-foreground"
           >
             {PAYMENT_OPTIONS.map((m) => (
-              <option key={m} value={m}>
+              <option key={m} value={m} className="bg-card text-foreground">
                 {m.replace("_", " ")}
               </option>
             ))}
@@ -511,8 +513,8 @@ function ExpenseForm({
         </div>
       </div>
       <div>
-        <label className="block text-xs font-medium mb-1">
-          Description <span className="text-red-400">*</span>
+        <label className="block text-xs font-semibold text-muted-foreground mb-1">
+          Description <span className="text-rose-600 dark:text-rose-400">*</span>
         </label>
         <input
           id="expense-description"
@@ -520,37 +522,37 @@ function ExpenseForm({
           required
           value={formData.description}
           onChange={(e) => update("description", e.target.value)}
-          className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+          className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 text-foreground"
           placeholder="What was this expense for?"
         />
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-xs font-medium mb-1">Recorded By</label>
+          <label className="block text-xs font-semibold text-muted-foreground mb-1">Recorded By</label>
           <input
             type="text"
             value={formData.recordedBy}
             onChange={(e) => update("recordedBy", e.target.value)}
-            className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 text-foreground"
           />
         </div>
         <div>
-          <label className="block text-xs font-medium mb-1">Receipt URL</label>
+          <label className="block text-xs font-semibold text-muted-foreground mb-1">Receipt URL</label>
           <input
             type="url"
             value={formData.receiptUrl}
             onChange={(e) => update("receiptUrl", e.target.value)}
-            className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 text-foreground"
           />
         </div>
       </div>
       <div>
-        <label className="block text-xs font-medium mb-1">Notes</label>
+        <label className="block text-xs font-semibold text-muted-foreground mb-1">Notes</label>
         <input
           type="text"
           value={formData.notes}
           onChange={(e) => update("notes", e.target.value)}
-          className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+          className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 text-foreground"
           placeholder="Optional notes..."
         />
       </div>
@@ -566,7 +568,7 @@ function ExpenseForm({
         <button
           type="button"
           onClick={onClose}
-          className="rounded-lg border border-border px-4 py-2 text-xs font-medium hover:bg-muted transition"
+          className="rounded-lg border border-border bg-muted/50 px-4 py-2 text-xs font-medium text-foreground hover:bg-muted transition"
         >
           Cancel
         </button>

@@ -75,56 +75,56 @@ const CATEGORIES = [
     label: "Food & Bev",
     icon: Utensils,
     color:
-      "bg-rose-500/10 text-rose-400 border-rose-500/20 hover:bg-rose-500/20",
+      "bg-rose-100 text-rose-800 dark:bg-rose-500/10 dark:text-rose-400 border border-rose-200/50 dark:border-rose-500/20 hover:bg-rose-200/50 dark:hover:bg-rose-500/20",
   },
   {
     value: "utilities",
     label: "Utilities",
     icon: Wallet,
     color:
-      "bg-amber-500/10 text-amber-400 border-amber-500/20 hover:bg-amber-500/20",
+      "bg-amber-100 text-amber-800 dark:bg-amber-500/10 dark:text-amber-400 border border-amber-200/50 dark:border-amber-500/20 hover:bg-amber-200/50 dark:hover:bg-amber-500/20",
   },
   {
     value: "maintenance",
     label: "Maintenance",
     icon: Home,
     color:
-      "bg-blue-500/10 text-blue-400 border-blue-500/20 hover:bg-blue-500/20",
+      "bg-blue-100 text-blue-800 dark:bg-blue-500/10 dark:text-blue-400 border border-blue-200/50 dark:border-blue-500/20 hover:bg-blue-200/50 dark:hover:bg-blue-500/20",
   },
   {
     value: "salaries",
     label: "Salaries",
     icon: Coins,
     color:
-      "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20",
+      "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-500/20 hover:bg-emerald-200/50 dark:hover:bg-emerald-500/20",
   },
   {
     value: "supplies",
     label: "Supplies",
     icon: ShoppingBag,
     color:
-      "bg-purple-500/10 text-purple-400 border-purple-500/20 hover:bg-purple-500/20",
+      "bg-purple-100 text-purple-800 dark:bg-purple-500/10 dark:text-purple-400 border border-purple-200/50 dark:border-purple-500/20 hover:bg-purple-200/50 dark:hover:bg-purple-500/20",
   },
   {
     value: "marketing",
     label: "Marketing",
     icon: Sparkles,
     color:
-      "bg-orange-500/10 text-orange-400 border-orange-500/20 hover:bg-orange-500/20",
+      "bg-orange-100 text-orange-800 dark:bg-orange-500/10 dark:text-orange-400 border border-orange-200/50 dark:border-orange-500/20 hover:bg-orange-200/50 dark:hover:bg-orange-500/20",
   },
   {
     value: "transport",
     label: "Transport",
     icon: Activity,
     color:
-      "bg-indigo-500/10 text-indigo-400 border-indigo-500/20 hover:bg-indigo-500/20",
+      "bg-indigo-100 text-indigo-800 dark:bg-indigo-500/10 dark:text-indigo-400 border border-indigo-200/50 dark:border-indigo-500/20 hover:bg-indigo-200/50 dark:hover:bg-indigo-500/20",
   },
   {
     value: "misc",
     label: "Miscellaneous",
     icon: HelpCircle,
     color:
-      "bg-slate-500/10 text-slate-400 border-slate-500/20 hover:bg-slate-500/20",
+      "bg-zinc-100 text-zinc-800 dark:bg-zinc-500/10 dark:text-zinc-400 border border-zinc-200/50 dark:border-zinc-500/20 hover:bg-zinc-200/50 dark:hover:bg-zinc-500/20",
   },
 ];
 
@@ -544,7 +544,7 @@ export function QuickAddDrawer({
           exit={{ opacity: 0, scale: 0.9 }}
           className="flex-1 flex flex-col items-center justify-center p-4 text-center space-y-3"
         >
-          <div className="w-16 h-14 rounded-full bg-teal-500/20 text-teal-400 flex items-center justify-center border border-teal-500/30">
+          <div className="w-16 h-14 rounded-full bg-primary/20 text-primary flex items-center justify-center border border-primary/30">
             <Check strokeWidth={3} className="w-8 h-8" />
           </div>
           <h3 className="text-lg font-bold">Successfully Logged!</h3>
@@ -557,7 +557,7 @@ export function QuickAddDrawer({
         <div className="flex-1 flex flex-col overflow-hidden mt-4">
           {/* Visual Premium Tabs */}
           <div className="px-2 sm:px-3 shrink-0">
-            <div className="grid grid-cols-3 gap-1 bg-muted/60 p-1.5 rounded-2xl border border-border/40 relative">
+            <div className="grid grid-cols-3 gap-1 bg-muted/85 dark:bg-muted/60 p-1.5 rounded-2xl border border-border relative">
               <button
                 onClick={() => {
                   haptic("light");
@@ -566,14 +566,14 @@ export function QuickAddDrawer({
                 className={cn(
                   "relative flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-semibold transition z-10",
                   activeTab === "booking"
-                    ? "text-teal-400"
+                    ? "text-primary"
                     : "text-muted-foreground hover:text-foreground",
                 )}
               >
                 {activeTab === "booking" && (
                   <motion.div
                     layoutId="activeTabBg"
-                    className="absolute inset-0 bg-background/90 rounded-xl shadow-sm border border-border/50 -z-10"
+                    className="absolute inset-0 bg-background rounded-xl shadow-xs border border-border -z-10"
                   />
                 )}
                 <CalendarPlus className="w-4 h-4" />
@@ -588,14 +588,14 @@ export function QuickAddDrawer({
                 className={cn(
                   "relative flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-semibold transition z-10",
                   activeTab === "expense"
-                    ? "text-rose-400"
+                    ? "text-rose-600 dark:text-rose-400"
                     : "text-muted-foreground hover:text-foreground",
                 )}
               >
                 {activeTab === "expense" && (
                   <motion.div
                     layoutId="activeTabBg"
-                    className="absolute inset-0 bg-background/90 rounded-xl shadow-sm border border-border/50 -z-10"
+                    className="absolute inset-0 bg-background rounded-xl shadow-xs border border-border -z-10"
                   />
                 )}
                 <Receipt className="w-4 h-4" />
@@ -610,14 +610,14 @@ export function QuickAddDrawer({
                 className={cn(
                   "relative flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-semibold transition z-10",
                   activeTab === "sale"
-                    ? "text-orange-400"
+                    ? "text-orange-600 dark:text-orange-400"
                     : "text-muted-foreground hover:text-foreground",
                 )}
               >
                 {activeTab === "sale" && (
                   <motion.div
                     layoutId="activeTabBg"
-                    className="absolute inset-0 bg-background/90 rounded-xl shadow-sm border border-border/50 -z-10"
+                    className="absolute inset-0 bg-background rounded-xl shadow-xs border border-border -z-10"
                   />
                 )}
                 <ShoppingCart className="w-4 h-4" />
@@ -647,7 +647,7 @@ export function QuickAddDrawer({
                   className="space-y-4"
                 >
                   {/* Huge Tactile Amount Input */}
-                  <div className="group relative space-y-1.5 bg-[#0c0c0c]/90 border border-white/[0.07] rounded-2xl p-4 transition-all duration-300 focus-within:border-rose-500/40 focus-within:shadow-[0_0_24px_-6px_rgba(244,63,94,0.25)] focus-within:ring-1 focus-within:ring-rose-500/15">
+                  <div className="group relative space-y-1.5 bg-card border border-border rounded-2xl p-4 transition-all duration-300 focus-within:border-rose-500/40 focus-within:shadow-[0_0_24px_-6px_rgba(244,63,94,0.25)] focus-within:ring-1 focus-within:ring-rose-500/15">
                     <label className="text-[10px] font-extrabold tracking-wider text-muted-foreground/60 uppercase pl-0.5">
                       Expense Amount
                     </label>
@@ -711,15 +711,15 @@ export function QuickAddDrawer({
                             className={cn(
                               "flex flex-col items-center justify-center p-2 rounded-2xl border text-center transition-all duration-200 gap-1 cursor-pointer",
                               isSelected
-                                ? "bg-rose-500/10 text-rose-400 border-rose-500 scale-[1.03] shadow-sm font-semibold"
-                                : "bg-muted/30 border-border/40 text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+                                ? "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500 scale-[1.03] shadow-sm font-semibold"
+                                : "bg-secondary border-border text-muted-foreground hover:bg-muted hover:text-foreground",
                             )}
                           >
                             <Icon
                               className={cn(
                                 "w-5 h-5",
                                 isSelected
-                                  ? "text-rose-400"
+                                  ? "text-rose-600 dark:text-rose-400"
                                   : "text-muted-foreground",
                               )}
                             />
@@ -735,7 +735,7 @@ export function QuickAddDrawer({
                     <label className="text-xs font-bold text-muted-foreground pl-0.5">
                       Payment Method
                     </label>
-                    <div className="grid grid-cols-4 gap-1.5 bg-muted/40 p-1 rounded-xl border border-border/40">
+                    <div className="grid grid-cols-4 gap-1.5 bg-muted/80 dark:bg-muted/40 p-1 rounded-xl border border-border">
                       {(["cash", "upi", "card", "bank_transfer"] as const).map(
                         (m) => (
                           <button
@@ -848,7 +848,7 @@ export function QuickAddDrawer({
                                       notes: e.target.value,
                                     }))
                                   }
-                                  className="w-full rounded-2xl border border-white/[0.07] bg-[#0c0c0c]/90 pl-11 pr-4 py-3 text-sm font-medium text-foreground transition-all duration-300 placeholder:text-muted-foreground/30 focus:outline-none hover:border-white/15 focus:border-rose-500/40 focus:ring-1 focus:ring-rose-500/15"
+                                  className="w-full rounded-2xl border border-border bg-card pl-11 pr-4 py-3 text-sm font-medium text-foreground transition-all duration-300 placeholder:text-muted-foreground/30 focus:outline-none hover:border-border/80 focus:border-rose-500/40 focus:ring-1 focus:ring-rose-500/15"
                                 />
                               </div>
                             </div>
@@ -891,7 +891,7 @@ export function QuickAddDrawer({
                   className="space-y-4"
                 >
                   {/* Tactile Amount Input */}
-                  <div className="group relative space-y-1.5 bg-[#0c0c0c]/90 border border-white/[0.07] rounded-2xl p-4 transition-all duration-300 focus-within:border-orange-500/40 focus-within:shadow-[0_0_24px_-6px_rgba(249,115,22,0.25)] focus-within:ring-1 focus-within:ring-orange-500/15">
+                  <div className="group relative space-y-1.5 bg-card border border-border rounded-2xl p-4 transition-all duration-300 focus-within:border-orange-500/40 focus-within:shadow-[0_0_24px_-6px_rgba(249,115,22,0.25)] focus-within:ring-1 focus-within:ring-orange-500/15">
                     <label className="text-[10px] font-extrabold tracking-wider text-muted-foreground/60 uppercase pl-0.5">
                       Sale Amount
                     </label>
@@ -939,7 +939,7 @@ export function QuickAddDrawer({
                       <label className="text-xs font-bold text-muted-foreground pl-0.5">
                         Sale Type
                       </label>
-                      <div className="grid grid-cols-3 gap-1.5 bg-muted/40 p-1 rounded-xl border border-border/40">
+                      <div className="grid grid-cols-3 gap-1.5 bg-muted/85 dark:bg-muted/40 p-1 rounded-xl border border-border">
                         {(["restaurant", "activity", "stay"] as const).map(
                           (t) => (
                             <button
@@ -952,7 +952,7 @@ export function QuickAddDrawer({
                               className={cn(
                                 "py-2 px-1 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 capitalize cursor-pointer",
                                 saleData.saleType === t
-                                  ? "bg-background text-orange-400 shadow-sm border border-border/20"
+                                  ? "bg-background text-orange-600 dark:text-orange-400 shadow-sm border border-border"
                                   : "text-muted-foreground hover:text-foreground",
                               )}
                             >
@@ -975,7 +975,7 @@ export function QuickAddDrawer({
                       <label className="text-xs font-bold text-muted-foreground pl-0.5">
                         Guest Type
                       </label>
-                      <div className="grid grid-cols-2 gap-1.5 bg-muted/40 p-1 rounded-xl border border-border/40">
+                      <div className="grid grid-cols-2 gap-1.5 bg-muted/85 dark:bg-muted/40 p-1 rounded-xl border border-border">
                         {(["outsider", "hotel_guest"] as const).map((g) => (
                           <button
                             key={g}
@@ -990,7 +990,7 @@ export function QuickAddDrawer({
                             className={cn(
                               "py-2 px-1 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer",
                               saleData.guestType === g
-                                ? "bg-background text-orange-400 shadow-sm border border-border/20"
+                                ? "bg-background text-orange-600 dark:text-orange-400 shadow-sm border border-border"
                                 : "text-muted-foreground hover:text-foreground",
                             )}
                           >
@@ -1014,7 +1014,7 @@ export function QuickAddDrawer({
                       <label className="text-xs font-bold text-muted-foreground pl-0.5">
                         Payment Method
                       </label>
-                      <div className="grid grid-cols-2 gap-1 bg-muted/40 p-1 rounded-xl border border-border/40">
+                      <div className="grid grid-cols-2 gap-1 bg-muted/85 dark:bg-muted/40 p-1 rounded-xl border border-border">
                         {(["cash", "upi"] as const).map((m) => (
                           <button
                             key={m}
@@ -1096,8 +1096,8 @@ export function QuickAddDrawer({
                   className="space-y-3"
                 >
                   {/* Compact Step Indicator */}
-                  <div className="flex items-center justify-between pb-1 border-b border-border/40 shrink-0">
-                    <span className="text-xs font-bold text-teal-400 uppercase tracking-wider">
+                  <div className="flex items-center justify-between pb-1 border-b border-border shrink-0">
+                    <span className="text-xs font-bold text-primary uppercase tracking-wider">
                       Step {bookingStep} of 4:{" "}
                       {bookingStepMeta[bookingStep - 1].label}
                     </span>
@@ -1112,10 +1112,10 @@ export function QuickAddDrawer({
                             className={cn(
                               "w-7 h-7 rounded-full flex items-center justify-center border transition-all duration-300",
                               isCurrent
-                                ? "bg-teal-500 border-teal-400/50 text-white shadow-[0_0_16px_-4px_rgba(20,184,166,0.5)]"
+                                ? "bg-primary border-primary/50 text-primary-foreground shadow-[0_0_16px_-4px_var(--glow-color)]"
                                 : isCompleted
-                                  ? "bg-teal-500/15 border-teal-500/30 text-teal-400"
-                                  : "bg-muted border-white/8 text-muted-foreground/30",
+                                  ? "bg-primary/15 border-primary/30 text-primary"
+                                  : "bg-muted border-border text-muted-foreground/30",
                             )}
                           >
                             {isCompleted ? (
@@ -1231,7 +1231,7 @@ export function QuickAddDrawer({
                         type="button"
                         onClick={prevBookingStep}
                         whileTap={{ scale: 0.93 }}
-                        className="flex items-center justify-center gap-1.5 px-4 py-3 rounded-xl border border-white/[0.07] bg-white/3 text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-white/6 transition-all duration-200 min-h-[48px]"
+                        className="flex items-center justify-center gap-1.5 px-4 py-3 rounded-xl border border-border bg-secondary text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-muted transition-all duration-200 min-h-[48px]"
                       >
                         <ArrowLeft className="w-4 h-4" />
                         <span className="hidden sm:inline">Back</span>
@@ -1247,8 +1247,8 @@ export function QuickAddDrawer({
                         className={cn(
                           "flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-bold tracking-tight transition-all duration-200 min-h-[48px]",
                           canProceed()
-                            ? "bg-white text-background shadow-[0_4px_24px_rgba(255,255,255,0.12)] hover:bg-zinc-100"
-                            : "bg-white/10 text-white/30 cursor-not-allowed",
+                            ? "bg-foreground text-background shadow-md hover:bg-foreground/90"
+                            : "bg-muted text-muted-foreground/45 cursor-not-allowed",
                         )}
                       >
                         <span>Continue</span>
@@ -1262,19 +1262,12 @@ export function QuickAddDrawer({
                         whileTap={
                           !saving && canProceed() ? { scale: 0.94 } : undefined
                         }
-                        className="relative flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-bold overflow-hidden disabled:opacity-30 transition-all duration-200 min-h-[48px] text-white"
-                        style={{
-                          background:
-                            !saving && canProceed()
-                              ? "linear-gradient(135deg, #14b8a6, #10b981)"
-                              : undefined,
-                          backgroundColor:
-                            saving || !canProceed() ? "#0d4036" : undefined,
-                          boxShadow:
-                            !saving && canProceed()
-                              ? "0 0 28px -6px rgba(20,184,166,0.55)"
-                              : undefined,
-                        }}
+                        className={cn(
+                          "relative flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-bold overflow-hidden transition-all duration-200 min-h-[48px] text-primary-foreground",
+                          !saving && canProceed()
+                            ? "bg-primary hover:opacity-95 shadow-lg shadow-primary/15"
+                            : "bg-muted text-muted-foreground/30 cursor-not-allowed"
+                        )}
                       >
                         {saving ? (
                           <>
@@ -1285,7 +1278,7 @@ export function QuickAddDrawer({
                                 repeat: Infinity,
                                 ease: "linear",
                               }}
-                              className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white"
+                              className="w-4 h-4 rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground"
                             />
                             <span>Creating…</span>
                           </>
@@ -1333,7 +1326,7 @@ export function QuickAddDrawer({
           <div className="px-6 pt-1 shrink-0 flex items-center justify-between">
             <div>
               <DrawerTitle className="text-xl font-bold flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-teal-400 animate-pulse" />
+                <Sparkles className="w-5 h-5 text-primary animate-pulse" />
                 Quick Add Ledger
               </DrawerTitle>
               <DrawerDescription className="text-xs text-muted-foreground mt-0.5">

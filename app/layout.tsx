@@ -1,4 +1,5 @@
 import { ThemeProvider } from "@/lib/theme-context";
+import { getThemeCssVariablesString } from "@/lib/theme-config";
 import { PWAShell } from "@/components/pwa/pwa-shell";
 import type { Metadata, Viewport } from "next";
 import { ViewTransitions } from "next-view-transitions";
@@ -114,6 +115,7 @@ export default function RootLayout({
         <link rel="preconnect" href="/" />
         <link rel="dns-prefetch" href="/" />
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+        <style dangerouslySetInnerHTML={{ __html: getThemeCssVariablesString() }} />
       </head>
       <body
         className={`${outfit.variable} ${plusJakartaSans.variable} ${spaceMono.variable} font-sans min-h-screen bg-background text-foreground overflow-x-hidden`}

@@ -36,7 +36,7 @@ export function Input({
       <label
         className={cn(
           "text-xs font-semibold uppercase tracking-wider transition-colors duration-200",
-          isFocused ? "text-teal-400" : "text-muted-foreground/60",
+          isFocused ? "text-primary" : "text-muted-foreground/85 dark:text-muted-foreground/60",
         )}
       >
         {label}
@@ -46,7 +46,7 @@ export function Input({
           <Icon
             className={cn(
               "absolute left-4 w-4.5 h-4.5 transition-colors duration-300 pointer-events-none z-10",
-              isFocused ? "text-teal-400" : "text-muted-foreground/45",
+              isFocused ? "text-primary" : "text-muted-foreground/50",
             )}
           />
         )}
@@ -70,11 +70,11 @@ export function Input({
           placeholder={placeholder}
           autoFocus={autoFocus}
           className={cn(
-            "w-full rounded-2xl border bg-[#0c0c0c]/90 py-3 sm:py-3.5 text-sm font-medium text-foreground transition-all duration-300 placeholder:text-muted-foreground/30 focus:outline-none",
+            "w-full rounded-2xl border bg-secondary/50 focus:bg-card dark:bg-secondary/30 py-3 sm:py-3.5 text-sm font-medium text-foreground transition-all duration-300 placeholder:text-muted-foreground/30 focus:outline-none shadow-xs",
             Icon ? "pl-12 pr-4" : "px-3.5 sm:px-4",
             isFocused
-              ? "border-teal-500/40 shadow-[0_0_24px_-6px_rgba(20,184,166,0.2)] ring-1 ring-teal-500/15"
-              : "border-white/[0.07] hover:border-white/15",
+              ? "border-primary/60 shadow-[var(--glow-shadow)] ring-2 ring-primary/20"
+              : "border-border hover:border-border/80",
           )}
         />
         {/* Glow border background effect */}
@@ -84,7 +84,7 @@ export function Input({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute -inset-px z-[-1] rounded-2xl bg-linear-to-r from-teal-500/8 to-emerald-500/8 blur-md pointer-events-none"
+              className="absolute -inset-px z-[-1] rounded-2xl bg-linear-to-r from-primary/10 to-accent/5 blur-md pointer-events-none"
             />
           )}
         </AnimatePresence>
@@ -114,7 +114,7 @@ export function Select({
       <label
         className={cn(
           "text-xs font-semibold uppercase tracking-wider transition-colors duration-200",
-          isFocused ? "text-teal-400" : "text-muted-foreground/70",
+          isFocused ? "text-primary" : "text-muted-foreground/85 dark:text-muted-foreground/70",
         )}
       >
         {label}
@@ -124,7 +124,7 @@ export function Select({
           <Icon
             className={cn(
               "absolute left-4 w-4.5 h-4.5 transition-colors duration-300 pointer-events-none z-10",
-              isFocused ? "text-teal-400" : "text-muted-foreground/45",
+              isFocused ? "text-primary" : "text-muted-foreground/50",
             )}
           />
         )}
@@ -137,11 +137,11 @@ export function Select({
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           className={cn(
-            "w-full rounded-2xl border bg-[#0e0e0e]/80 py-3 text-sm font-medium text-foreground transition-all duration-300 focus:outline-none appearance-none pr-10 cursor-pointer",
+            "w-full rounded-2xl border bg-secondary/50 focus:bg-card dark:bg-secondary/30 py-3 text-sm font-medium text-foreground transition-all duration-300 focus:outline-none appearance-none pr-10 cursor-pointer shadow-xs",
             Icon ? "pl-12" : "px-4",
             isFocused
-              ? "border-teal-500/50 bg-[#0e0e0e] shadow-[0_0_20px_-3px_rgba(20,184,166,0.15)] ring-2 ring-teal-500/10"
-              : "border-white/6 hover:border-white/12",
+              ? "border-primary bg-card shadow-[var(--glow-shadow)] ring-2 ring-primary/20"
+              : "border-border hover:border-border/80",
           )}
         >
           {options.map((opt) => (
@@ -188,17 +188,17 @@ export function GuestCounter({
       <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/60">
         {label}
       </label>
-      <div className="flex items-center justify-between p-2 rounded-2xl border border-white/[0.07] bg-[#0e0e0e]/90 shadow-inner">
+      <div className="flex items-center justify-between p-1.5 rounded-2xl border border-border bg-secondary/60 dark:bg-secondary/30 shadow-xs">
         <motion.button
           type="button"
           onClick={handleDecrement}
           disabled={value <= min}
           whileTap={{ scale: 0.9 }}
           className={cn(
-            "w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200",
+            "w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 border border-border/40 shadow-xs",
             value <= min
-              ? "text-muted-foreground/15 cursor-not-allowed"
-              : "bg-white/5 text-foreground hover:bg-white/10 active:bg-white/15",
+              ? "text-muted-foreground/15 cursor-not-allowed bg-transparent border-transparent"
+              : "bg-card text-foreground hover:bg-secondary active:bg-accent/50",
           )}
         >
           <Minus className="w-3.5 h-3.5" />
@@ -216,7 +216,7 @@ export function GuestCounter({
           type="button"
           onClick={handleIncrement}
           whileTap={{ scale: 0.9 }}
-          className="w-10 h-10 rounded-xl bg-white/5 text-foreground hover:bg-white/10 active:bg-white/15 flex items-center justify-center transition-all duration-200"
+          className="w-10 h-10 rounded-xl bg-card border border-border/40 text-foreground hover:bg-secondary active:bg-accent/50 flex items-center justify-center transition-all duration-200 shadow-xs"
         >
           <Plus className="w-3.5 h-3.5" />
         </motion.button>
@@ -252,14 +252,14 @@ export function PillToggle({
             className={cn(
               "relative px-4 py-2.5 rounded-2xl text-xs font-semibold uppercase tracking-wider transition-all duration-300 border select-none",
               isSelected
-                ? "bg-teal-500/12 text-teal-300 border-teal-500/30 shadow-[0_0_18px_-5px_rgba(20,184,166,0.25)]"
-                : "bg-white/3 border-white/6 text-muted-foreground/55 hover:text-foreground hover:bg-white/6",
+                ? "bg-primary/15 text-primary border-primary/30 shadow-[var(--glow-shadow)]"
+                : "bg-secondary/70 dark:bg-secondary/40 border-border text-muted-foreground hover:text-foreground hover:bg-secondary",
             )}
           >
             {isSelected && (
               <motion.span
                 layoutId={`pillToggle-${option}`}
-                className="absolute inset-0 rounded-2xl bg-teal-500/8 border border-teal-400/20"
+                className="absolute inset-0 rounded-2xl bg-primary/10 border border-primary/20"
                 transition={{ type: "spring", stiffness: 400, damping: 30 }}
               />
             )}
@@ -283,7 +283,7 @@ export function PillSelect({
   const haptic = useHaptic();
 
   return (
-    <div className="flex flex-wrap gap-2 p-1 bg-[#090909] rounded-2xl border border-white/5 w-fit">
+    <div className="flex flex-wrap gap-2 p-1 bg-muted rounded-2xl border border-border w-fit">
       {options.map((opt) => {
         const isSelected = opt.value === value;
         return (
@@ -299,7 +299,7 @@ export function PillSelect({
             {isSelected && (
               <motion.span
                 layoutId="pillActiveBg"
-                className="absolute inset-0 bg-white text-background rounded-xl"
+                className="absolute inset-0 bg-primary text-primary-foreground rounded-xl"
                 transition={{
                   type: "spring",
                   stiffness: 420,
@@ -311,7 +311,7 @@ export function PillSelect({
               className={cn(
                 "relative z-10 transition-colors duration-200",
                 isSelected
-                  ? "text-background font-black"
+                  ? "text-primary-foreground font-black"
                   : "text-muted-foreground/70 hover:text-foreground",
               )}
             >
@@ -336,27 +336,27 @@ export function StepCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-3xl border border-white/[0.07] p-4 sm:p-5 lg:p-7 space-y-5 sm:space-y-6 bg-[#0d0d0d]/60 backdrop-blur-2xl relative overflow-hidden shadow-[0_2px_40px_rgba(0,0,0,0.5)]">
+    <div className="rounded-3xl border border-border p-4 sm:p-5 lg:p-7 space-y-5 sm:space-y-6 bg-card/95 dark:bg-card/50 backdrop-blur-2xl relative overflow-hidden shadow-md">
       <DotPattern
         width={20}
         height={20}
         cx={1}
         cy={1}
         cr={0.8}
-        color="#14b8a6"
+        color="var(--primary)"
         opacity={0.04}
         className="rounded-3xl"
       />
-      <div className="absolute inset-0 bg-linear-to-b from-teal-500/2.5 via-transparent to-transparent pointer-events-none rounded-3xl" />
+      <div className="absolute inset-0 bg-linear-to-b from-primary/5 via-transparent to-transparent pointer-events-none rounded-3xl" />
       <BorderBeam
         size={200}
         duration={14}
-        colorFrom="#14b8a6"
-        colorTo="#4ade80"
+        colorFrom="var(--primary)"
+        colorTo="var(--accent)"
         borderWidth={0.7}
       />
       <div className="relative z-10 flex items-center gap-4">
-        <div className="w-11 h-11 rounded-2xl bg-linear-to-br from-teal-500/20 to-emerald-500/10 border border-teal-500/20 flex items-center justify-center text-teal-400 shadow-[0_0_16px_-4px_rgba(20,184,166,0.3)]">
+        <div className="w-11 h-11 rounded-2xl bg-linear-to-br from-primary/20 to-accent/10 border border-primary/20 flex items-center justify-center text-primary shadow-[var(--glow-shadow)]">
           {icon}
         </div>
         <div>
@@ -383,10 +383,10 @@ export function ReviewSection({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-2xl border border-white/6 bg-white/2 p-4 sm:p-5 space-y-3 relative overflow-hidden">
-      <div className="absolute inset-0 bg-linear-to-br from-teal-500/3 to-transparent pointer-events-none rounded-2xl" />
-      <div className="relative flex items-center gap-2.5 text-xs font-extrabold uppercase tracking-wider text-teal-400">
-        <div className="w-6 h-6 rounded-lg bg-teal-500/15 border border-teal-500/20 flex items-center justify-center">
+    <div className="rounded-2xl border border-border bg-secondary/30 dark:bg-card/20 p-4 sm:p-5 space-y-3 relative overflow-hidden">
+      <div className="absolute inset-0 bg-linear-to-br from-primary/5 to-transparent pointer-events-none rounded-2xl" />
+      <div className="relative flex items-center gap-2.5 text-xs font-extrabold uppercase tracking-wider text-primary">
+        <div className="w-6 h-6 rounded-lg bg-primary/15 border border-primary/20 flex items-center justify-center">
           {icon}
         </div>
         {title}

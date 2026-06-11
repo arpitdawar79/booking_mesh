@@ -37,7 +37,7 @@ export default function Home() {
       <Particles
         quantity={60}
         staticity={40}
-        color="#14b8a6"
+        color="var(--primary)"
         size={1.2}
         className="z-0"
       />
@@ -46,9 +46,9 @@ export default function Home() {
       <Meteors number={12} className="z-0" />
 
       {/* Ambient glow orbs */}
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[600px] bg-teal-500/[0.07] blur-[140px] rounded-full pointer-events-none z-0" />
-      <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[400px] bg-emerald-500/5 blur-[100px] rounded-full pointer-events-none z-0" />
-      <div className="absolute top-1/4 left-1/4 w-[300px] h-[300px] bg-violet-500/4 blur-[80px] rounded-full pointer-events-none z-0" />
+      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[600px] bg-primary/5 blur-[140px] rounded-full pointer-events-none z-0" />
+      <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[400px] bg-accent/5 blur-[100px] rounded-full pointer-events-none z-0" />
+      <div className="absolute top-1/4 left-1/4 w-[300px] h-[300px] bg-destructive/3 blur-[80px] rounded-full pointer-events-none z-0" />
 
       <div className="relative z-10 max-w-2xl w-full text-center space-y-10 sm:space-y-14">
         {/* Elite Glowing Badge with Sparkles */}
@@ -63,12 +63,12 @@ export default function Home() {
           }}
           className="flex justify-center"
         >
-          <div className="relative group rounded-full border border-teal-500/30 bg-teal-500/3 px-5 py-2 text-xs sm:text-sm text-teal-400 font-semibold tracking-wider uppercase flex items-center gap-2.5 overflow-hidden shadow-sm shadow-teal-500/5 hover:border-teal-500/50 transition-all duration-500 backdrop-blur-sm">
+          <div className="relative group rounded-full border border-primary/30 bg-primary/3 px-5 py-2 text-xs sm:text-sm text-primary font-semibold tracking-wider uppercase flex items-center gap-2.5 overflow-hidden shadow-sm shadow-primary/5 hover:border-primary/50 transition-all duration-500 backdrop-blur-sm">
             <span
-              className="absolute inset-0 w-1/3 h-full bg-linear-to-r from-transparent via-teal-500/15 to-transparent -translate-x-full group-hover:animate-shimmer pointer-events-none"
+              className="absolute inset-0 w-1/3 h-full bg-linear-to-r from-transparent via-primary/10 to-transparent -translate-x-full group-hover:animate-shimmer pointer-events-none"
               style={{ animationDuration: "1.5s" }}
             />
-            <Sparkles className="w-4 h-4 text-teal-400 animate-pulse" />
+            <Sparkles className="w-4 h-4 text-primary animate-pulse" />
             <SparklesText
               text="The Stream by Ekantah"
               sparklesCount={4}
@@ -97,7 +97,7 @@ export default function Home() {
             }}
             className="text-5xl sm:text-7xl font-black tracking-tighter leading-[0.95]"
           >
-            <span className="bg-linear-to-r from-teal-400 via-emerald-400 to-teal-300 bg-clip-text text-transparent">
+            <span className="bg-linear-to-r from-primary via-accent to-primary/80 bg-clip-text text-transparent">
               &amp; Booking Control
             </span>
           </motion.div>
@@ -134,7 +134,7 @@ export default function Home() {
             <span>Access Administrative Board</span>
           </Link>
           <p className="text-[10px] sm:text-xs text-muted-foreground/70 font-medium flex items-center justify-center gap-2">
-            <Mail className="w-3.5 h-3.5 text-teal-500" />
+            <Mail className="w-3.5 h-3.5 text-primary" />
             <span>
               Secure credentials required for dashboard authentication
             </span>
@@ -161,32 +161,32 @@ export default function Home() {
               {
                 title: "Live Booking Control",
                 desc: "Check-in states, calendar occupancy ratios, and dynamic balance calculations.",
-                icon: <CalendarDays className="w-4 h-4 text-teal-400" />,
-                gradient: "from-teal-500/10 via-transparent to-transparent",
-                borderHover: "hover:border-teal-500/20",
+                icon: <CalendarDays className="w-4 h-4 text-primary" />,
+                gradient: "from-primary/10 via-transparent to-transparent",
+                borderHover: "hover:border-primary/20",
                 iconHover:
-                  "group-hover:bg-teal-500/10 group-hover:border-teal-500/20",
-                textHover: "group-hover:text-teal-400",
+                  "group-hover:bg-primary/10 group-hover:border-primary/20",
+                textHover: "group-hover:text-primary",
               },
               {
                 title: "Automated Dispatch",
                 desc: "Send high-fidelity PDFs, custom confirmation templates over WhatsApp and SMTP.",
-                icon: <Zap className="w-4 h-4 text-emerald-400" />,
-                gradient: "from-emerald-500/10 via-transparent to-transparent",
-                borderHover: "hover:border-emerald-500/20",
+                icon: <Zap className="w-4 h-4 text-accent-foreground" />,
+                gradient: "from-accent-foreground/10 via-transparent to-transparent",
+                borderHover: "hover:border-accent-foreground/20",
                 iconHover:
-                  "group-hover:bg-emerald-500/10 group-hover:border-emerald-500/20",
-                textHover: "group-hover:text-emerald-400",
+                  "group-hover:bg-accent-foreground/10 group-hover:border-accent-foreground/20",
+                textHover: "group-hover:text-accent-foreground",
               },
               {
                 title: "Unified Financials",
                 desc: "Quick log expenses, supplementary property sales, and staff payroll slips.",
-                icon: <Receipt className="w-4 h-4 text-violet-400" />,
-                gradient: "from-violet-500/10 via-transparent to-transparent",
-                borderHover: "hover:border-violet-500/20",
+                icon: <Receipt className="w-4 h-4 text-destructive" />,
+                gradient: "from-destructive/10 via-transparent to-transparent",
+                borderHover: "hover:border-destructive/20",
                 iconHover:
-                  "group-hover:bg-violet-500/10 group-hover:border-violet-500/20",
-                textHover: "group-hover:text-violet-400",
+                  "group-hover:bg-destructive/10 group-hover:border-destructive/20",
+                textHover: "group-hover:text-destructive",
               },
             ].map((feat) => (
               <motion.div

@@ -39,8 +39,8 @@ export function InstallPrompt() {
       >
         <div className="mx-auto max-w-[360px] rounded-2xl border border-border/60 bg-card/95 backdrop-blur-xl shadow-2xl shadow-black/50 p-5">
           <div className="flex items-start gap-3">
-            <div className="h-12 w-12 rounded-xl bg-teal-500/10 flex items-center justify-center shrink-0">
-              <Smartphone className="h-6 w-6 text-teal-500" />
+            <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <Smartphone className="h-6 w-6 text-primary" />
             </div>
             <div className="flex-1 min-w-0">
               <h3 className="text-base font-bold">Add to Home Screen</h3>
@@ -64,7 +64,7 @@ export function InstallPrompt() {
               </p>
               <ol className="space-y-2.5 text-sm text-muted-foreground">
                 <li className="flex items-start gap-2.5">
-                  <Share2 className="h-4 w-4 text-teal-500 mt-0.5 shrink-0" />
+                  <Share2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
                   <span>
                     Tap the{" "}
                     <span className="text-foreground font-medium">Share</span>{" "}
@@ -72,7 +72,7 @@ export function InstallPrompt() {
                   </span>
                 </li>
                 <li className="flex items-start gap-2.5">
-                  <span className="text-teal-500 font-bold mt-0.5 w-4 shrink-0">
+                  <span className="text-primary font-bold mt-0.5 w-4 shrink-0">
                     2
                   </span>
                   <span>
@@ -83,7 +83,7 @@ export function InstallPrompt() {
                   </span>
                 </li>
                 <li className="flex items-start gap-2.5">
-                  <span className="text-teal-500 font-bold mt-0.5 w-4 shrink-0">
+                  <span className="text-primary font-bold mt-0.5 w-4 shrink-0">
                     3
                   </span>
                   <span>

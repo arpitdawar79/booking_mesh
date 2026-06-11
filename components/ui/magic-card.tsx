@@ -9,11 +9,11 @@ import { Backlight } from "@/components/ui/backlight";
 export function MagicCard({
   children,
   className,
-  glowColor = "rgba(20, 184, 166, 0.12)",
+  glowColor = "var(--glow-color)",
   borderBeam = false,
   backlight = false,
-  backlightColorFrom = "from-teal-500/10",
-  backlightColorTo = "to-indigo-500/5",
+  backlightColorFrom = "from-primary/10",
+  backlightColorTo = "to-accent/5",
 }: {
   children: React.ReactNode;
   className?: string;
@@ -38,7 +38,7 @@ export function MagicCard({
       whileHover={{ y: -2 }}
       transition={{ type: "spring", stiffness: 400, damping: 24 }}
       className={cn(
-        "group relative rounded-2xl border border-border/60 bg-card/25 backdrop-blur-xl overflow-hidden hover:border-teal-500/25 transition-colors duration-500 shadow-sm",
+        "group relative rounded-2xl border border-border/80 dark:border-border/60 bg-card shadow-xs overflow-hidden hover:border-primary/35 transition-colors duration-500",
         className
       )}
     >
@@ -54,8 +54,8 @@ export function MagicCard({
         <BorderBeam
           size={160}
           duration={8}
-          colorFrom="#14b8a6"
-          colorTo="#8b5cf6"
+          colorFrom="var(--primary)"
+          colorTo="var(--accent)"
           className="opacity-0 group-hover:opacity-100 transition-opacity duration-500"
         />
       )}

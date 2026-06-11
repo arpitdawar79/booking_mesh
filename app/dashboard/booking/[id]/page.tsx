@@ -450,7 +450,7 @@ We look forward to hosting you!
     return (
       <div className="flex items-center justify-center min-h-[300px] text-muted-foreground/60 text-sm font-semibold">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 rounded-full border-2 border-teal-500/30 border-t-teal-500 animate-spin" />
+          <div className="w-8 h-8 rounded-full border-2 border-primary/30 border-t-primary animate-spin" />
           <span>Loading booking details...</span>
         </div>
       </div>
@@ -496,13 +496,13 @@ We look forward to hosting you!
   const DetailsGroup = () => (
     <div className="space-y-5">
       {/* Stay Timeline Representation */}
-      <div className="rounded-3xl border border-white/5 bg-[#0c0c0c]/45 p-5 space-y-4 relative overflow-hidden backdrop-blur-md">
+      <div className="rounded-3xl border border-border bg-card p-5 space-y-4 relative overflow-hidden backdrop-blur-md">
         <div className="flex items-center gap-2.5 mb-1">
-          <div className="w-8 h-8 rounded-lg bg-teal-500/10 border border-teal-500/15 flex items-center justify-center text-teal-400">
+          <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
             <CalendarCheck className="w-4.5 h-4.5" />
           </div>
           <div>
-            <h3 className="text-xs font-black uppercase tracking-wider text-teal-400">
+            <h3 className="text-xs font-black uppercase tracking-wider text-primary">
               Stay Timeline
             </h3>
             <p className="text-[10px] text-muted-foreground/50 font-medium">
@@ -523,11 +523,11 @@ We look forward to hosting you!
             </span>
           </div>
           <div className="flex flex-col items-center justify-center">
-            <span className="text-[10px] text-teal-400 font-black tracking-wider uppercase">
+            <span className="text-xs text-primary font-black tracking-wider uppercase">
               {booking.nightCount} Night{booking.nightCount > 1 ? "s" : ""}
             </span>
-            <div className="w-full h-[1.5px] bg-linear-to-r from-transparent via-teal-500/40 to-transparent relative my-1">
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-teal-400 shadow-[0_0_10px_rgba(20,184,166,0.5)]" />
+            <div className="w-full h-[1.5px] bg-linear-to-r from-transparent via-primary/45 to-transparent relative my-1">
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-primary shadow-[0_0_10px_var(--glow-color)]" />
             </div>
           </div>
           <div className="space-y-1 text-right">
@@ -559,17 +559,17 @@ We look forward to hosting you!
                 <a
                   href={phoneCallLink}
                   onClick={() => haptic("light")}
-                  className="text-teal-400 hover:text-teal-300 font-extrabold flex items-center gap-1 transition-colors"
+                  className="text-primary hover:opacity-85 font-extrabold flex items-center gap-1 transition-all"
                 >
                   <Phone className="w-3.5 h-3.5" />
                   <span>Call</span>
                 </a>
-                <span className="text-white/10">|</span>
+                <span className="text-border/20">|</span>
                 <a
                   href={whatsappLink}
                   target="_blank"
                   onClick={() => haptic("light")}
-                  className="text-teal-400 hover:text-teal-300 font-extrabold flex items-center gap-1 transition-colors"
+                  className="text-primary hover:opacity-85 font-extrabold flex items-center gap-1 transition-all"
                 >
                   <MessageCircle className="w-3.5 h-3.5" />
                   <span>WhatsApp</span>
@@ -610,23 +610,23 @@ We look forward to hosting you!
   const LedgerGroup = () => (
     <div className="space-y-5">
       {/* Financial Overview Card */}
-      <div className="rounded-2xl border border-white/5 bg-[#0d0d0d]/40 p-4 sm:p-5 space-y-4 relative overflow-hidden">
+      <div className="rounded-2xl border border-border bg-card p-4 sm:p-5 space-y-4 relative overflow-hidden">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-teal-500/10 border border-teal-500/15 flex items-center justify-center text-teal-400">
+            <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
               <CreditCard className="w-4.5 h-4.5" />
             </div>
-            <h3 className="text-xs font-black uppercase tracking-wider text-teal-400">
+            <h3 className="text-xs font-black uppercase tracking-wider text-primary">
               Financial Ledger
             </h3>
           </div>
           <span
-            className={`text-[9px] font-black uppercase px-2.5 py-1 rounded-md ${
+            className={`text-[9px] font-black uppercase px-2.5 py-1 rounded-md border ${
               booking.paymentStatus === "paid_in_full"
-                ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/15"
+                ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
                 : booking.paymentStatus === "partially_paid"
-                  ? "bg-amber-500/10 text-amber-400 border border-amber-500/15"
-                  : "bg-rose-500/10 text-rose-400 border border-rose-500/15"
+                  ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
+                  : "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20"
             }`}
           >
             {booking.paymentStatus.replace("_", " ")}
@@ -634,7 +634,7 @@ We look forward to hosting you!
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-1">
-          <div className="bg-white/1 border border-white/[0.03] p-3 rounded-xl space-y-0.5">
+          <div className="bg-muted/30 border border-border/50 p-3 rounded-xl space-y-0.5">
             <span className="text-[9px] text-muted-foreground/40 uppercase font-black">
               Total Amount
             </span>
@@ -643,11 +643,11 @@ We look forward to hosting you!
               {Number(booking.totalAmount).toLocaleString("en-IN")}
             </div>
           </div>
-          <div className="bg-white/1 border border-white/[0.03] p-3 rounded-xl space-y-0.5">
+          <div className="bg-muted/30 border border-border/50 p-3 rounded-xl space-y-0.5">
             <span className="text-[9px] text-muted-foreground/40 uppercase font-black">
               Paid Online
             </span>
-            <div className="text-base font-black text-emerald-400">
+            <div className="text-base font-black text-emerald-600 dark:text-emerald-400">
               {booking.currency}{" "}
               {Number(booking.amountPaidOnline).toLocaleString("en-IN")}
             </div>
@@ -655,15 +655,15 @@ We look forward to hosting you!
           <div
             className={`p-3 rounded-xl space-y-0.5 border ${
               booking.balanceAmount > 0
-                ? "bg-amber-500/5 border-amber-500/15"
-                : "bg-emerald-500/5 border-emerald-500/15"
+                ? "bg-amber-500/5 border-amber-500/20"
+                : "bg-emerald-500/5 border-emerald-500/20"
             }`}
           >
             <span className="text-[9px] text-muted-foreground/40 uppercase font-black">
               Outstanding Balance
             </span>
             <div
-              className={`text-base font-black ${booking.balanceAmount > 0 ? "text-amber-400" : "text-emerald-400"}`}
+              className={`text-base font-black ${booking.balanceAmount > 0 ? "text-amber-600 dark:text-amber-400" : "text-emerald-600 dark:text-emerald-400"}`}
             >
               {booking.currency}{" "}
               {Number(booking.balanceAmount).toLocaleString("en-IN")}
@@ -686,7 +686,7 @@ We look forward to hosting you!
               href={booking.mapLink}
               target="_blank"
               onClick={() => haptic("light")}
-              className="inline-flex items-center gap-1 text-teal-400 hover:underline font-extrabold"
+              className="inline-flex items-center gap-1 text-primary hover:underline font-extrabold"
             >
               <span>Open Google Maps</span>
               <ExternalLink className="w-3.5 h-3.5" />
@@ -711,7 +711,7 @@ We look forward to hosting you!
   const HistoryGroup = () => (
     <div className="space-y-5">
       {/* Lifecycle Status controls */}
-      <div className="rounded-3xl border border-white/5 bg-[#0d0d0d]/45 p-4 sm:p-5 space-y-4 backdrop-blur-md">
+      <div className="rounded-3xl border border-border bg-card p-4 sm:p-5 space-y-4 backdrop-blur-md">
         <div className="flex items-center justify-between">
           <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground/60">
             Booking Lifecycle
@@ -719,10 +719,10 @@ We look forward to hosting you!
           <span
             className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${
               booking.status === "confirmed"
-                ? "bg-green-500/10 text-green-400 border border-green-500/15"
+                ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
                 : booking.status === "cancelled"
-                  ? "bg-red-500/10 text-red-400 border border-red-500/15"
-                  : "bg-blue-500/10 text-blue-400 border border-blue-500/15"
+                  ? "bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20"
+                  : "bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20"
             }`}
           >
             {booking.status}
@@ -737,7 +737,7 @@ We look forward to hosting you!
                 startEdit();
                 haptic("light");
               }}
-              className="flex-1 py-2 rounded-xl bg-white/4 border border-white/5 text-xs font-bold hover:bg-white/8 hover:border-teal-500/20 active:scale-[0.97] transition-all flex items-center justify-center gap-1.5 cursor-pointer text-foreground animate-in fade-in duration-200"
+              className="flex-1 py-2 rounded-xl bg-card border border-border text-xs font-bold hover:bg-muted active:scale-[0.97] transition-all flex items-center justify-center gap-1.5 cursor-pointer text-foreground animate-in fade-in duration-200"
             >
               <Pencil className="w-3.5 h-3.5" />
               <span>Edit Reservation</span>
@@ -746,7 +746,7 @@ We look forward to hosting you!
               type="button"
               onClick={handleCancel}
               disabled={cancelling}
-              className="py-2 px-4 rounded-xl bg-rose-500/10 border border-rose-500/15 hover:bg-rose-500/20 active:scale-[0.97] transition-all text-xs font-bold text-rose-400 disabled:opacity-30 cursor-pointer"
+              className="py-2 px-4 rounded-xl bg-rose-500/10 border border-rose-500/20 hover:bg-rose-500/20 active:scale-[0.97] transition-all text-xs font-bold text-rose-600 dark:text-rose-400 disabled:opacity-30 cursor-pointer"
             >
               {cancelling ? "Cancelling..." : "Cancel"}
             </button>
@@ -755,12 +755,12 @@ We look forward to hosting you!
       </div>
 
       {/* Quick Actions Card */}
-      <div className="rounded-3xl border border-white/5 bg-[#0d0d0d]/45 p-4 sm:p-5 space-y-3.5 backdrop-blur-md">
-        <div className="flex items-center gap-2 border-b border-white/[0.04] pb-2">
-          <div className="w-6 h-6 rounded bg-teal-500/10 flex items-center justify-center text-teal-400">
+      <div className="rounded-3xl border border-border bg-card p-4 sm:p-5 space-y-3.5 backdrop-blur-md">
+        <div className="flex items-center gap-2 border-b border-border pb-2">
+          <div className="w-6 h-6 rounded bg-primary/10 flex items-center justify-center text-primary">
             <Smartphone className="w-3.5 h-3.5" />
           </div>
-          <h3 className="text-xs font-black uppercase tracking-wider text-teal-400">
+          <h3 className="text-xs font-black uppercase tracking-wider text-primary">
             Utility Actions
           </h3>
         </div>
@@ -791,7 +791,7 @@ We look forward to hosting you!
           <ActionButton
             icon={
               copied ? (
-                <Check className="w-4.5 h-4.5 text-emerald-400" />
+                <Check className="w-4.5 h-4.5 text-emerald-600 dark:text-emerald-400" />
               ) : (
                 <Copy className="w-4.5 h-4.5" />
               )
@@ -808,12 +808,12 @@ We look forward to hosting you!
       </div>
 
       {/* Send Manual Communication form */}
-      <div className="rounded-3xl border border-white/5 bg-[#0d0d0d]/45 p-4 sm:p-5 space-y-4 backdrop-blur-md">
-        <div className="flex items-center gap-2 border-b border-white/[0.04] pb-2">
-          <div className="w-6 h-6 rounded bg-teal-500/10 flex items-center justify-center text-teal-400">
+      <div className="rounded-3xl border border-border bg-card p-4 sm:p-5 space-y-4 backdrop-blur-md">
+        <div className="flex items-center gap-2 border-b border-border pb-2">
+          <div className="w-6 h-6 rounded bg-primary/10 flex items-center justify-center text-primary">
             <Mail className="w-3.5 h-3.5" />
           </div>
-          <h3 className="text-xs font-black uppercase tracking-wider text-teal-400">
+          <h3 className="text-xs font-black uppercase tracking-wider text-primary">
             Send Communication
           </h3>
         </div>
@@ -826,7 +826,7 @@ We look forward to hosting you!
             <select
               value={emailType}
               onChange={(e) => setEmailType(e.target.value)}
-              className="w-full text-xs font-semibold rounded-xl border border-white/[0.07] bg-[#0c0c0c]/90 px-3 py-2 focus:outline-none focus:border-teal-500/35 transition cursor-pointer"
+              className="w-full text-xs font-semibold rounded-xl border border-border bg-card px-3 py-2 focus:outline-none focus:border-primary/30 transition cursor-pointer"
             >
               <option value="booking_confirmation">Booking Confirmation</option>
               <option value="cancellation">Cancellation Notice</option>
@@ -844,7 +844,7 @@ We look forward to hosting you!
               type="text"
               value={toEmail}
               onChange={(e) => setToEmail(e.target.value)}
-              className="w-full text-xs font-semibold rounded-xl border border-white/[0.07] bg-[#0c0c0c]/90 px-3 py-2 focus:outline-none focus:border-teal-500/35 transition"
+              className="w-full text-xs font-semibold rounded-xl border border-border bg-card px-3 py-2 focus:outline-none focus:border-primary/30 transition"
               placeholder="guest@example.com"
             />
           </div>
@@ -857,7 +857,7 @@ We look forward to hosting you!
               type="text"
               value={ccEmail}
               onChange={(e) => setCcEmail(e.target.value)}
-              className="w-full text-xs font-semibold rounded-xl border border-white/[0.07] bg-[#0c0c0c]/90 px-3 py-2 focus:outline-none focus:border-teal-500/35 transition"
+              className="w-full text-xs font-semibold rounded-xl border border-border bg-card px-3 py-2 focus:outline-none focus:border-primary/30 transition"
               placeholder="admin@example.com"
             />
           </div>
@@ -873,7 +873,7 @@ We look forward to hosting you!
                 value={customMessage}
                 onChange={(e) => setCustomMessage(e.target.value)}
                 rows={3}
-                className="w-full text-xs font-medium rounded-xl border border-white/[0.07] bg-[#0c0c0c]/90 px-3 py-2 focus:outline-none focus:border-teal-500/35 transition"
+                className="w-full text-xs font-medium rounded-xl border border-border bg-card px-3 py-2 focus:outline-none focus:border-primary/30 transition"
                 placeholder="Provide customized memo text here..."
               />
             </div>
@@ -902,12 +902,12 @@ We look forward to hosting you!
       </div>
 
       {/* Email dispatches */}
-      <div className="rounded-3xl border border-white/5 bg-[#0d0d0d]/45 p-4 sm:p-5 space-y-3 backdrop-blur-md">
-        <div className="flex items-center gap-2 border-b border-white/[0.04] pb-2">
-          <div className="w-6 h-6 rounded bg-teal-500/10 flex items-center justify-center text-teal-400">
+      <div className="rounded-3xl border border-border bg-card p-4 sm:p-5 space-y-3 backdrop-blur-md">
+        <div className="flex items-center gap-2 border-b border-border pb-2">
+          <div className="w-6 h-6 rounded bg-primary/10 flex items-center justify-center text-primary">
             <History className="w-3.5 h-3.5" />
           </div>
-          <h3 className="text-xs font-black uppercase tracking-wider text-teal-400">
+          <h3 className="text-xs font-black uppercase tracking-wider text-primary">
             Email Logs
           </h3>
         </div>
@@ -920,7 +920,7 @@ We look forward to hosting you!
             {booking.emailsSent.map((e) => (
               <div
                 key={e.id}
-                className="text-[11px] font-semibold border-b border-white/[0.03] pb-2 last:border-0 last:pb-0 flex flex-col gap-0.5"
+                className="text-[11px] font-semibold border-b border-border/60 pb-2 last:border-0 last:pb-0 flex flex-col gap-0.5"
               >
                 <div className="flex justify-between items-center">
                   <span className="font-extrabold capitalize text-foreground">
@@ -929,8 +929,8 @@ We look forward to hosting you!
                   <span
                     className={`text-[9px] font-black uppercase tracking-wider px-1.5 py-0.2 rounded-sm ${
                       e.status === "sent"
-                        ? "bg-emerald-500/10 text-emerald-400"
-                        : "bg-rose-500/10 text-rose-400"
+                        ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                        : "bg-rose-500/10 text-rose-600 dark:text-rose-400"
                     }`}
                   >
                     {e.status}
@@ -947,13 +947,13 @@ We look forward to hosting you!
       </div>
 
       {/* WhatsApp dispatches */}
-      <div className="rounded-3xl border border-white/5 bg-[#0d0d0d]/45 p-4 sm:p-5 space-y-3.5 backdrop-blur-md">
-        <div className="flex items-center justify-between border-b border-white/[0.04] pb-2">
+      <div className="rounded-3xl border border-border bg-card p-4 sm:p-5 space-y-3.5 backdrop-blur-md">
+        <div className="flex items-center justify-between border-b border-border pb-2">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded bg-teal-500/10 flex items-center justify-center text-teal-400">
+            <div className="w-6 h-6 rounded bg-primary/10 flex items-center justify-center text-primary">
               <MessageCircle className="w-3.5 h-3.5" />
             </div>
-            <h3 className="text-xs font-black uppercase tracking-wider text-teal-400">
+            <h3 className="text-xs font-black uppercase tracking-wider text-primary">
               WhatsApp Logs
             </h3>
           </div>
@@ -961,8 +961,8 @@ We look forward to hosting you!
             <span
               className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-full border ${
                 waStatus.isConnected
-                  ? "bg-green-500/10 text-green-400 border-green-500/15"
-                  : "bg-yellow-500/10 text-yellow-400 border-yellow-500/15 animate-pulse"
+                  ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
+                  : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 animate-pulse"
               }`}
             >
               {waStatus.isConnected ? "Connected" : "Not Linked"}
@@ -971,15 +971,15 @@ We look forward to hosting you!
         </div>
 
         {waStatus?.qrCode && !waStatus?.isConnected && (
-          <div className="p-3 rounded-2xl bg-yellow-500/10 border border-yellow-500/15 flex flex-col items-center text-center gap-2 relative overflow-hidden">
-            <span className="inline-flex w-1.5 h-1.5 rounded-full bg-yellow-400 animate-pulse absolute top-2.5 right-2.5" />
-            <p className="text-[10px] text-yellow-300 font-bold uppercase tracking-wider">
+          <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex flex-col items-center text-center gap-2 relative overflow-hidden">
+            <span className="inline-flex w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse absolute top-2.5 right-2.5" />
+            <p className="text-[10px] text-amber-800 dark:text-amber-400 font-bold uppercase tracking-wider">
               Scan QR with WA App
             </p>
             <img
               src={waStatus.qrCode}
               alt="WhatsApp QR Code"
-              className="w-32 h-32 rounded-xl border border-white/10"
+              className="w-32 h-32 rounded-xl border border-border"
             />
           </div>
         )}
@@ -993,13 +993,13 @@ We look forward to hosting you!
             {booking.whatsappMessages.map((m) => (
               <div
                 key={m.id}
-                className="text-[11px] font-semibold border-b border-white/[0.03] pb-2 last:border-0 last:pb-0 flex flex-col gap-0.5"
+                className="text-[11px] font-semibold border-b border-border/60 pb-2 last:border-0 last:pb-0 flex flex-col gap-0.5"
               >
                 <div className="flex justify-between items-center">
                   <span className="font-extrabold capitalize text-foreground flex items-center gap-1">
                     <span>{m.type.replace("_", " ")}</span>
                     {m.hasPdf && (
-                      <span className="text-[8px] font-black text-teal-400/90 uppercase tracking-widest bg-teal-500/10 px-1 rounded-sm">
+                      <span className="text-[8px] font-black text-primary/90 uppercase tracking-widest bg-primary/10 px-1 rounded-sm">
                         +pdf
                       </span>
                     )}
@@ -1007,8 +1007,8 @@ We look forward to hosting you!
                   <span
                     className={`text-[9px] font-black uppercase tracking-wider px-1.5 py-0.2 rounded-sm ${
                       m.status === "sent"
-                        ? "bg-emerald-500/10 text-emerald-400"
-                        : "bg-rose-500/10 text-rose-400"
+                        ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                        : "bg-rose-500/10 text-rose-600 dark:text-rose-400"
                     }`}
                   >
                     {m.status}
@@ -1031,9 +1031,9 @@ We look forward to hosting you!
     <div className="space-y-6">
       {/* Section 1: Guest Information */}
       <div className="space-y-4">
-        <div className="flex items-center gap-2 border-b border-white/[0.03] pb-1.5">
-          <User className="w-4 h-4 text-teal-400" />
-          <span className="text-xs font-black uppercase tracking-wider text-teal-400">
+        <div className="flex items-center gap-2 border-b border-border pb-1.5">
+          <User className="w-4 h-4 text-primary" />
+          <span className="text-xs font-black uppercase tracking-wider text-primary">
             Guest Information
           </span>
         </div>
@@ -1069,9 +1069,9 @@ We look forward to hosting you!
 
       {/* Section 2: Stay Dates & Configuration */}
       <div className="space-y-4">
-        <div className="flex items-center gap-2 border-b border-white/[0.03] pb-1.5">
-          <BedDouble className="w-4 h-4 text-teal-400" />
-          <span className="text-xs font-black uppercase tracking-wider text-teal-400">
+        <div className="flex items-center gap-2 border-b border-border pb-1.5">
+          <BedDouble className="w-4 h-4 text-primary" />
+          <span className="text-xs font-black uppercase tracking-wider text-primary">
             Stay Configuration
           </span>
         </div>
@@ -1127,9 +1127,9 @@ We look forward to hosting you!
 
       {/* Section 3: Financials & Statuses */}
       <div className="space-y-4">
-        <div className="flex items-center gap-2 border-b border-white/[0.03] pb-1.5">
-          <CreditCard className="w-4 h-4 text-teal-400" />
-          <span className="text-xs font-black uppercase tracking-wider text-teal-400">
+        <div className="flex items-center gap-2 border-b border-border pb-1.5">
+          <CreditCard className="w-4 h-4 text-primary" />
+          <span className="text-xs font-black uppercase tracking-wider text-primary">
             Financials & Status
           </span>
         </div>
@@ -1171,9 +1171,9 @@ We look forward to hosting you!
 
       {/* Section 4: Special Notes */}
       <div className="space-y-4">
-        <div className="flex items-center gap-2 border-b border-white/[0.03] pb-1.5">
-          <Info className="w-4 h-4 text-teal-400" />
-          <span className="text-xs font-black uppercase tracking-wider text-teal-400">
+        <div className="flex items-center gap-2 border-b border-border pb-1.5">
+          <Info className="w-4 h-4 text-primary" />
+          <span className="text-xs font-black uppercase tracking-wider text-primary">
             Notes & Requests
           </span>
         </div>
@@ -1213,10 +1213,10 @@ We look forward to hosting you!
             <div className="hidden lg:block">
               <form
                 onSubmit={handleEditSave}
-                className="rounded-3xl border border-white/5 bg-[#0d0d0d]/80 p-5 sm:p-7 space-y-6 backdrop-blur-xl relative overflow-hidden"
+                className="rounded-3xl border border-border bg-card p-5 sm:p-7 space-y-6 backdrop-blur-xl relative overflow-hidden"
               >
-                <div className="absolute inset-0 bg-linear-to-b from-teal-500/5 via-transparent to-transparent pointer-events-none" />
-                <div className="flex items-center justify-between border-b border-white/[0.06] pb-4">
+                <div className="absolute inset-0 bg-linear-to-b from-primary/5 via-transparent to-transparent pointer-events-none" />
+                <div className="flex items-center justify-between border-b border-border pb-4">
                   <div>
                     <h2 className="text-base font-black tracking-tight text-foreground">
                       Edit Booking Details
@@ -1231,17 +1231,17 @@ We look forward to hosting you!
                       cancelEdit();
                       haptic("light");
                     }}
-                    className="px-3.5 py-1.5 rounded-xl border border-white/5 bg-white/2 text-xs font-bold text-muted-foreground hover:text-foreground transition-all cursor-pointer"
+                    className="px-3.5 py-1.5 rounded-xl border border-border bg-muted/40 text-xs font-bold text-muted-foreground hover:text-foreground transition-all cursor-pointer"
                   >
                     Cancel
                   </button>
                 </div>
                 <FormContent />
-                <div className="pt-4 flex gap-3 border-t border-white/[0.06]">
+                <div className="pt-4 flex gap-3 border-t border-border">
                   <button
                     type="submit"
                     disabled={savingEdit}
-                    className="flex-1 rounded-2xl bg-foreground text-background py-3.5 text-sm font-extrabold hover:opacity-90 disabled:opacity-50 active:scale-[0.98] transition-all cursor-pointer"
+                    className="flex-1 rounded-2xl bg-primary text-primary-foreground py-3.5 text-sm font-extrabold hover:opacity-90 disabled:opacity-50 active:scale-[0.98] transition-all cursor-pointer"
                   >
                     {savingEdit ? "Saving Changes..." : "Save Changes"}
                   </button>
@@ -1260,7 +1260,7 @@ We look forward to hosting you!
 
           {/* Mobile Floating Dock (MagicUI-style) */}
           <div className="lg:hidden sticky top-0 z-40 flex justify-center mb-4 pt-1 px-4">
-            <div className="flex items-center gap-1 rounded-2xl border border-white/8 bg-[#0a0a0a]/85 backdrop-blur-2xl p-1.5 shadow-[0_8px_32px_-8px_rgba(0,0,0,0.6)]">
+            <div className="flex items-center gap-1 rounded-2xl border border-border bg-card/90 backdrop-blur-2xl p-1.5 shadow-[0_8px_32px_-8px_rgba(0,0,0,0.6)]">
               {[
                 { key: "details" as const, label: "Details", icon: User },
                 { key: "ledger" as const, label: "Ledger", icon: CreditCard },
@@ -1278,7 +1278,7 @@ We look forward to hosting you!
                   {activeMobileTab === tab.key && (
                     <motion.div
                       layoutId="mobileDockPill"
-                      className="absolute inset-0 bg-foreground/10 rounded-xl border border-white/5"
+                      className="absolute inset-0 bg-muted rounded-xl border border-border"
                       transition={{
                         type: "spring",
                         stiffness: 400,
@@ -1306,7 +1306,7 @@ We look forward to hosting you!
                     <tab.icon
                       className={`w-5 h-5 transition-colors duration-200 ${
                         activeMobileTab === tab.key
-                          ? "text-teal-400"
+                          ? "text-primary"
                           : "text-muted-foreground/50"
                       }`}
                     />
@@ -1348,7 +1348,7 @@ We look forward to hosting you!
             if (!open) cancelEdit();
           }}
         >
-          <DrawerContent className="h-[90dvh] flex flex-col p-4 bg-[#0d0d0d] border-t border-white/5">
+          <DrawerContent className="h-[90dvh] flex flex-col p-4 bg-card border-t border-border">
             <DrawerTitle className="text-sm font-black text-foreground uppercase tracking-wider mb-1">
               Edit Booking
             </DrawerTitle>
@@ -1358,14 +1358,14 @@ We look forward to hosting you!
             <div className="flex-1 overflow-y-auto pb-4 pr-1">
               <FormContent />
             </div>
-            <div className="pt-3 border-t border-white/[0.06] flex gap-3">
+            <div className="pt-3 border-t border-border flex gap-3">
               <button
                 type="button"
                 onClick={() => {
                   cancelEdit();
                   haptic("light");
                 }}
-                className="flex-1 py-3 rounded-2xl border border-white/5 bg-white/2 text-xs font-extrabold text-muted-foreground hover:text-foreground transition-all cursor-pointer"
+                className="flex-1 py-3 rounded-2xl border border-border bg-muted/40 text-xs font-extrabold text-muted-foreground hover:text-foreground transition-all cursor-pointer"
               >
                 Cancel
               </button>
@@ -1373,7 +1373,7 @@ We look forward to hosting you!
                 type="button"
                 onClick={() => handleEditSave()}
                 disabled={savingEdit}
-                className="flex-1 py-3 rounded-2xl bg-foreground text-background text-xs font-extrabold hover:opacity-90 disabled:opacity-50 active:scale-[0.98] transition-all cursor-pointer"
+                className="flex-1 py-3 rounded-2xl bg-primary text-primary-foreground text-xs font-extrabold hover:opacity-90 disabled:opacity-50 active:scale-[0.98] transition-all cursor-pointer"
               >
                 {savingEdit ? "Saving..." : "Save Changes"}
               </button>
@@ -1396,16 +1396,16 @@ function DetailCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-3xl border border-white/5 bg-[#0d0d0d]/40 p-4 sm:p-5 space-y-4 relative overflow-hidden backdrop-blur-md">
+    <div className="rounded-3xl border border-border bg-card p-4 sm:p-5 space-y-4 relative overflow-hidden backdrop-blur-md">
       <div className="flex items-center gap-2.5">
-        <div className="w-8 h-8 rounded-lg bg-teal-500/10 border border-teal-500/15 flex items-center justify-center text-teal-400">
+        <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
           <Icon className="w-4.5 h-4.5" />
         </div>
-        <h3 className="text-xs font-black uppercase tracking-wider text-teal-400">
+        <h3 className="text-xs font-black uppercase tracking-wider text-primary">
           {title}
         </h3>
       </div>
-      <div className="space-y-1.5 divide-y divide-white/[0.03]">{children}</div>
+      <div className="space-y-1.5 divide-y divide-border/60">{children}</div>
     </div>
   );
 }
@@ -1442,7 +1442,7 @@ function ActionButton({
       onClick={onClick}
       disabled={disabled}
       whileTap={{ scale: 0.95 }}
-      className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-white/5 bg-white/3 p-3 text-center text-xs font-bold hover:bg-teal-500/10 hover:border-teal-500/20 active:scale-95 transition-all text-muted-foreground hover:text-teal-400 disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+      className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-border bg-muted/40 p-3 text-center text-xs font-bold hover:bg-primary/10 hover:border-primary/20 active:scale-95 transition-all text-muted-foreground hover:text-primary disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
     >
       <div className="shrink-0">{icon}</div>
       <span className="text-[9px] uppercase tracking-wider font-extrabold whitespace-nowrap">
@@ -1470,7 +1470,7 @@ function TextArea({
     <div className="flex flex-col gap-2 w-full">
       <label
         className={`text-xs font-semibold uppercase tracking-wider transition-colors duration-200 ${
-          isFocused ? "text-teal-400" : "text-muted-foreground/60"
+          isFocused ? "text-primary" : "text-muted-foreground/60"
         }`}
       >
         {label}
@@ -1483,10 +1483,10 @@ function TextArea({
           onBlur={() => setIsFocused(false)}
           rows={rows}
           placeholder={placeholder}
-          className={`w-full rounded-2xl border bg-[#0c0c0c]/90 px-4 py-3 text-sm font-medium text-foreground transition-all duration-300 placeholder:text-muted-foreground/30 focus:outline-none ${
+          className={`w-full rounded-2xl border bg-card px-4 py-3 text-sm font-medium text-foreground transition-all duration-300 placeholder:text-muted-foreground/30 focus:outline-none ${
             isFocused
-              ? "border-teal-500/40 shadow-[0_0_24px_-6px_rgba(20,184,166,0.2)] ring-1 ring-teal-500/15"
-              : "border-white/[0.07] hover:border-white/15"
+              ? "border-primary/40 shadow-[0_0_24px_-6px_var(--glow-color)] ring-1 ring-primary/15"
+              : "border-border hover:border-border/80"
           }`}
         />
       </div>

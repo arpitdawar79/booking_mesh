@@ -173,23 +173,23 @@ export default function WhatsAppSetupPage() {
   return (
     <div className="max-w-none sm:max-w-xl sm:mx-auto space-y-5 lg:space-y-6">
       <div className="flex items-center gap-3">
-        <Smartphone className="w-6 h-6 text-teal-500" />
+        <Smartphone className="w-6 h-6 text-primary" />
         <h1 className="text-xl sm:text-2xl font-bold">WhatsApp Setup</h1>
       </div>
 
       {/* Status Card */}
-      <div className="rounded-xl border border-border p-4 sm:p-6 space-y-4">
+      <div className="rounded-xl border border-border p-4 sm:p-6 space-y-4 bg-card">
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
             Connection Status
           </h2>
           {status?.isConnected ? (
-            <span className="flex items-center gap-1.5 text-xs font-medium text-green-400 bg-green-900/30 px-2.5 py-1 rounded-full">
+            <span className="flex items-center gap-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 dark:text-emerald-400 dark:bg-emerald-950/30 border border-emerald-200/50 dark:border-emerald-500/10 px-2.5 py-1 rounded-full">
               <CheckCircle className="w-3.5 h-3.5" />
               Connected
             </span>
           ) : (
-            <span className="flex items-center gap-1.5 text-xs font-medium text-yellow-400 bg-yellow-900/30 px-2.5 py-1 rounded-full">
+            <span className="flex items-center gap-1.5 text-xs font-medium text-amber-700 bg-amber-50 dark:text-amber-400 dark:bg-amber-950/30 border border-amber-200/50 dark:border-amber-500/10 px-2.5 py-1 rounded-full">
               <XCircle className="w-3.5 h-3.5" />
               Disconnected
             </span>
@@ -212,7 +212,7 @@ export default function WhatsAppSetupPage() {
         )}
 
         {status?.lastError && !status?.isConnected && (
-          <p className="text-xs text-red-400 break-words">
+          <p className="text-xs text-destructive break-words">
             Last error: {status.lastError}
           </p>
         )}
@@ -221,7 +221,7 @@ export default function WhatsAppSetupPage() {
           <button
             onClick={handleRestart}
             disabled={restarting || loggingOut}
-            className="flex items-center gap-2 rounded-xl border border-border px-4 py-2.5 text-sm font-medium hover:bg-muted disabled:opacity-50 transition"
+            className="flex items-center gap-2 rounded-xl border border-border px-4 py-2.5 text-sm font-medium hover:bg-secondary disabled:opacity-50 transition"
           >
             <RefreshCw
               className={`w-4 h-4 ${restarting ? "animate-spin" : ""}`}
@@ -233,7 +233,7 @@ export default function WhatsAppSetupPage() {
             <button
               onClick={handleLogout}
               disabled={loggingOut || restarting}
-              className="flex items-center gap-2 rounded-xl border border-red-500/30 text-red-400 px-4 py-2.5 text-sm font-medium hover:bg-red-900/20 disabled:opacity-50 transition"
+              className="flex items-center gap-2 rounded-xl border border-destructive/30 text-destructive px-4 py-2.5 text-sm font-medium hover:bg-destructive/10 dark:hover:bg-destructive/20 disabled:opacity-50 transition"
             >
               <LogOut className="w-4 h-4" />
               {loggingOut ? "Logging out..." : "Log Out"}
@@ -244,10 +244,10 @@ export default function WhatsAppSetupPage() {
 
       {/* QR Code Card */}
       {status?.qrCode && !status?.isConnected && (
-        <div className="rounded-xl border border-yellow-500/30 bg-yellow-900/10 p-4 sm:p-6 space-y-4">
+        <div className="rounded-xl border border-amber-200 dark:border-amber-500/20 bg-amber-500/5 dark:bg-amber-950/10 p-4 sm:p-6 space-y-4">
           <div className="flex items-center gap-2">
-            <QrCode className="w-5 h-5 text-yellow-400" />
-            <h2 className="text-sm font-semibold text-yellow-300">
+            <QrCode className="w-5 h-5 text-amber-700 dark:text-amber-400" />
+            <h2 className="text-sm font-semibold text-amber-800 dark:text-amber-200">
               Scan to Connect
             </h2>
           </div>
@@ -256,7 +256,7 @@ export default function WhatsAppSetupPage() {
             <strong>Settings &rarr; Linked Devices &rarr; Link a Device</strong>
             , and scan the QR code below.
           </p>
-          <div className="flex justify-center">
+          <div className="flex justify-center p-3 bg-white dark:bg-[#112023] rounded-xl border border-border w-fit mx-auto shadow-sm">
             <img
               src={status.qrCode}
               alt="WhatsApp QR Code"
@@ -271,7 +271,7 @@ export default function WhatsAppSetupPage() {
       )}
 
       {!status?.isConnected && !status?.qrCode && (
-        <div className="rounded-xl border border-border p-4 sm:p-6 text-center">
+        <div className="rounded-xl border border-border p-4 sm:p-6 text-center bg-card">
           <p className="text-sm text-muted-foreground">
             WhatsApp is initializing. The QR code will appear here shortly.
           </p>
@@ -280,16 +280,16 @@ export default function WhatsAppSetupPage() {
 
       {/* Admin Group Selection */}
       {status?.isConnected && (
-        <div className="rounded-xl border border-border p-4 sm:p-6 space-y-4">
+        <div className="rounded-xl border border-border p-4 sm:p-6 space-y-4 bg-card">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Users className="w-5 h-5 text-teal-500" />
+              <Users className="w-5 h-5 text-primary" />
               <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                 Admin Group
               </h2>
             </div>
             {groupsCached && (
-              <span className="text-[10px] font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+              <span className="text-[10px] font-medium text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">
                 cached
               </span>
             )}
@@ -310,7 +310,7 @@ export default function WhatsAppSetupPage() {
               <button
                 onClick={() => fetchGroups(true)}
                 disabled={refreshingGroups}
-                className="flex items-center gap-2 rounded-xl border border-border px-4 py-2.5 text-sm font-medium hover:bg-muted disabled:opacity-50 transition"
+                className="flex items-center gap-2 rounded-xl border border-border px-4 py-2.5 text-sm font-medium hover:bg-secondary disabled:opacity-50 transition"
               >
                 <RefreshCw
                   className={`w-4 h-4 ${refreshingGroups ? "animate-spin" : ""}`}
@@ -327,14 +327,14 @@ export default function WhatsAppSetupPage() {
                   placeholder="Search groups..."
                   value={groupSearch}
                   onChange={(e) => setGroupSearch(e.target.value)}
-                  className="w-full rounded-xl border border-border bg-background pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/50"
+                  className="w-full rounded-xl border border-border bg-background pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary/50"
                 />
               </div>
 
               <select
                 value={selectedGroupId}
                 onChange={(e) => setSelectedGroupId(e.target.value)}
-                className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/50"
+                className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary/50"
               >
                 <option value="">Select a group...</option>
                 {groups
@@ -352,7 +352,7 @@ export default function WhatsAppSetupPage() {
                 <button
                   onClick={handleSaveConfig}
                   disabled={!selectedGroupId || savingConfig}
-                  className="flex items-center gap-2 rounded-xl bg-teal-600 text-white px-4 py-2.5 text-sm font-medium hover:bg-teal-500 disabled:opacity-50 transition"
+                  className="flex items-center gap-2 rounded-xl bg-primary text-primary-foreground px-4 py-2.5 text-sm font-medium hover:opacity-90 disabled:opacity-50 transition"
                 >
                   <Save className="w-4 h-4" />
                   {savingConfig ? "Saving..." : "Save"}
@@ -360,7 +360,7 @@ export default function WhatsAppSetupPage() {
                 <button
                   onClick={() => fetchGroups(true)}
                   disabled={refreshingGroups}
-                  className="flex items-center gap-2 rounded-xl border border-border px-4 py-2.5 text-sm font-medium hover:bg-muted disabled:opacity-50 transition"
+                  className="flex items-center gap-2 rounded-xl border border-border px-4 py-2.5 text-sm font-medium hover:bg-secondary disabled:opacity-50 transition"
                 >
                   <RefreshCw
                     className={`w-4 h-4 ${refreshingGroups ? "animate-spin" : ""}`}
@@ -368,7 +368,7 @@ export default function WhatsAppSetupPage() {
                   {refreshingGroups ? "Refreshing..." : "Refresh"}
                 </button>
                 {configSaved && (
-                  <span className="flex items-center gap-1 text-xs font-medium text-green-400">
+                  <span className="flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">
                     <CheckCircle className="w-3.5 h-3.5" />
                     Saved
                   </span>

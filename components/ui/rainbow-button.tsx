@@ -22,10 +22,10 @@ export function RainbowButton({
       {...props}
     >
       {/* Ambient shadow glow */}
-      <span className="absolute inset-0 z-0 bg-linear-to-r from-[#14b8a6] via-[#8b5cf6] via-[#f59e0b] to-[#14b8a6] opacity-20 blur-md transition-opacity duration-500 group-hover:opacity-40" />
+      <span className="absolute inset-0 z-0 bg-linear-to-r from-[#e2c29d] via-[#2c4a3f] via-[#cd5a4a] to-[#e2c29d] opacity-20 blur-md transition-opacity duration-500 group-hover:opacity-40" />
       
       {/* Cycling Rainbow Border */}
-      <span className="absolute -inset-[1px] -z-10 rounded-xl bg-linear-to-r from-[#14b8a6] via-[#8b5cf6] via-[#f59e0b] to-[#14b8a6] bg-[length:200%_100%] animate-rainbow" />
+      <span className="absolute -inset-[1px] -z-10 rounded-xl bg-linear-to-r from-[#e2c29d] via-[#2c4a3f] via-[#cd5a4a] to-[#e2c29d] bg-[length:200%_100%] animate-rainbow" />
       
       {/* Background Mask */}
       <span className="absolute inset-[1px] -z-10 rounded-[11px] bg-background transition-colors duration-300" />

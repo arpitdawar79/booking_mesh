@@ -6,7 +6,7 @@ import { StatCard } from "@/components/dashboard/stat-card";
 import { NumberTicker } from "@/components/magicui/number-ticker";
 import { DashboardSkeleton } from "@/components/pwa/skeleton";
 import { MagicCard } from "@/components/ui/magic-card";
-import { formatDate } from "@/lib/utils";
+import { cn, formatDate } from "@/lib/utils";
 import { motion } from "framer-motion";
 import {
   AlertCircle,
@@ -129,12 +129,16 @@ export default function DashboardPage() {
             <NumberTicker
               value={totalRevenue}
               prefix="₹"
-              className="text-2xl sm:text-3xl font-extrabold tracking-tight text-emerald-400"
+              className="text-2xl sm:text-3xl font-extrabold tracking-tight text-emerald-700 dark:text-emerald-400"
             />
           }
           change={null}
           suffix="bookings"
-          icon={<IndianRupee className="w-5 h-5 text-emerald-400" />}
+          icon={
+            <div className="p-1.5 rounded-xl bg-emerald-500/10 dark:bg-emerald-500/10 border border-emerald-500/20 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-400 shrink-0">
+              <IndianRupee className="w-4.5 h-4.5" />
+            </div>
+          }
         />
         <KpiCard
           label="Additional Sales"
@@ -142,12 +146,16 @@ export default function DashboardPage() {
             <NumberTicker
               value={totalAdditionalSales}
               prefix="₹"
-              className="text-2xl sm:text-3xl font-extrabold tracking-tight text-orange-400"
+              className="text-2xl sm:text-3xl font-extrabold tracking-tight text-amber-700 dark:text-amber-400"
             />
           }
           change={null}
           suffix="this year"
-          icon={<ShoppingCart className="w-5 h-5 text-orange-400" />}
+          icon={
+            <div className="p-1.5 rounded-xl bg-amber-500/10 dark:bg-amber-500/10 border border-amber-500/20 dark:border-amber-500/20 text-amber-700 dark:text-amber-400 shrink-0">
+              <ShoppingCart className="w-4.5 h-4.5" />
+            </div>
+          }
         />
         <KpiCard
           label="Total Expenses"
@@ -155,12 +163,16 @@ export default function DashboardPage() {
             <NumberTicker
               value={totalExpenses}
               prefix="₹"
-              className="text-2xl sm:text-3xl font-extrabold tracking-tight text-rose-400"
+              className="text-2xl sm:text-3xl font-extrabold tracking-tight text-rose-700 dark:text-rose-400"
             />
           }
           change={null}
           suffix="this year"
-          icon={<Receipt className="w-5 h-5 text-rose-400" />}
+          icon={
+            <div className="p-1.5 rounded-xl bg-rose-500/10 dark:bg-rose-500/10 border border-rose-500/20 dark:border-rose-500/20 text-rose-700 dark:text-rose-400 shrink-0">
+              <Receipt className="w-4.5 h-4.5" />
+            </div>
+          }
         />
         <KpiCard
           label="Net Profit / Loss"
@@ -168,13 +180,25 @@ export default function DashboardPage() {
             <NumberTicker
               value={netProfit}
               prefix="₹"
-              className={`text-2xl sm:text-3xl font-extrabold tracking-tight ${netProfit >= 0 ? "text-emerald-400" : "text-rose-400"}`}
+              className={`text-2xl sm:text-3xl font-extrabold tracking-tight ${
+                netProfit >= 0
+                  ? "text-emerald-700 dark:text-emerald-400"
+                  : "text-rose-700 dark:text-rose-400"
+              }`}
             />
           }
           change={null}
           suffix={netProfit >= 0 ? "in profit" : "in loss"}
-          icon={<BarChart3 className="w-5 h-5 text-blue-400" />}
-          accent={netProfit >= 0 ? "text-emerald-400" : "text-rose-400"}
+          icon={
+            <div className={cn(
+              "p-1.5 rounded-xl shrink-0 border",
+              netProfit >= 0
+                ? "bg-emerald-500/10 dark:bg-emerald-500/10 border-emerald-500/20 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-400"
+                : "bg-rose-500/10 dark:bg-rose-500/10 border-rose-500/20 dark:border-rose-500/20 text-rose-700 dark:text-rose-400"
+            )}>
+              <BarChart3 className="w-4.5 h-4.5" />
+            </div>
+          }
         />
       </motion.div>
 
@@ -186,47 +210,63 @@ export default function DashboardPage() {
         className="grid grid-cols-2 lg:grid-cols-4 gap-3"
       >
         <StatCard
-          icon={<CalendarCheck className="w-5 h-5 text-teal-400" />}
+          icon={
+            <div className="p-1.5 rounded-xl bg-emerald-500/10 dark:bg-emerald-500/10 border border-emerald-500/20 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-400 shrink-0">
+              <CalendarCheck className="w-4.5 h-4.5" />
+            </div>
+          }
           label="Total Bookings"
           value={
             <NumberTicker
               value={bookingStats?.counts.total || 0}
-              className="text-2xl sm:text-3xl font-extrabold tracking-tight"
+              className="text-2xl sm:text-3xl font-extrabold tracking-tight text-emerald-700 dark:text-emerald-400"
             />
           }
           sub={`+${bookingStats?.counts.thisMonth || 0} this month`}
         />
         <StatCard
-          icon={<Users className="w-5 h-5 text-blue-400" />}
+          icon={
+            <div className="p-1.5 rounded-xl bg-teal-500/10 dark:bg-teal-500/10 border border-teal-500/20 dark:border-teal-500/20 text-teal-700 dark:text-teal-400 shrink-0">
+              <Users className="w-4.5 h-4.5" />
+            </div>
+          }
           label="Confirmed"
           value={
             <NumberTicker
               value={bookingStats?.counts.confirmed || 0}
-              className="text-2xl sm:text-3xl font-extrabold tracking-tight"
+              className="text-2xl sm:text-3xl font-extrabold tracking-tight text-teal-700 dark:text-teal-400"
             />
           }
           sub={`${bookingStats?.occupancy.totalNights || 0} nights booked`}
         />
         <StatCard
-          icon={<Banknote className="w-5 h-5 text-violet-400" />}
+          icon={
+            <div className="p-1.5 rounded-xl bg-amber-500/10 dark:bg-amber-500/10 border border-amber-500/20 dark:border-amber-500/20 text-amber-700 dark:text-amber-400 shrink-0">
+              <Banknote className="w-4.5 h-4.5" />
+            </div>
+          }
           label="Salaries"
           value={
             <NumberTicker
               value={totalSalaries}
               prefix="₹"
-              className="text-2xl sm:text-3xl font-extrabold tracking-tight"
+              className="text-2xl sm:text-3xl font-extrabold tracking-tight text-amber-700 dark:text-amber-400"
             />
           }
           sub="payroll this year"
         />
         <StatCard
-          icon={<AlertCircle className="w-5 h-5 text-amber-400" />}
+          icon={
+            <div className="p-1.5 rounded-xl bg-rose-500/10 dark:bg-rose-500/10 border border-rose-500/20 dark:border-rose-500/20 text-rose-700 dark:text-rose-400 shrink-0">
+              <AlertCircle className="w-4.5 h-4.5" />
+            </div>
+          }
           label="Outstanding"
           value={
             <NumberTicker
               value={bookingStats?.revenue.outstanding || 0}
               prefix="₹"
-              className="text-2xl sm:text-3xl font-extrabold tracking-tight"
+              className="text-2xl sm:text-3xl font-extrabold tracking-tight text-rose-700 dark:text-rose-400"
             />
           }
           sub="to collect"
@@ -248,8 +288,8 @@ export default function DashboardPage() {
           <div className="space-y-2.5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="p-1 rounded bg-teal-500/10 border border-teal-500/15">
-                  <TrendingUp className="w-3.5 h-3.5 text-teal-400" />
+                <div className="p-1 rounded bg-primary/10 border border-primary/15">
+                  <TrendingUp className="w-3.5 h-3.5 text-primary" />
                 </div>
                 <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground/80">
                   Upcoming Check-ins
@@ -257,7 +297,7 @@ export default function DashboardPage() {
               </div>
               <Link
                 href="/dashboard/bookings"
-                className="text-[10px] font-bold text-teal-400 hover:text-teal-300 flex items-center gap-0.5 transition-colors"
+                className="text-[10px] font-bold text-primary hover:text-primary/80 flex items-center gap-0.5 transition-colors"
               >
                 View all <ChevronRight className="w-3 h-3" />
               </Link>
@@ -267,9 +307,9 @@ export default function DashboardPage() {
                 <Link
                   key={u.id}
                   href={`/dashboard/booking/${u.id}`}
-                  className="min-w-[160px] snap-start rounded-xl border border-border/40 bg-zinc-900/30 p-2.5 hover:bg-muted/20 hover:border-teal-500/20 transition-all duration-300"
+                  className="min-w-[160px] snap-start rounded-xl border border-border/40 bg-card/40 p-2.5 hover:bg-muted/20 hover:border-primary/20 transition-all duration-300"
                 >
-                  <div className="text-[10px] font-bold text-teal-400 mb-0.5">
+                  <div className="text-[10px] font-bold text-primary mb-0.5">
                     {formatDate(u.checkInDate)}
                   </div>
                   <div className="font-semibold text-xs truncate">
@@ -298,37 +338,61 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           <ModuleCard
             href="/dashboard/bookings"
-            icon={<ClipboardList className="w-5 h-5 text-teal-400" />}
+            icon={
+              <div className="p-1.5 rounded-xl bg-emerald-500/10 dark:bg-emerald-500/10 border border-emerald-500/20 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-400 group-hover:scale-105 transition-all duration-300 shrink-0">
+                <ClipboardList className="w-4.5 h-4.5" />
+              </div>
+            }
             title="Bookings"
             description="Manage reservations, check-ins, and guest details."
           />
           <ModuleCard
             href="/dashboard/guests"
-            icon={<Users className="w-5 h-5 text-blue-400" />}
+            icon={
+              <div className="p-1.5 rounded-xl bg-teal-500/10 dark:bg-teal-500/10 border border-teal-500/20 dark:border-teal-500/20 text-teal-700 dark:text-teal-400 group-hover:scale-105 transition-all duration-300 shrink-0">
+                <Users className="w-4.5 h-4.5" />
+              </div>
+            }
             title="Guests"
             description="Guest directory and repeat visitor insights."
           />
           <ModuleCard
             href="/dashboard/expenses"
-            icon={<Receipt className="w-5 h-5 text-rose-400" />}
+            icon={
+              <div className="p-1.5 rounded-xl bg-rose-500/10 dark:bg-rose-500/10 border border-rose-500/20 dark:border-rose-500/20 text-rose-700 dark:text-rose-400 group-hover:scale-105 transition-all duration-300 shrink-0">
+                <Receipt className="w-4.5 h-4.5" />
+              </div>
+            }
             title="Expenses"
             description="Track operational costs and spending."
           />
           <ModuleCard
             href="/dashboard/additional-sales"
-            icon={<ShoppingCart className="w-5 h-5 text-orange-400" />}
+            icon={
+              <div className="p-1.5 rounded-xl bg-amber-500/10 dark:bg-amber-500/10 border border-amber-500/20 dark:border-amber-500/20 text-amber-700 dark:text-amber-400 group-hover:scale-105 transition-all duration-300 shrink-0">
+                <ShoppingCart className="w-4.5 h-4.5" />
+              </div>
+            }
             title="Additional Sales"
             description="Track restaurant, activity, and stay sales."
           />
           <ModuleCard
             href="/dashboard/salary"
-            icon={<Banknote className="w-5 h-5 text-violet-400" />}
+            icon={
+              <div className="p-1.5 rounded-xl bg-amber-600/10 dark:bg-amber-500/10 border border-amber-600/20 dark:border-amber-500/20 text-amber-800 dark:text-amber-400 group-hover:scale-105 transition-all duration-300 shrink-0">
+                <Banknote className="w-4.5 h-4.5" />
+              </div>
+            }
             title="Salary & Payroll"
             description="Employee slips and payroll management."
           />
           <ModuleCard
             href="/dashboard/analytics"
-            icon={<BarChart3 className="w-5 h-5 text-emerald-400" />}
+            icon={
+              <div className="p-1.5 rounded-xl bg-indigo-500/10 dark:bg-indigo-500/10 border border-indigo-500/20 dark:border-indigo-500/20 text-indigo-700 dark:text-indigo-400 group-hover:scale-105 transition-all duration-300 shrink-0">
+                <BarChart3 className="w-4.5 h-4.5" />
+              </div>
+            }
             title="Analytics"
             description="Deep dive into revenue, occupancy & P&L."
           />
@@ -341,8 +405,8 @@ export default function DashboardPage() {
           <div className="space-y-2.5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="p-1 rounded bg-violet-500/10 border border-violet-500/15">
-                  <Users className="w-3.5 h-3.5 text-violet-400" />
+                <div className="p-1 rounded bg-primary/10 border border-primary/15">
+                  <Users className="w-3.5 h-3.5 text-primary" />
                 </div>
                 <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground/80">
                   Top Guests
@@ -350,7 +414,7 @@ export default function DashboardPage() {
               </div>
               <Link
                 href="/dashboard/guests"
-                className="text-[10px] font-bold text-teal-400 hover:text-teal-300 flex items-center gap-0.5 transition-colors"
+                className="text-[10px] font-bold text-primary hover:text-primary/80 flex items-center gap-0.5 transition-colors"
               >
                 View all <ChevronRight className="w-3 h-3" />
               </Link>
@@ -362,7 +426,7 @@ export default function DashboardPage() {
                   className="flex items-center justify-between text-xs border-b border-border/30 py-1.5 last:border-0 hover:bg-muted/10 px-1.5 -mx-1.5 rounded-lg transition-colors"
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <span className="w-5 h-5 rounded bg-teal-500/10 text-teal-400 flex items-center justify-center text-[9px] font-bold shrink-0">
+                    <span className="w-5 h-5 rounded bg-primary/10 text-primary flex items-center justify-center text-[9px] font-bold shrink-0">
                       {i + 1}
                     </span>
                     <div className="min-w-0">
@@ -374,7 +438,7 @@ export default function DashboardPage() {
                       </div>
                     </div>
                   </div>
-                  <div className="font-bold text-right shrink-0 text-emerald-400 text-xs">
+                  <div className="font-bold text-right shrink-0 text-primary text-xs">
                     {formatCurrency(g.revenue)}
                   </div>
                 </div>

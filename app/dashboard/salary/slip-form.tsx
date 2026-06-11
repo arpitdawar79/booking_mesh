@@ -152,25 +152,25 @@ export function SlipForm({
   });
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-linear-to-br from-slate-900 via-[#0d1525] to-slate-900 p-6 shadow-xl">
-      <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
+    <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-6 shadow-md">
+      <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
       <div className="relative flex items-center justify-between mb-2">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-linear-to-br from-emerald-500/20 to-teal-500/10 flex items-center justify-center border border-emerald-500/20">
-            <Receipt className="w-4 h-4 text-emerald-400" />
+          <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/15">
+            <Receipt className="w-4 h-4 text-primary" />
           </div>
           <div>
-            <h2 className="text-sm font-bold text-white tracking-tight">
+            <h2 className="text-sm font-bold text-foreground tracking-tight">
               {editingSlipId ? "Edit Salary Slip" : "Generate Salary Slip"}
             </h2>
-            <p className="text-[11px] text-slate-400">
+            <p className="text-[11px] text-muted-foreground">
               {employee.name} — {employee.designation}
             </p>
           </div>
         </div>
         <button
           onClick={onClose}
-          className="p-2 rounded-lg hover:bg-white/10 transition text-slate-400 hover:text-white"
+          className="p-2 rounded-lg hover:bg-muted transition text-muted-foreground hover:text-foreground"
         >
           <X className="w-4 h-4" />
         </button>
@@ -179,17 +179,17 @@ export function SlipForm({
       <form onSubmit={handleSubmit} className="relative space-y-5 mt-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
-            <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">
-              Month <span className="text-rose-400">*</span>
+            <label className="block text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+              Month <span className="text-rose-600 dark:text-rose-400">*</span>
             </label>
             <select
               required
               value={formData.month}
               onChange={(e) => updateField("month", e.target.value)}
-              className="w-full rounded-xl border border-white/10 bg-white/3 px-4 py-2.5 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition"
+              className="w-full rounded-xl border border-border bg-card px-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/30 transition"
             >
               {Array.from({ length: 12 }, (_, i) => (
-                <option key={i + 1} value={i + 1} className="bg-slate-900">
+                <option key={i + 1} value={i + 1} className="bg-card text-foreground">
                   {
                     [
                       "Jan",
@@ -211,8 +211,8 @@ export function SlipForm({
             </select>
           </div>
           <div>
-            <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">
-              Year <span className="text-rose-400">*</span>
+            <label className="block text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+              Year <span className="text-rose-600 dark:text-rose-400">*</span>
             </label>
             <input
               type="number"
@@ -221,12 +221,12 @@ export function SlipForm({
               max={2100}
               value={formData.year}
               onChange={(e) => updateField("year", e.target.value)}
-              className="w-full rounded-xl border border-white/10 bg-white/3 px-4 py-2.5 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition"
+              className="w-full rounded-xl border border-border bg-card px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary/30 transition"
             />
           </div>
           <div>
-            <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">
-              Days Worked <span className="text-rose-400">*</span>
+            <label className="block text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+              Days Worked <span className="text-rose-600 dark:text-rose-400">*</span>
             </label>
             <input
               type="number"
@@ -235,12 +235,12 @@ export function SlipForm({
               max={31}
               value={formData.daysWorked}
               onChange={(e) => updateField("daysWorked", e.target.value)}
-              className="w-full rounded-xl border border-white/10 bg-white/3 px-4 py-2.5 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition"
+              className="w-full rounded-xl border border-border bg-card px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary/30 transition"
             />
           </div>
           <div>
-            <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">
-              Total Days <span className="text-rose-400">*</span>
+            <label className="block text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+              Total Days <span className="text-rose-600 dark:text-rose-400">*</span>
             </label>
             <input
               type="number"
@@ -249,15 +249,15 @@ export function SlipForm({
               max={31}
               value={formData.totalDays}
               onChange={(e) => updateField("totalDays", e.target.value)}
-              className="w-full rounded-xl border border-white/10 bg-white/3 px-4 py-2.5 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition"
+              className="w-full rounded-xl border border-border bg-card px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary/30 transition"
             />
           </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
-            <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">
-              Basic Salary <span className="text-rose-400">*</span>
+            <label className="block text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+              Basic Salary <span className="text-rose-600 dark:text-rose-400">*</span>
             </label>
             <input
               type="number"
@@ -266,11 +266,11 @@ export function SlipForm({
               step="0.01"
               value={formData.basicSalary}
               onChange={(e) => updateField("basicSalary", e.target.value)}
-              className="w-full rounded-xl border border-white/10 bg-white/3 px-4 py-2.5 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition"
+              className="w-full rounded-xl border border-border bg-card px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary/30 transition"
             />
           </div>
           <div>
-            <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">
+            <label className="block text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
               OT Days
             </label>
             <input
@@ -278,11 +278,11 @@ export function SlipForm({
               min={0}
               value={formData.overtimeDays}
               onChange={(e) => updateField("overtimeDays", e.target.value)}
-              className="w-full rounded-xl border border-white/10 bg-white/3 px-4 py-2.5 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition"
+              className="w-full rounded-xl border border-border bg-card px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary/30 transition"
             />
           </div>
           <div>
-            <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">
+            <label className="block text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
               OT Rate/day
             </label>
             <input
@@ -291,11 +291,11 @@ export function SlipForm({
               step="0.01"
               value={formData.overtimeRate}
               onChange={(e) => updateField("overtimeRate", e.target.value)}
-              className="w-full rounded-xl border border-white/10 bg-white/3 px-4 py-2.5 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition"
+              className="w-full rounded-xl border border-border bg-card px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary/30 transition"
             />
           </div>
           <div>
-            <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">
+            <label className="block text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
               OT Amount
             </label>
             <input
@@ -304,14 +304,14 @@ export function SlipForm({
               step="0.01"
               value={formData.overtimeAmount}
               onChange={(e) => updateField("overtimeAmount", e.target.value)}
-              className="w-full rounded-xl border border-white/10 bg-white/3 px-4 py-2.5 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition"
+              className="w-full rounded-xl border border-border bg-card px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary/30 transition"
             />
           </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
-            <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">
+            <label className="block text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
               Allowance
             </label>
             <input
@@ -320,11 +320,11 @@ export function SlipForm({
               step="0.01"
               value={formData.allowance}
               onChange={(e) => updateField("allowance", e.target.value)}
-              className="w-full rounded-xl border border-white/10 bg-white/3 px-4 py-2.5 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition"
+              className="w-full rounded-xl border border-border bg-card px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary/30 transition"
             />
           </div>
           <div>
-            <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">
+            <label className="block text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
               Deduction
             </label>
             <input
@@ -333,11 +333,11 @@ export function SlipForm({
               step="0.01"
               value={formData.deduction}
               onChange={(e) => updateField("deduction", e.target.value)}
-              className="w-full rounded-xl border border-white/10 bg-white/3 px-4 py-2.5 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition"
+              className="w-full rounded-xl border border-border bg-card px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary/30 transition"
             />
           </div>
           <div className="sm:col-span-2">
-            <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">
+            <label className="block text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
               Deduction Reason
             </label>
             <input
@@ -346,15 +346,15 @@ export function SlipForm({
               onChange={(e) =>
                 setFormData((p) => ({ ...p, deductionReason: e.target.value }))
               }
-              className="w-full rounded-xl border border-white/10 bg-white/3 px-4 py-2.5 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition"
+              className="w-full rounded-xl border border-border bg-card px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary/30 transition"
             />
           </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
-            <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">
-              Net Salary <span className="text-rose-400">*</span>
+            <label className="block text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+              Net Salary <span className="text-rose-600 dark:text-rose-400">*</span>
             </label>
             <input
               type="number"
@@ -363,11 +363,11 @@ export function SlipForm({
               step="0.01"
               value={formData.netSalary}
               onChange={(e) => updateField("netSalary", e.target.value)}
-              className="w-full rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 font-semibold text-emerald-400 transition"
+              className="w-full rounded-xl border border-emerald-500/30 bg-emerald-50/50 dark:bg-emerald-950/30 px-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500 font-semibold text-emerald-600 dark:text-emerald-400 transition"
             />
           </div>
           <div>
-            <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">
+            <label className="block text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
               Payment Method
             </label>
             <select
@@ -375,24 +375,24 @@ export function SlipForm({
               onChange={(e) =>
                 setFormData((p) => ({ ...p, paymentMethod: e.target.value }))
               }
-              className="w-full rounded-xl border border-white/10 bg-white/3 px-4 py-2.5 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition"
+              className="w-full rounded-xl border border-border bg-card px-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/30 transition"
             >
-              <option value="cash" className="bg-slate-900">
+              <option value="cash" className="bg-card text-foreground">
                 Cash
               </option>
-              <option value="upi" className="bg-slate-900">
+              <option value="upi" className="bg-card text-foreground">
                 UPI
               </option>
-              <option value="card" className="bg-slate-900">
+              <option value="card" className="bg-card text-foreground">
                 Card
               </option>
-              <option value="bank_transfer" className="bg-slate-900">
+              <option value="bank_transfer" className="bg-card text-foreground">
                 Bank Transfer
               </option>
             </select>
           </div>
           <div>
-            <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">
+            <label className="block text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
               Payment Date
             </label>
             <input
@@ -401,18 +401,18 @@ export function SlipForm({
               onChange={(e) =>
                 setFormData((p) => ({ ...p, paymentDate: e.target.value }))
               }
-              className="w-full rounded-xl border border-white/10 bg-white/3 px-4 py-2.5 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition"
+              className="w-full rounded-xl border border-border bg-card px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary/30 transition"
             />
           </div>
           <div className="flex items-end">
-            <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm w-full">
-              <div className="flex items-center gap-2 text-emerald-400/80">
+            <div className="rounded-xl border border-emerald-200 dark:border-emerald-500/10 bg-emerald-50 dark:bg-emerald-950/20 px-4 py-3 text-sm w-full">
+              <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400/80">
                 <Calculator className="w-3.5 h-3.5" />
                 <span className="text-[11px] font-semibold uppercase tracking-wider">
                   Net Payable
                 </span>
               </div>
-              <div className="text-xl font-bold text-emerald-400 mt-1">
+              <div className="text-xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">
                 ₹{netDisplay}
               </div>
             </div>
@@ -420,7 +420,7 @@ export function SlipForm({
         </div>
 
         <div>
-          <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">
+          <label className="block text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
             Notes
           </label>
           <input
@@ -429,7 +429,7 @@ export function SlipForm({
             onChange={(e) =>
               setFormData((p) => ({ ...p, notes: e.target.value }))
             }
-            className="w-full rounded-xl border border-white/10 bg-white/3 px-4 py-2.5 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition"
+            className="w-full rounded-xl border border-border bg-card px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary/30 transition"
           />
         </div>
 
@@ -437,7 +437,7 @@ export function SlipForm({
           <button
             type="submit"
             disabled={saving}
-            className="rounded-xl bg-white text-slate-900 px-5 py-2.5 text-xs font-semibold hover:bg-white/90 disabled:opacity-50 active:scale-[0.98] transition flex items-center gap-1.5 shadow-lg shadow-white/10"
+            className="rounded-xl bg-foreground text-background px-5 py-2.5 text-xs font-semibold hover:opacity-90 disabled:opacity-50 active:scale-[0.98] transition flex items-center gap-1.5 shadow-md"
           >
             <Save className="w-3.5 h-3.5" />{" "}
             {saving
@@ -449,7 +449,7 @@ export function SlipForm({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-xl border border-white/10 bg-white/5 px-5 py-2.5 text-xs font-medium text-slate-300 hover:bg-white/10 hover:text-white transition"
+            className="rounded-xl border border-border bg-muted/50 px-5 py-2.5 text-xs font-medium text-foreground hover:bg-muted transition"
           >
             Cancel
           </button>

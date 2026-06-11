@@ -65,7 +65,7 @@ function BookingMiniCard({
       <Link
         href={`/dashboard/booking/${booking.id}`}
         onClick={(e) => e.stopPropagation()}
-        className="flex items-center gap-2 p-2 rounded-lg bg-card/60 border border-border/50 hover:bg-card/90 hover:border-teal-500/30 transition-all group"
+        className="flex items-center gap-2 p-2 rounded-lg bg-card/60 border border-border/50 hover:bg-card/90 hover:border-primary/30 transition-all group"
       >
         <div className="min-w-0 flex-1">
           <div className="text-xs font-bold truncate">
@@ -77,7 +77,7 @@ function BookingMiniCard({
           </div>
         </div>
         <div className="text-right shrink-0">
-          <div className="text-xs font-bold text-emerald-400">
+          <div className="text-xs font-bold text-primary">
             {formatCurrency(booking.totalAmount)}
           </div>
           <div className="text-[9px] text-muted-foreground">
@@ -109,10 +109,10 @@ export function DayCell({
     !day || day.rooms === 0
       ? "bg-muted/10"
       : occupancyRatio > 0.75
-        ? "bg-teal-500/25"
+        ? "bg-primary/25"
         : occupancyRatio > 0.4
-          ? "bg-teal-500/15"
-          : "bg-teal-500/8";
+          ? "bg-primary/15"
+          : "bg-primary/8";
 
   const hasActivity =
     day && (day.rooms > 0 || day.checkins > 0 || day.checkouts > 0);
@@ -178,7 +178,7 @@ export function DayCell({
         onClick={() => hasActivity && onClick?.(day)}
         className={`min-h-[52px] sm:min-h-[120px] border-r border-b border-border/40 p-1 sm:p-2 flex flex-col transition-all text-left w-full ${occupancyColor} ${
           isToday
-            ? "ring-2 ring-inset ring-teal-500 ring-offset-1 ring-offset-background"
+            ? "ring-2 ring-inset ring-primary ring-offset-1 ring-offset-background"
             : ""
         } ${hasActivity ? "hover:bg-muted/40 cursor-pointer" : "hover:bg-muted/20"}`}
       >
@@ -186,7 +186,7 @@ export function DayCell({
         <div className="flex sm:hidden flex-col items-center justify-center h-full gap-1 py-1">
           <span
             className={`text-sm font-bold w-6 h-6 flex items-center justify-center rounded-full ${
-              isToday ? "bg-teal-500 text-white" : "text-foreground"
+              isToday ? "bg-primary text-primary-foreground" : "text-foreground"
             }`}
           >
             {dayNum}
@@ -197,19 +197,19 @@ export function DayCell({
               <span
                 className={`w-1.5 h-1.5 rounded-full ${
                   occupancyRatio > 0.75
-                    ? "bg-teal-400"
+                    ? "bg-primary"
                     : occupancyRatio > 0.4
-                      ? "bg-teal-400/60"
-                      : "bg-teal-400/30"
+                      ? "bg-primary/60"
+                      : "bg-primary/30"
                 }`}
               />
               {/* Check-in dot */}
               {day.checkins > 0 && (
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                <span className="w-1.5 h-1.5 rounded-full bg-accent" />
               )}
               {/* Check-out dot */}
               {day.checkouts > 0 && (
-                <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />
+                <span className="w-1.5 h-1.5 rounded-full bg-destructive" />
               )}
             </div>
           )}
@@ -220,19 +220,19 @@ export function DayCell({
           <div className="flex items-center justify-between">
             <span
               className={`text-sm font-bold w-6 h-6 flex items-center justify-center rounded-full ${
-                isToday ? "bg-teal-500 text-white" : "text-foreground"
+                isToday ? "bg-primary text-primary-foreground" : "text-foreground"
               }`}
             >
               {dayNum}
             </span>
             <div className="flex items-center gap-1">
               {day.checkins > 0 && (
-                <span className="text-[10px] font-bold text-amber-400 bg-amber-500/15 px-1.5 py-0.5 rounded-md">
+                <span className="text-[10px] font-bold text-accent-foreground bg-accent/40 dark:bg-accent/20 px-1.5 py-0.5 rounded-md">
                   +{day.checkins}
                 </span>
               )}
               {day.checkouts > 0 && (
-                <span className="text-[10px] font-bold text-rose-400 bg-rose-500/15 px-1.5 py-0.5 rounded-md">
+                <span className="text-[10px] font-bold text-destructive bg-destructive/15 px-1.5 py-0.5 rounded-md">
                   {day.checkouts} out
                 </span>
               )}
@@ -247,7 +247,7 @@ export function DayCell({
                 <span className="text-muted-foreground text-[10px]">
                   {day.rooms === 1 ? "room" : "rooms"}
                 </span>
-                <span className="ml-auto text-[10px] font-bold text-teal-400">
+                <span className="ml-auto text-[10px] font-bold text-primary">
                   {Math.round(occupancyRatio * 100)}%
                 </span>
               </div>
@@ -256,8 +256,8 @@ export function DayCell({
                 <span className="font-bold text-foreground">{day.guests}</span>
               </div>
               <div className="flex items-center gap-1 text-xs">
-                <IndianRupee className="w-3 h-3 text-emerald-500 shrink-0" />
-                <span className="font-bold text-emerald-400">
+                <IndianRupee className="w-3 h-3 text-primary shrink-0" />
+                <span className="font-bold text-primary">
                   {formatCurrency(day.revenue)}
                 </span>
               </div>
@@ -265,7 +265,7 @@ export function DayCell({
           ) : (
             <div className="mt-auto">
               {day.checkouts > 0 ? (
-                <div className="flex items-center gap-1 text-[10px] text-rose-400">
+                <div className="flex items-center gap-1 text-[10px] text-destructive">
                   <LogOutIcon className="w-3 h-3" />
                   <span className="font-medium">{day.checkouts} checkout</span>
                 </div>
@@ -328,7 +328,7 @@ function HoverPopover({
             </div>
           </div>
           <div className="text-right">
-            <div className="text-sm font-bold text-emerald-400">
+            <div className="text-sm font-bold text-primary">
               {formatCurrency(day.revenue)}
             </div>
             <div className="text-xs text-muted-foreground">
@@ -341,8 +341,8 @@ function HoverPopover({
         {(day.checkins > 0 || day.checkouts > 0) && (
           <div className="flex gap-2">
             {day.checkins > 0 && (
-              <div className="flex-1 px-2 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20">
-                <div className="text-[10px] font-bold text-amber-400">
+              <div className="flex-1 px-2 py-1.5 rounded-lg bg-accent/20 dark:bg-accent/10 border border-accent/30 dark:border-accent/20">
+                <div className="text-[10px] font-bold text-accent-foreground">
                   +{day.checkins} Check-in
                 </div>
                 {day.checkinrevenue > 0 && (
@@ -353,8 +353,8 @@ function HoverPopover({
               </div>
             )}
             {day.checkouts > 0 && (
-              <div className="flex-1 px-2 py-1.5 rounded-lg bg-rose-500/10 border border-rose-500/20">
-                <div className="text-[10px] font-bold text-rose-400">
+              <div className="flex-1 px-2 py-1.5 rounded-lg bg-destructive/10 border border-destructive/20">
+                <div className="text-[10px] font-bold text-destructive">
                   {day.checkouts} Check-out
                 </div>
               </div>

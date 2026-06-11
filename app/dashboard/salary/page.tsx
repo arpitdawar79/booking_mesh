@@ -236,20 +236,20 @@ export default function SalaryPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="relative overflow-hidden rounded-2xl bg-linear-to-br from-slate-900 via-[#0d1525] to-slate-900 border border-white/10 p-4 sm:p-6 shadow-xl">
-        <div className="absolute top-0 right-0 w-40 h-40 bg-emerald-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-        <div className="absolute bottom-0 left-0 w-32 h-32 bg-teal-500/10 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2" />
+      <div className="relative overflow-hidden rounded-2xl bg-card border border-border p-4 sm:p-6 shadow-md">
+        <div className="absolute top-0 right-0 w-40 h-40 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+        <div className="absolute bottom-0 left-0 w-32 h-32 bg-primary/5 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2" />
         <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-xl bg-linear-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/20">
-                <Banknote className="w-5 h-5 text-white" />
+              <div className="w-11 h-11 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/10">
+                <Banknote className="w-5 h-5 text-primary-foreground" />
               </div>
               <div>
-                <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+                <h1 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
                   Salary &amp; Payroll
                 </h1>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-muted-foreground">
                   Manage employees, generate salary slips &amp; send via
                   WhatsApp
                 </p>
@@ -263,7 +263,7 @@ export default function SalaryPage() {
                   setView("employees");
                   setSelectedEmployee(null);
                 }}
-                className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs font-medium text-slate-300 hover:bg-white/10 hover:text-white transition flex items-center gap-1.5"
+                className="rounded-lg border border-border bg-muted/50 px-3 py-2 text-xs font-medium text-foreground hover:bg-muted transition flex items-center gap-1.5"
               >
                 <ArrowLeft className="w-3.5 h-3.5" /> Back
               </button>
@@ -274,7 +274,7 @@ export default function SalaryPage() {
                   setEditingId(null);
                   setShowForm(true);
                 }}
-                className="rounded-lg bg-white text-slate-900 px-4 py-2 text-xs font-semibold hover:bg-white/90 active:scale-[0.98] transition flex items-center gap-1.5 shadow-lg shadow-white/10"
+                className="rounded-lg bg-foreground text-background px-4 py-2 text-xs font-semibold hover:opacity-90 active:scale-[0.98] transition flex items-center gap-1.5 shadow-md"
               >
                 <PlusCircle className="w-3.5 h-3.5" /> Add Employee
               </button>
@@ -285,7 +285,7 @@ export default function SalaryPage() {
                   setEditingSlipId(null);
                   setShowSlipForm(true);
                 }}
-                className="rounded-lg bg-white text-slate-900 px-4 py-2 text-xs font-semibold hover:bg-white/90 active:scale-[0.98] transition flex items-center gap-1.5 shadow-lg shadow-white/10"
+                className="rounded-lg bg-foreground text-background px-4 py-2 text-xs font-semibold hover:opacity-90 active:scale-[0.98] transition flex items-center gap-1.5 shadow-md"
               >
                 <PlusCircle className="w-3.5 h-3.5" /> Generate Slip
               </button>
@@ -295,18 +295,18 @@ export default function SalaryPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-1 rounded-xl border border-white/10 bg-white/3 p-1 w-fit">
+      <div className="flex items-center gap-1 rounded-xl border border-border bg-muted/50 p-1 w-fit">
         {(["employees", "slips"] as const).map((v) => (
           <button
             key={v}
             onClick={() => {
-              setView(v);
-              setSelectedEmployee(null);
+               setView(v);
+               setSelectedEmployee(null);
             }}
             className={`relative px-5 py-2 text-xs font-medium capitalize rounded-lg transition ${
               view === v || (v === "employees" && view === "employee-detail")
-                ? "bg-white text-slate-900 shadow-sm"
-                : "text-slate-400 hover:text-white"
+                ? "bg-background text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
             }`}
           >
             {v === "slips" ? "All Slips" : "Employees"}
@@ -317,7 +317,7 @@ export default function SalaryPage() {
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60" />
           <input
             type="text"
             value={search}
@@ -325,7 +325,7 @@ export default function SalaryPage() {
             placeholder={
               view === "slips" ? "Search slips..." : "Search employees..."
             }
-            className="pl-10 pr-3 py-2 rounded-xl border border-white/10 bg-white/3 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 w-44 sm:w-64"
+            className="pl-10 pr-3 py-2 rounded-xl border border-border bg-card text-xs text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary/30 w-44 sm:w-64"
           />
         </div>
         {view === "slips" && (
@@ -336,7 +336,7 @@ export default function SalaryPage() {
               setSlipMonth(e.target.value);
               setPage(1);
             }}
-            className="rounded-xl border border-white/10 bg-white/3 px-3 py-2 text-xs text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
+            className="rounded-xl border border-border bg-card px-3 py-2 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary/30"
           />
         )}
         {(search || slipMonth) && (
@@ -345,7 +345,7 @@ export default function SalaryPage() {
               setSearch("");
               setSlipMonth("");
             }}
-            className="text-xs text-slate-500 hover:text-white flex items-center gap-1 transition"
+            className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition"
           >
             <X className="w-3 h-3" /> Clear
           </button>
@@ -395,17 +395,17 @@ export default function SalaryPage() {
             <>
               {loading && employees.length === 0 ? (
                 <div className="flex items-center justify-center py-20">
-                  <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+                  <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
                 </div>
               ) : employees.length === 0 ? (
-                <div className="rounded-2xl border border-white/10 bg-white/3 p-6 sm:p-10 text-center">
-                  <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-emerald-500/20 to-teal-500/10 flex items-center justify-center mx-auto mb-4 border border-emerald-500/20">
-                    <User className="w-7 h-7 text-emerald-400" />
+                <div className="rounded-2xl border border-border bg-muted/30 p-6 sm:p-10 text-center">
+                  <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4 border border-primary/15">
+                    <User className="w-7 h-7 text-primary" />
                   </div>
-                  <h3 className="text-sm font-semibold text-white mb-1">
+                  <h3 className="text-sm font-semibold text-foreground mb-1">
                     No employees yet
                   </h3>
-                  <p className="text-xs text-slate-400 mb-4">
+                  <p className="text-xs text-muted-foreground mb-4">
                     Add your first employee to start managing payroll
                   </p>
                   <button
@@ -413,68 +413,68 @@ export default function SalaryPage() {
                       setEditingId(null);
                       setShowForm(true);
                     }}
-                    className="rounded-lg bg-white text-slate-900 px-4 py-2 text-xs font-semibold hover:bg-white/90 transition inline-flex items-center gap-1.5"
+                    className="rounded-lg bg-foreground text-background px-4 py-2 text-xs font-semibold hover:opacity-90 transition inline-flex items-center gap-1.5"
                   >
                     <PlusCircle className="w-3.5 h-3.5" /> Add Employee
                   </button>
                 </div>
               ) : (
-                <div className="overflow-x-auto rounded-2xl border border-white/10 bg-white/[0.02]">
+                <div className="overflow-x-auto rounded-2xl border border-border bg-card">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="border-b border-white/10">
-                        <th className="text-left px-3 sm:px-5 py-3 sm:py-4 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                      <tr className="border-b border-border bg-muted/50">
+                        <th className="text-left px-3 sm:px-5 py-3 sm:py-4 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
                           Employee
                         </th>
-                        <th className="text-left px-3 sm:px-5 py-3 sm:py-4 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                        <th className="text-left px-3 sm:px-5 py-3 sm:py-4 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
                           Designation
                         </th>
-                        <th className="text-left px-3 sm:px-5 py-3 sm:py-4 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                        <th className="text-left px-3 sm:px-5 py-3 sm:py-4 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
                           Phone
                         </th>
-                        <th className="text-left px-3 sm:px-5 py-3 sm:py-4 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                        <th className="text-left px-3 sm:px-5 py-3 sm:py-4 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
                           Monthly Salary
                         </th>
-                        <th className="text-left px-3 sm:px-5 py-3 sm:py-4 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                        <th className="text-left px-3 sm:px-5 py-3 sm:py-4 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
                           Status
                         </th>
-                        <th className="text-right px-3 sm:px-5 py-3 sm:py-4 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                        <th className="text-right px-3 sm:px-5 py-3 sm:py-4 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
                           Actions
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-white/5">
+                    <tbody className="divide-y divide-border">
                       {employees.map((e) => (
                         <tr
                           key={e.id}
-                          className="hover:bg-white/[0.03] cursor-pointer transition group"
+                          className="hover:bg-muted/30 cursor-pointer transition group"
                           onClick={() => fetchEmployeeDetail(e.id)}
                         >
                           <td className="px-3 sm:px-5 py-3 sm:py-4">
                             <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-lg bg-linear-to-br from-emerald-500/20 to-teal-500/10 flex items-center justify-center border border-emerald-500/20">
-                                <User className="w-3.5 h-3.5 text-emerald-400" />
+                              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/15">
+                                <User className="w-3.5 h-3.5 text-primary" />
                               </div>
-                              <span className="font-medium text-white">
+                              <span className="font-medium text-foreground">
                                 {e.name}
                               </span>
                             </div>
                           </td>
-                          <td className="px-3 sm:px-5 py-3 sm:py-4 text-slate-400">
+                          <td className="px-3 sm:px-5 py-3 sm:py-4 text-muted-foreground">
                             {e.designation}
                           </td>
-                          <td className="px-3 sm:px-5 py-3 sm:py-4 text-slate-400">
+                          <td className="px-3 sm:px-5 py-3 sm:py-4 text-muted-foreground">
                             {e.phone || "—"}
                           </td>
-                          <td className="px-3 sm:px-5 py-3 sm:py-4 font-semibold text-emerald-400">
+                          <td className="px-3 sm:px-5 py-3 sm:py-4 font-semibold text-emerald-600 dark:text-emerald-400">
                             {fmtCurrency(Number(e.monthlySalary))}
                           </td>
                           <td className="px-3 sm:px-5 py-3 sm:py-4">
                             <span
-                              className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide ${e.status === "active" ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-white/5 text-slate-400 border border-white/10"}`}
+                              className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide ${e.status === "active" ? "bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-500/10" : "bg-muted text-muted-foreground border border-border"}`}
                             >
                               <span
-                                className={`w-1.5 h-1.5 rounded-full ${e.status === "active" ? "bg-emerald-400" : "bg-slate-500"}`}
+                                className={`w-1.5 h-1.5 rounded-full ${e.status === "active" ? "bg-emerald-600 dark:bg-emerald-400" : "bg-muted-foreground"}`}
                               />
                               {e.status}
                             </span>
@@ -489,19 +489,19 @@ export default function SalaryPage() {
                                   setEditingId(e.id);
                                   setShowForm(true);
                                 }}
-                                className="p-2 rounded-lg hover:bg-white/10 transition text-slate-400 hover:text-white"
+                                className="p-2 rounded-lg hover:bg-muted transition text-muted-foreground hover:text-foreground"
                                 title="Edit"
                               >
                                 <Pencil className="w-3.5 h-3.5" />
                               </button>
                               <button
                                 onClick={() => handleDeleteEmployee(e.id)}
-                                className="p-2 rounded-lg hover:bg-white/10 transition text-slate-400 hover:text-red-400"
+                                className="p-2 rounded-lg hover:bg-muted transition text-muted-foreground hover:text-destructive"
                                 title="Delete"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
                               </button>
-                              <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-slate-400 transition" />
+                              <ChevronRight className="w-4 h-4 text-muted-foreground/60 group-hover:text-muted-foreground transition" />
                             </div>
                           </td>
                         </tr>
@@ -522,67 +522,67 @@ export default function SalaryPage() {
           {view === "employee-detail" && selectedEmployee && (
             <div className="space-y-6">
               {/* Employee Profile Card */}
-              <div className="relative overflow-hidden rounded-2xl bg-linear-to-br from-slate-900 via-[#0d1525] to-slate-900 border border-white/10 p-4 sm:p-6">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+              <div className="relative overflow-hidden rounded-2xl bg-card border border-border p-4 sm:p-6 shadow-sm">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
                 <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 rounded-2xl bg-linear-to-br from-emerald-500/20 to-teal-500/10 flex items-center justify-center border border-emerald-500/20">
-                      <PersonStanding className="w-7 h-7 text-emerald-400" />
+                    <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/15">
+                      <PersonStanding className="w-7 h-7 text-primary" />
                     </div>
                     <div>
-                      <h2 className="text-lg font-bold text-white tracking-tight">
+                      <h2 className="text-lg font-bold text-foreground tracking-tight">
                         {selectedEmployee.name}
                       </h2>
-                      <p className="text-sm text-slate-400">
+                      <p className="text-sm text-muted-foreground">
                         {selectedEmployee.designation}
                       </p>
                     </div>
                   </div>
                   <span
-                    className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-wide self-start sm:self-auto ${selectedEmployee.status === "active" ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-white/5 text-slate-400 border border-white/10"}`}
+                    className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-wide self-start sm:self-auto ${selectedEmployee.status === "active" ? "bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-500/10" : "bg-muted text-muted-foreground border border-border"}`}
                   >
                     <span
-                      className={`w-1.5 h-1.5 rounded-full ${selectedEmployee.status === "active" ? "bg-emerald-400" : "bg-slate-500"}`}
+                      className={`w-1.5 h-1.5 rounded-full ${selectedEmployee.status === "active" ? "bg-emerald-600 dark:bg-emerald-400" : "bg-muted-foreground"}`}
                     />
                     {selectedEmployee.status}
                   </span>
                 </div>
-                <div className="relative grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6 pt-6 border-t border-white/10 text-sm">
-                  <div className="flex items-center gap-3 rounded-xl bg-white/3 border border-white/10 px-4 py-3">
-                    <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center">
-                      <Smartphone className="w-4 h-4 text-slate-400" />
+                <div className="relative grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6 pt-6 border-t border-border text-sm">
+                  <div className="flex items-center gap-3 rounded-xl bg-muted/30 border border-border px-4 py-3">
+                    <div className="w-8 h-8 rounded-lg bg-card border border-border flex items-center justify-center">
+                      <Smartphone className="w-4 h-4 text-muted-foreground/70" />
                     </div>
                     <div>
-                      <p className="text-[10px] text-slate-500 uppercase tracking-wider">
+                      <p className="text-[10px] text-muted-foreground/60 uppercase tracking-wider">
                         Phone
                       </p>
-                      <p className="text-white font-medium">
+                      <p className="text-foreground font-medium">
                         {selectedEmployee.phone || "Not provided"}
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3 rounded-xl bg-white/3 border border-white/10 px-4 py-3">
-                    <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center">
-                      <IndianRupee className="w-4 h-4 text-emerald-400" />
+                  <div className="flex items-center gap-3 rounded-xl bg-muted/30 border border-border px-4 py-3">
+                    <div className="w-8 h-8 rounded-lg bg-card border border-border flex items-center justify-center">
+                      <IndianRupee className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                     </div>
                     <div>
-                      <p className="text-[10px] text-slate-500 uppercase tracking-wider">
+                      <p className="text-[10px] text-muted-foreground/60 uppercase tracking-wider">
                         Monthly Salary
                       </p>
-                      <p className="text-emerald-400 font-semibold">
+                      <p className="text-emerald-600 dark:text-emerald-400 font-semibold">
                         {fmtCurrency(Number(selectedEmployee.monthlySalary))}
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3 rounded-xl bg-white/3 border border-white/10 px-4 py-3">
-                    <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center">
-                      <CalendarDays className="w-4 h-4 text-slate-400" />
+                  <div className="flex items-center gap-3 rounded-xl bg-muted/30 border border-border px-4 py-3">
+                    <div className="w-8 h-8 rounded-lg bg-card border border-border flex items-center justify-center">
+                      <CalendarDays className="w-4 h-4 text-muted-foreground/70" />
                     </div>
                     <div>
-                      <p className="text-[10px] text-slate-500 uppercase tracking-wider">
+                      <p className="text-[10px] text-muted-foreground/60 uppercase tracking-wider">
                         Joined
                       </p>
-                      <p className="text-white font-medium">
+                      <p className="text-foreground font-medium">
                         {fmtDate(selectedEmployee.joiningDate)}
                       </p>
                     </div>
@@ -591,97 +591,97 @@ export default function SalaryPage() {
               </div>
 
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
+                <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                   Salary Slips
                 </h3>
               </div>
               {!selectedEmployee.salarySlips ||
               selectedEmployee.salarySlips.length === 0 ? (
-                <div className="rounded-2xl border border-white/10 bg-white/3 p-6 sm:p-10 text-center">
-                  <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-emerald-500/20 to-teal-500/10 flex items-center justify-center mx-auto mb-4 border border-emerald-500/20">
-                    <Banknote className="w-7 h-7 text-emerald-400" />
+                <div className="rounded-2xl border border-border bg-muted/30 p-6 sm:p-10 text-center">
+                  <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4 border border-primary/15">
+                    <Banknote className="w-7 h-7 text-primary" />
                   </div>
-                  <h3 className="text-sm font-semibold text-white mb-1">
+                  <h3 className="text-sm font-semibold text-foreground mb-1">
                     No salary slips yet
                   </h3>
-                  <p className="text-xs text-slate-400 mb-4">
+                  <p className="text-xs text-muted-foreground mb-4">
                     Generate a slip to track monthly payroll
                   </p>
                 </div>
               ) : (
-                <div className="overflow-x-auto rounded-2xl border border-white/10 bg-white/[0.02]">
+                <div className="overflow-x-auto rounded-2xl border border-border bg-card">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="border-b border-white/10">
-                        <th className="text-left px-5 py-4 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                      <tr className="border-b border-border bg-muted/50">
+                        <th className="text-left px-5 py-4 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
                           Period
                         </th>
-                        <th className="text-left px-5 py-4 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                        <th className="text-left px-5 py-4 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
                           Days
                         </th>
-                        <th className="text-left px-5 py-4 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                        <th className="text-left px-5 py-4 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
                           Basic
                         </th>
-                        <th className="text-left px-5 py-4 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                        <th className="text-left px-5 py-4 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
                           OT
                         </th>
-                        <th className="text-left px-5 py-4 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                        <th className="text-left px-5 py-4 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
                           Allowance
                         </th>
-                        <th className="text-left px-5 py-4 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                        <th className="text-left px-5 py-4 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
                           Deduction
                         </th>
-                        <th className="text-left px-5 py-4 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                        <th className="text-left px-5 py-4 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
                           Net
                         </th>
-                        <th className="text-left px-5 py-4 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                        <th className="text-left px-5 py-4 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
                           Status
                         </th>
-                        <th className="text-right px-5 py-4 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                        <th className="text-right px-5 py-4 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
                           Actions
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-white/5">
+                    <tbody className="divide-y divide-border">
                       {selectedEmployee.salarySlips.map((s) => (
                         <tr
                           key={s.id}
-                          className="hover:bg-white/[0.03] transition"
+                          className="hover:bg-muted/30 transition"
                         >
-                          <td className="px-5 py-4 font-medium text-white">
+                          <td className="px-5 py-4 font-medium text-foreground">
                             {MONTH_NAMES[s.month - 1]} {s.year}
                           </td>
-                          <td className="px-5 py-4 text-slate-400">
+                          <td className="px-5 py-4 text-muted-foreground">
                             {s.daysWorked}/{s.totalDays}
                           </td>
-                          <td className="px-5 py-4 text-slate-300">
+                          <td className="px-5 py-4 text-foreground">
                             {fmtCurrency(Number(s.basicSalary))}
                           </td>
-                          <td className="px-5 py-4 text-slate-300">
+                          <td className="px-5 py-4 text-foreground">
                             {Number(s.overtimeAmount) > 0
                               ? fmtCurrency(Number(s.overtimeAmount))
                               : "—"}
                           </td>
-                          <td className="px-5 py-4 text-slate-300">
+                          <td className="px-5 py-4 text-foreground">
                             {Number(s.allowance) > 0
                               ? fmtCurrency(Number(s.allowance))
                               : "—"}
                           </td>
-                          <td className="px-5 py-4 text-rose-300">
+                          <td className="px-5 py-4 text-rose-600 dark:text-rose-400">
                             {Number(s.deduction) > 0
                               ? fmtCurrency(Number(s.deduction))
                               : "—"}
                           </td>
-                          <td className="px-5 py-4 font-bold text-emerald-400">
+                          <td className="px-5 py-4 font-bold text-emerald-600 dark:text-emerald-400">
                             {fmtCurrency(Number(s.netSalary))}
                           </td>
                           <td className="px-5 py-4">
                             {s.whatsappSentAt ? (
-                              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2.5 py-1 text-[11px] font-semibold">
+                              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-500/10 px-2.5 py-1 text-[11px] font-semibold">
                                 <Send className="w-3 h-3" /> Sent
                               </span>
                             ) : (
-                              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/5 text-slate-400 border border-white/10 px-2.5 py-1 text-[11px] font-semibold">
+                              <span className="inline-flex items-center gap-1.5 rounded-full bg-muted text-muted-foreground border border-border px-2.5 py-1 text-[11px] font-semibold">
                                 <Clock className="w-3 h-3" /> Pending
                               </span>
                             )}
@@ -696,7 +696,7 @@ export default function SalaryPage() {
                                   });
                                   setShowPreview(true);
                                 }}
-                                className="p-2 rounded-lg hover:bg-white/10 transition text-slate-400 hover:text-white"
+                                className="p-2 rounded-lg hover:bg-muted transition text-muted-foreground hover:text-foreground"
                                 title="Preview"
                               >
                                 <Eye className="w-3.5 h-3.5" />
@@ -710,7 +710,7 @@ export default function SalaryPage() {
                                     })
                                   }
                                   disabled={sendingId === s.id}
-                                  className="p-2 rounded-lg hover:bg-white/10 transition text-teal-400 disabled:opacity-50"
+                                  className="p-2 rounded-lg hover:bg-muted transition text-primary disabled:opacity-50"
                                   title="Send via WhatsApp"
                                 >
                                   {sendingId === s.id ? (
@@ -725,14 +725,14 @@ export default function SalaryPage() {
                                   setEditingSlipId(s.id);
                                   setShowSlipForm(true);
                                 }}
-                                className="p-2 rounded-lg hover:bg-white/10 transition text-slate-400 hover:text-white"
+                                className="p-2 rounded-lg hover:bg-muted transition text-muted-foreground hover:text-foreground"
                                 title="Edit"
                               >
                                 <Pencil className="w-3.5 h-3.5" />
                               </button>
                               <button
                                 onClick={() => handleDeleteSlip(s.id)}
-                                className="p-2 rounded-lg hover:bg-white/10 transition text-slate-400 hover:text-red-400"
+                                className="p-2 rounded-lg hover:bg-muted transition text-muted-foreground hover:text-destructive"
                                 title="Delete"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
@@ -754,84 +754,84 @@ export default function SalaryPage() {
         <>
           {loading && slips.length === 0 ? (
             <div className="flex items-center justify-center py-20">
-              <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+              <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
             </div>
           ) : slips.length === 0 ? (
-            <div className="rounded-2xl border border-white/10 bg-white/3 p-6 sm:p-10 text-center">
-              <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-emerald-500/20 to-teal-500/10 flex items-center justify-center mx-auto mb-4 border border-emerald-500/20">
-                <Banknote className="w-7 h-7 text-emerald-400" />
+            <div className="rounded-2xl border border-border bg-muted/30 p-6 sm:p-10 text-center">
+              <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4 border border-primary/15">
+                <Banknote className="w-7 h-7 text-primary" />
               </div>
-              <h3 className="text-sm font-semibold text-white mb-1">
+              <h3 className="text-sm font-semibold text-foreground mb-1">
                 No salary slips found
               </h3>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-muted-foreground">
                 Generate a slip from an employee&apos;s profile
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto rounded-2xl border border-white/10 bg-white/[0.02]">
+            <div className="overflow-x-auto rounded-2xl border border-border bg-card">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-white/10">
-                    <th className="text-left px-5 py-4 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                  <tr className="border-b border-border bg-muted/50">
+                    <th className="text-left px-5 py-4 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
                       Employee
                     </th>
-                    <th className="text-left px-5 py-4 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                    <th className="text-left px-5 py-4 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
                       Period
                     </th>
-                    <th className="text-left px-5 py-4 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                    <th className="text-left px-5 py-4 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
                       Days
                     </th>
-                    <th className="text-left px-5 py-4 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                    <th className="text-left px-5 py-4 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
                       Basic
                     </th>
-                    <th className="text-left px-5 py-4 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                    <th className="text-left px-5 py-4 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
                       Net
                     </th>
-                    <th className="text-left px-5 py-4 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                    <th className="text-left px-5 py-4 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
                       Method
                     </th>
-                    <th className="text-left px-5 py-4 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                    <th className="text-left px-5 py-4 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
                       Sent
                     </th>
-                    <th className="text-right px-5 py-4 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                    <th className="text-right px-5 py-4 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/5">
+                <tbody className="divide-y divide-border">
                   {slips.map((s) => (
-                    <tr key={s.id} className="hover:bg-white/[0.03] transition">
+                    <tr key={s.id} className="hover:bg-muted/30 transition">
                       <td className="px-5 py-4">
-                        <div className="font-medium text-white">
+                        <div className="font-medium text-foreground">
                           {s.employee?.name}
                         </div>
-                        <div className="text-xs text-slate-500">
+                        <div className="text-xs text-muted-foreground">
                           {s.employee?.designation}
                         </div>
                       </td>
-                      <td className="px-5 py-4 text-white">
+                      <td className="px-5 py-4 text-foreground">
                         {MONTH_NAMES[s.month - 1]} {s.year}
                       </td>
-                      <td className="px-5 py-4 text-slate-400">
+                      <td className="px-5 py-4 text-muted-foreground">
                         {s.daysWorked}/{s.totalDays}
                       </td>
-                      <td className="px-5 py-4 text-slate-300">
+                      <td className="px-5 py-4 text-foreground">
                         {fmtCurrency(Number(s.basicSalary))}
                       </td>
-                      <td className="px-5 py-4 font-bold text-emerald-400">
+                      <td className="px-5 py-4 font-bold text-emerald-600 dark:text-emerald-400">
                         {fmtCurrency(Number(s.netSalary))}
                       </td>
-                      <td className="px-5 py-4 text-slate-400 capitalize">
+                      <td className="px-5 py-4 text-muted-foreground capitalize">
                         {METHOD_LABELS[s.paymentMethod] || s.paymentMethod}
                       </td>
                       <td className="px-5 py-4">
                         {s.whatsappSentAt ? (
-                          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2.5 py-1 text-[11px] font-semibold">
+                          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-500/10 px-2.5 py-1 text-[11px] font-semibold">
                             <Send className="w-3 h-3" /> Sent
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/5 text-slate-400 border border-white/10 px-2.5 py-1 text-[11px] font-semibold">
+                          <span className="inline-flex items-center gap-1.5 rounded-full bg-muted text-muted-foreground border border-border px-2.5 py-1 text-[11px] font-semibold">
                             <Clock className="w-3 h-3" /> Pending
                           </span>
                         )}
@@ -843,7 +843,7 @@ export default function SalaryPage() {
                               setPreviewSlip(s);
                               setShowPreview(true);
                             }}
-                            className="p-2 rounded-lg hover:bg-white/10 transition text-slate-400 hover:text-white"
+                            className="p-2 rounded-lg hover:bg-muted transition text-muted-foreground hover:text-foreground"
                             title="Preview"
                           >
                             <Eye className="w-3.5 h-3.5" />
@@ -852,7 +852,7 @@ export default function SalaryPage() {
                             <button
                               onClick={() => handleSendWhatsApp(s)}
                               disabled={sendingId === s.id}
-                              className="p-2 rounded-lg hover:bg-white/10 transition text-teal-400 disabled:opacity-50"
+                              className="p-2 rounded-lg hover:bg-muted transition text-primary disabled:opacity-50"
                               title="Send via WhatsApp"
                             >
                               {sendingId === s.id ? (
@@ -864,7 +864,7 @@ export default function SalaryPage() {
                           )}
                           <button
                             onClick={() => handleDeleteSlip(s.id)}
-                            className="p-2 rounded-lg hover:bg-white/10 transition text-slate-400 hover:text-red-400"
+                            className="p-2 rounded-lg hover:bg-muted transition text-muted-foreground hover:text-destructive"
                             title="Delete"
                           >
                             <Trash2 className="w-3.5 h-3.5" />

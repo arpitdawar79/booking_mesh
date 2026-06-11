@@ -67,7 +67,7 @@ export default function GuestsPage() {
     <div className="space-y-4 lg:space-y-5">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
-          <Users className="w-5 h-5 text-teal-400" />
+          <Users className="w-5 h-5 text-primary" />
           Guests
         </h1>
         <div className="flex items-center gap-2">
@@ -269,8 +269,8 @@ export default function GuestsPage() {
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-full bg-teal-500/10 flex items-center justify-center">
-                        <User className="w-3.5 h-3.5 text-teal-400" />
+                      <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
+                        <User className="w-3.5 h-3.5 text-primary" />
                       </div>
                       <div>
                         <div className="font-bold text-sm leading-none">{g.name}</div>
@@ -312,7 +312,7 @@ export default function GuestsPage() {
                         <td className="font-semibold text-xs">
                           <Link
                             href={`/dashboard/guests/${g.id}`}
-                            className="hover:text-teal-400 transition"
+                            className="hover:text-primary transition"
                           >
                             {g.name}
                           </Link>

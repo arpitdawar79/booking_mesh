@@ -232,8 +232,8 @@ export function BookingWizard() {
   return (
     <div className="max-w-none sm:max-w-2xl sm:mx-auto relative pb-4 px-2">
       {/* Ambient layered glows */}
-      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[700px] h-[500px] bg-teal-500/3 blur-[120px] rounded-full pointer-events-none -z-10" />
-      <div className="fixed bottom-0 right-0 w-[400px] h-[300px] bg-emerald-500/3 blur-[100px] rounded-full pointer-events-none -z-10" />
+      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[700px] h-[500px] bg-primary/5 blur-[120px] rounded-full pointer-events-none -z-10" />
+      <div className="fixed bottom-0 right-0 w-[400px] h-[300px] bg-accent/5 blur-[100px] rounded-full pointer-events-none -z-10" />
 
       {/* Header */}
       <motion.div
@@ -243,18 +243,18 @@ export function BookingWizard() {
         className="mb-3 sm:mb-5"
       >
         <div className="flex items-center gap-2.5 mb-1">
-          <div className="w-7 h-7 rounded-lg bg-teal-500/15 border border-teal-500/20 flex items-center justify-center">
-            <Sparkles className="w-3.5 h-3.5 text-teal-400" />
+          <div className="w-7 h-7 rounded-lg bg-primary/15 border border-primary/20 flex items-center justify-center">
+            <Sparkles className="w-3.5 h-3.5 text-primary" />
           </div>
-          <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-teal-400/80">
+          <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-primary/80">
             The Stream by Ekantah
           </span>
         </div>
         <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tighter leading-none mt-2">
           <AnimatedGradientText
-            gradientFrom="#14b8a6"
-            gradientVia="#4ade80"
-            gradientTo="#06b6d4"
+            gradientFrom="var(--primary)"
+            gradientVia="var(--accent-foreground)"
+            gradientTo="var(--primary)"
             animationDuration={5}
           >
             New Reservation
@@ -275,9 +275,9 @@ export function BookingWizard() {
         className="mb-3.5 sm:mb-5 relative"
       >
         {/* Progress track */}
-        <div className="absolute top-[22px] left-6 right-6 h-px bg-white/5 z-0" />
+        <div className="absolute top-[22px] left-6 right-6 h-px bg-border z-0" />
         <motion.div
-          className="absolute top-[22px] left-6 h-px bg-linear-to-r from-teal-500 to-emerald-400 z-0 origin-left"
+          className="absolute top-[22px] left-6 h-px bg-linear-to-r from-primary to-accent z-0 origin-left"
           style={{ right: `${100 - progressPct}%` }}
           initial={false}
           animate={{ right: `${100 - progressPct}%` }}
@@ -308,7 +308,7 @@ export function BookingWizard() {
                   {isCurrent && (
                     <motion.div
                       layoutId="stepActiveGlow"
-                      className="absolute -inset-2 rounded-full bg-teal-500/15 blur-sm"
+                      className="absolute -inset-2 rounded-full bg-primary/15 blur-sm"
                       transition={{
                         type: "spring",
                         stiffness: 350,
@@ -320,10 +320,10 @@ export function BookingWizard() {
                     className={cn(
                       "relative w-11 h-11 rounded-full flex items-center justify-center transition-all duration-300 border",
                       isCurrent
-                        ? "bg-teal-500 border-teal-400/50 text-white shadow-[0_0_24px_-4px_rgba(20,184,166,0.6)]"
+                        ? "bg-primary border-primary/50 text-primary-foreground shadow-[0_0_24px_-4px_var(--glow-color)]"
                         : isCompleted
-                          ? "bg-teal-500/15 border-teal-500/30 text-teal-400"
-                          : "bg-[#111] border-white/8 text-muted-foreground/30 group-disabled:opacity-40",
+                          ? "bg-primary/15 border-primary/30 text-primary"
+                          : "bg-card border-border text-muted-foreground/30 group-disabled:opacity-40",
                     )}
                   >
                     {isCompleted ? (
@@ -351,8 +351,8 @@ export function BookingWizard() {
                       <BorderBeam
                         size={80}
                         duration={6}
-                        colorFrom="#14b8a6"
-                        colorTo="#4ade80"
+                        colorFrom="var(--primary)"
+                        colorTo="var(--accent)"
                         borderWidth={1.5}
                       />
                     )}
@@ -362,9 +362,9 @@ export function BookingWizard() {
                   className={cn(
                     "text-[10px] font-bold uppercase tracking-widest transition-colors duration-300",
                     isCurrent
-                      ? "text-teal-400"
+                      ? "text-primary"
                       : isCompleted
-                        ? "text-teal-400/60"
+                        ? "text-primary/60"
                         : "text-muted-foreground/30",
                   )}
                 >
@@ -492,7 +492,7 @@ export function BookingWizard() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.55, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
-        className="flex items-center justify-between gap-2.5 mt-5 px-3 py-2 border border-white/[0.05] sticky bg-background/75 backdrop-blur-3xl rounded-[20px] z-40 shadow-[0_8px_50px_rgba(0,0,0,0.55),0_0_0_1px_rgba(255,255,255,0.02)]"
+        className="flex items-center justify-between gap-2.5 mt-5 px-3 py-2 border border-border sticky bg-background/75 backdrop-blur-3xl rounded-[20px] z-40 shadow-[0_8px_50px_rgba(0,0,0,0.55),0_0_0_1px_rgba(255,255,255,0.02)]"
         style={{ bottom: "calc(0.75rem + env(safe-area-inset-bottom))" }}
       >
         {/* Back button */}
@@ -505,7 +505,7 @@ export function BookingWizard() {
           onTouchEnd={touch.onTouchEnd}
           onMouseDown={touch.onTouchStart}
           onMouseUp={touch.onTouchEnd}
-          className="flex items-center justify-center gap-1.5 px-4 sm:px-5 py-2 rounded-xl border border-white/[0.07] bg-white/3 text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-white/6 active:bg-white/8 transition-all duration-200 disabled:opacity-20 disabled:cursor-not-allowed min-h-[40px]"
+          className="flex items-center justify-center gap-1.5 px-4 sm:px-5 py-2 rounded-xl border border-border bg-secondary text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted transition-all duration-200 disabled:opacity-20 disabled:cursor-not-allowed min-h-[40px]"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           <span className="hidden sm:inline tracking-tight">Back</span>
@@ -520,20 +520,20 @@ export function BookingWizard() {
                 className={cn(
                   "rounded-full transition-all duration-300",
                   s.num === step
-                    ? "w-5 h-1.5 bg-teal-400"
+                    ? "w-5 h-1.5 bg-primary"
                     : s.num < step
-                      ? "w-1.5 h-1.5 bg-teal-500/50"
-                      : "w-1.5 h-1.5 bg-white/10",
+                      ? "w-1.5 h-1.5 bg-primary/50"
+                      : "w-1.5 h-1.5 bg-border",
                 )}
               />
             ))}
           </div>
           <div className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground/35 font-medium">
-            <kbd className="px-1.5 py-0.5 rounded-md border border-white/8 bg-white/4 text-[10px] font-bold font-mono">
+            <kbd className="px-1.5 py-0.5 rounded-md border border-border bg-secondary text-[10px] font-bold font-mono">
               {cmdKey}
             </kbd>
             <span className="opacity-60">+</span>
-            <kbd className="px-1.5 py-0.5 rounded-md border border-white/8 bg-white/4 text-[10px] font-bold font-mono">
+            <kbd className="px-1.5 py-0.5 rounded-md border border-border bg-secondary text-[10px] font-bold font-mono">
               →
             </kbd>
             <span className="ml-0.5">to advance</span>
@@ -554,8 +554,8 @@ export function BookingWizard() {
             className={cn(
               "relative flex items-center gap-1.5 px-4 sm:px-5 py-2 rounded-xl text-xs font-bold tracking-tight overflow-hidden transition-all duration-200 min-h-[40px]",
               canProceed()
-                ? "bg-white text-background shadow-[0_4px_24px_rgba(255,255,255,0.12)] hover:bg-zinc-100"
-                : "bg-white/10 text-white/30 cursor-not-allowed",
+                ? "bg-foreground text-background shadow-md hover:bg-foreground/90"
+                : "bg-muted text-muted-foreground/45 cursor-not-allowed",
             )}
           >
             <span>Continue</span>
@@ -571,18 +571,12 @@ export function BookingWizard() {
             onTouchEnd={touch.onTouchEnd}
             onMouseDown={touch.onTouchStart}
             onMouseUp={touch.onTouchEnd}
-            className="relative flex items-center gap-1.5 px-4 sm:px-5 py-2 rounded-xl text-xs font-bold overflow-hidden disabled:opacity-30 transition-all duration-200 min-h-[40px] text-white"
-            style={{
-              background:
-                !saving && canProceed()
-                  ? "linear-gradient(135deg, #14b8a6, #10b981)"
-                  : undefined,
-              backgroundColor: saving || !canProceed() ? "#0d4036" : undefined,
-              boxShadow:
-                !saving && canProceed()
-                  ? "0 0 28px -6px rgba(20,184,166,0.55)"
-                  : undefined,
-            }}
+            className={cn(
+              "relative flex items-center gap-1.5 px-4 sm:px-5 py-2 rounded-xl text-xs font-bold overflow-hidden transition-all duration-200 min-h-[40px] text-primary-foreground",
+              !saving && canProceed()
+                ? "bg-primary hover:opacity-95 shadow-lg shadow-primary/15"
+                : "bg-muted text-muted-foreground/45 cursor-not-allowed"
+            )}
           >
             {saving ? (
               <>

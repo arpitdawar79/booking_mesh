@@ -31,16 +31,16 @@ interface DayDetailContentProps {
 }
 
 const paymentStatusColor: Record<string, string> = {
-  paid_in_full: "bg-emerald-500/15 text-emerald-400",
-  partially_paid: "bg-amber-500/15 text-amber-400",
-  pending: "bg-rose-500/15 text-rose-400",
+  paid_in_full: "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-500/10",
+  partially_paid: "bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400 border border-amber-200/50 dark:border-amber-500/10",
+  pending: "bg-rose-50 text-rose-700 dark:bg-rose-950/30 dark:text-rose-400 border border-rose-200/50 dark:border-rose-500/10",
   refunded: "bg-muted text-muted-foreground",
 };
 
 const statusColor: Record<string, string> = {
-  confirmed: "bg-teal-500/15 text-teal-400",
-  completed: "bg-blue-500/15 text-blue-400",
-  cancelled: "bg-rose-500/15 text-rose-400",
+  confirmed: "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-500/10",
+  completed: "bg-blue-50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400 border border-blue-200/50 dark:border-blue-500/10",
+  cancelled: "bg-rose-50 text-rose-700 dark:bg-rose-950/30 dark:text-rose-400 border border-rose-200/50 dark:border-rose-500/10",
   archived: "bg-muted text-muted-foreground",
 };
 
@@ -50,31 +50,31 @@ export function DayDetailContent({ day }: DayDetailContentProps) {
 
   const stats = [
     {
-      icon: <BedDouble className="w-4 h-4 text-teal-400" />,
+      icon: <BedDouble className="w-4 h-4 text-primary" />,
       label: "Occupied Rooms",
       value: day.rooms.toString(),
       sub: `${occupancyPercent}% occupancy`,
     },
     {
-      icon: <Users className="w-4 h-4 text-blue-400" />,
+      icon: <Users className="w-4 h-4 text-blue-600 dark:text-blue-400" />,
       label: "Total Guests",
       value: day.guests.toString(),
       sub: day.bookings === 1 ? "1 booking" : `${day.bookings} bookings`,
     },
     {
-      icon: <IndianRupee className="w-4 h-4 text-emerald-400" />,
+      icon: <IndianRupee className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />,
       label: "Room Revenue",
       value: formatCurrency(day.revenue),
       sub: `₹${Math.round(adr).toLocaleString("en-IN")}/guest ADR`,
     },
     {
-      icon: <CheckCircle2 className="w-4 h-4 text-amber-400" />,
+      icon: <CheckCircle2 className="w-4 h-4 text-amber-600 dark:text-amber-400" />,
       label: "Check-ins",
       value: day.checkins.toString(),
       sub: day.checkinrevenue > 0 ? formatCurrency(day.checkinrevenue) : "No new arrivals",
     },
     {
-      icon: <LogOutIcon className="w-4 h-4 text-rose-400" />,
+      icon: <LogOutIcon className="w-4 h-4 text-red-600 dark:text-red-400" />,
       label: "Check-outs",
       value: day.checkouts.toString(),
       sub: day.checkouts > 0 ? "Departing today" : "No departures",
@@ -91,7 +91,7 @@ export function DayDetailContent({ day }: DayDetailContentProps) {
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.05 + idx * 0.04 }}
-            className="p-2.5 sm:p-3 rounded-xl bg-muted/30 border border-border/50"
+            className="p-2.5 sm:p-3 rounded-xl bg-card border border-border"
           >
             <div className="flex items-center gap-1.5 mb-1">
               {stat.icon}
@@ -114,8 +114,8 @@ export function DayDetailContent({ day }: DayDetailContentProps) {
           className="flex gap-2"
         >
           {day.checkins > 0 && (
-            <div className="flex-1 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20">
-              <div className="flex items-center gap-2 text-amber-400 mb-1">
+            <div className="flex-1 p-3 rounded-xl bg-amber-500/5 dark:bg-amber-950/10 border border-amber-200 dark:border-amber-500/20">
+              <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 mb-1">
                 <CheckCircle2 className="w-4 h-4" />
                 <span className="text-sm font-bold">Arrivals</span>
               </div>
@@ -126,8 +126,8 @@ export function DayDetailContent({ day }: DayDetailContentProps) {
             </div>
           )}
           {day.checkouts > 0 && (
-            <div className="flex-1 p-3 rounded-xl bg-rose-500/10 border border-rose-500/20">
-              <div className="flex items-center gap-2 text-rose-400 mb-1">
+            <div className="flex-1 p-3 rounded-xl bg-red-500/5 dark:bg-red-950/10 border border-red-200 dark:border-red-500/20">
+              <div className="flex items-center gap-2 text-red-600 dark:text-red-400 mb-1">
                 <LogOutIcon className="w-4 h-4" />
                 <span className="text-sm font-bold">Departures</span>
               </div>
@@ -147,7 +147,7 @@ export function DayDetailContent({ day }: DayDetailContentProps) {
         </h3>
 
         {day.bookingsList.length === 0 ? (
-          <div className="p-4 rounded-xl bg-muted/20 border border-dashed border-border text-center">
+          <div className="p-4 rounded-xl bg-card border border-dashed border-border text-center">
             <p className="text-sm text-muted-foreground">No active bookings for this day</p>
           </div>
         ) : (
@@ -161,7 +161,7 @@ export function DayDetailContent({ day }: DayDetailContentProps) {
               >
                 <Link
                   href={`/dashboard/booking/${booking.id}`}
-                  className="block p-3 sm:p-4 rounded-xl border border-border/60 bg-card/30 hover:bg-card/60 hover:border-teal-500/25 transition-all group"
+                  className="block p-3 sm:p-4 rounded-xl border border-border bg-card hover:bg-secondary/40 hover:border-primary/30 transition-all group shadow-sm"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
@@ -192,7 +192,7 @@ export function DayDetailContent({ day }: DayDetailContentProps) {
                       </div>
                     </div>
                     <div className="text-right shrink-0">
-                      <div className="text-sm sm:text-base font-bold text-emerald-400">
+                      <div className="text-sm sm:text-base font-bold text-emerald-600 dark:text-emerald-400">
                         {formatCurrency(booking.totalAmount)}
                       </div>
                       <span
@@ -202,7 +202,7 @@ export function DayDetailContent({ day }: DayDetailContentProps) {
                       </span>
                     </div>
                   </div>
-                  <div className="mt-2 flex items-center gap-1 text-[10px] sm:text-xs text-teal-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="mt-2 flex items-center gap-1 text-[10px] sm:text-xs text-primary opacity-0 group-hover:opacity-100 transition-opacity">
                     <span>View booking details</span>
                     <ArrowRight className="w-3 h-3" />
                   </div>

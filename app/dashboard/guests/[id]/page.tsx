@@ -129,14 +129,14 @@ export default function GuestDetailPage() {
 
       <div className="flex items-start justify-between">
         <div className="flex items-start gap-4">
-          <div className="w-14 h-14 rounded-full bg-teal-500/10 flex items-center justify-center shrink-0">
-            <User className="w-7 h-7 text-teal-400" />
+          <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+            <User className="w-7 h-7 text-primary" />
           </div>
           <div>
             <h1 className="text-xl font-bold flex items-center gap-2">
               {guest.name}
               {isReturning && (
-                <span className="rounded-full bg-blue-900/30 text-blue-300 px-2 py-0.5 text-[10px] font-medium">
+                <span className="rounded-full bg-accent text-accent-foreground border border-border px-2 py-0.5 text-[10px] font-medium">
                   Returning Guest
                 </span>
               )}
@@ -280,22 +280,22 @@ export default function GuestDetailPage() {
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <StatCard
-          icon={<IndianRupee className="w-5 h-5 text-emerald-400" />}
+          icon={<IndianRupee className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />}
           label="Total Revenue"
           value={`₹${stats.totalRevenue.toLocaleString("en-IN")}`}
         />
         <StatCard
-          icon={<Moon className="w-5 h-5 text-blue-400" />}
+          icon={<Moon className="w-5 h-5 text-blue-600 dark:text-blue-400" />}
           label="Total Nights"
           value={stats.totalNights}
         />
         <StatCard
-          icon={<User className="w-5 h-5 text-amber-400" />}
+          icon={<User className="w-5 h-5 text-amber-600 dark:text-amber-400" />}
           label="Stays"
           value={stats.totalStays}
         />
         <StatCard
-          icon={<User className="w-5 h-5 text-purple-400" />}
+          icon={<User className="w-5 h-5 text-purple-600 dark:text-purple-400" />}
           label="Avg Stay"
           value={`${stats.avgStayLength} nights`}
         />
@@ -339,7 +339,7 @@ export default function GuestDetailPage() {
                     <td className="px-4 py-3 font-mono text-xs">
                       <Link
                         href={`/dashboard/booking/${b.id}`}
-                        className="hover:text-teal-400 transition"
+                        className="hover:text-primary transition"
                       >
                         #{b.bookingId}
                       </Link>

@@ -5,7 +5,7 @@ export default function OfflinePage() {
   return (
     <main className="min-h-screen bg-background text-foreground flex items-center justify-center px-5 py-12">
       <div className="w-full max-w-sm text-center space-y-5">
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-teal-500/20 bg-teal-500/10 text-teal-300">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 text-primary">
           <WifiOff className="h-7 w-7" />
         </div>
         <div className="space-y-2">

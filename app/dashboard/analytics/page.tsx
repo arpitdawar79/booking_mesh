@@ -22,12 +22,12 @@ import {
 } from "recharts";
 
 const COLORS = [
-  "#14b8a6",
-  "#f59e0b",
-  "#ef4444",
-  "#3b82f6",
-  "#8b5cf6",
-  "#ec4899",
+  "#2c4a3f", // deep spruce sage
+  "#e2c29d", // champagne gold / brass
+  "#8f7a66", // warm taupe
+  "#5c7f70", // lighter sage
+  "#c86b5c", // terracotta / rust
+  "#a39274", // clay / olive
 ];
 
 interface AnalyticsData {
@@ -219,13 +219,13 @@ export default function AnalyticsPage() {
         <div className="flex gap-2 flex-wrap">
           <Link
             href="/dashboard/analytics/revenue"
-            className="rounded-xl border border-border/60 bg-card/20 backdrop-blur-xl px-4 py-2.5 text-sm font-bold hover:bg-muted/50 hover:border-teal-500/20 transition-all"
+            className="rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-bold hover:bg-secondary hover:border-primary/20 transition-all shadow-sm"
           >
             Revenue Report →
           </Link>
           <Link
             href="/dashboard/analytics/occupancy"
-            className="rounded-xl border border-border/60 bg-card/20 backdrop-blur-xl px-4 py-2.5 text-sm font-bold hover:bg-muted/50 hover:border-teal-500/20 transition-all"
+            className="rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-bold hover:bg-secondary hover:border-primary/20 transition-all shadow-sm"
           >
             Occupancy Report →
           </Link>
@@ -310,34 +310,36 @@ export default function AnalyticsPage() {
             <AreaChart data={data.monthly}>
               <defs>
                 <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#14b8a6" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#14b8a6" stopOpacity={0} />
+                  <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="var(--primary)" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
               <XAxis
                 dataKey="month"
                 tickFormatter={formatMonth}
-                stroke="#94a3b8"
+                stroke="var(--muted-foreground)"
                 fontSize={12}
               />
               <YAxis
                 tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}k`}
-                stroke="#94a3b8"
+                stroke="var(--muted-foreground)"
                 fontSize={12}
               />
               <Tooltip
                 contentStyle={{
-                  background: "#1e293b",
-                  border: "1px solid #334155",
+                  background: "var(--card)",
+                  border: "1px solid var(--border)",
                   borderRadius: 8,
+                  color: "var(--card-foreground)"
                 }}
+                labelStyle={{ color: "var(--card-foreground)" }}
                 formatter={(v: any) => formatCurrency(Number(v))}
               />
               <Area
                 type="monotone"
                 dataKey="revenue"
-                stroke="#14b8a6"
+                stroke="var(--primary)"
                 fill="url(#revGrad)"
                 strokeWidth={2}
               />
@@ -348,23 +350,25 @@ export default function AnalyticsPage() {
         <ChartCard title="Monthly Bookings vs Nights" subtitle="Volume trend">
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={data.monthly}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
               <XAxis
                 dataKey="month"
                 tickFormatter={formatMonth}
-                stroke="#94a3b8"
+                stroke="var(--muted-foreground)"
                 fontSize={12}
               />
-              <YAxis stroke="#94a3b8" fontSize={12} />
+              <YAxis stroke="var(--muted-foreground)" fontSize={12} />
               <Tooltip
                 contentStyle={{
-                  background: "#1e293b",
-                  border: "1px solid #334155",
+                  background: "var(--card)",
+                  border: "1px solid var(--border)",
                   borderRadius: 8,
+                  color: "var(--card-foreground)"
                 }}
+                labelStyle={{ color: "var(--card-foreground)" }}
               />
-              <Bar dataKey="bookings" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="nights" fill="#14b8a6" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="bookings" fill="var(--accent)" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="nights" fill="var(--primary)" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </ChartCard>
@@ -396,10 +400,12 @@ export default function AnalyticsPage() {
               </Pie>
               <Tooltip
                 contentStyle={{
-                  background: "#1e293b",
-                  border: "1px solid #334155",
+                  background: "var(--card)",
+                  border: "1px solid var(--border)",
                   borderRadius: 8,
+                  color: "var(--card-foreground)"
                 }}
+                labelStyle={{ color: "var(--card-foreground)" }}
               />
             </PieChart>
           </ResponsiveContainer>
@@ -422,31 +428,33 @@ export default function AnalyticsPage() {
             <BarChart data={data.roomType} layout="vertical">
               <CartesianGrid
                 strokeDasharray="3 3"
-                stroke="#334155"
+                stroke="var(--border)"
                 horizontal={false}
               />
               <XAxis
                 type="number"
                 tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}k`}
-                stroke="#94a3b8"
+                stroke="var(--muted-foreground)"
                 fontSize={12}
               />
               <YAxis
                 dataKey="type"
                 type="category"
                 width={100}
-                stroke="#94a3b8"
+                stroke="var(--muted-foreground)"
                 fontSize={11}
               />
               <Tooltip
                 contentStyle={{
-                  background: "#1e293b",
-                  border: "1px solid #334155",
+                  background: "var(--card)",
+                  border: "1px solid var(--border)",
                   borderRadius: 8,
+                  color: "var(--card-foreground)"
                 }}
+                labelStyle={{ color: "var(--card-foreground)" }}
                 formatter={(v: any) => formatCurrency(Number(v))}
               />
-              <Bar dataKey="revenue" fill="#f59e0b" radius={[0, 4, 4, 0]} />
+              <Bar dataKey="revenue" fill="var(--primary)" radius={[0, 4, 4, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </ChartCard>
@@ -457,25 +465,27 @@ export default function AnalyticsPage() {
         >
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={data.leadTime}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
               <XAxis
                 dataKey="bucket"
-                stroke="#94a3b8"
+                stroke="var(--muted-foreground)"
                 fontSize={11}
                 interval={0}
                 angle={-20}
                 textAnchor="end"
                 height={50}
               />
-              <YAxis stroke="#94a3b8" fontSize={12} />
+              <YAxis stroke="var(--muted-foreground)" fontSize={12} />
               <Tooltip
                 contentStyle={{
-                  background: "#1e293b",
-                  border: "1px solid #334155",
+                  background: "var(--card)",
+                  border: "1px solid var(--border)",
                   borderRadius: 8,
+                  color: "var(--card-foreground)"
                 }}
+                labelStyle={{ color: "var(--card-foreground)" }}
               />
-              <Bar dataKey="count" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="count" fill="var(--accent)" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </ChartCard>
@@ -494,53 +504,55 @@ export default function AnalyticsPage() {
         >
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={pnlData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
               <XAxis
                 dataKey="month"
                 tickFormatter={formatMonth}
-                stroke="#94a3b8"
+                stroke="var(--muted-foreground)"
                 fontSize={12}
               />
               <YAxis
                 tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}k`}
-                stroke="#94a3b8"
+                stroke="var(--muted-foreground)"
                 fontSize={12}
               />
               <Tooltip
                 contentStyle={{
-                  background: "#1e293b",
-                  border: "1px solid #334155",
+                  background: "var(--card)",
+                  border: "1px solid var(--border)",
                   borderRadius: 8,
+                  color: "var(--card-foreground)"
                 }}
+                labelStyle={{ color: "var(--card-foreground)" }}
                 formatter={(v: any, n: any) => [formatCurrency(Number(v)), n]}
               />
               <Bar
                 dataKey="revenue"
-                fill="#14b8a6"
+                fill="var(--primary)"
                 radius={[4, 4, 0, 0]}
                 name="Revenue"
               />
               <Bar
                 dataKey="additionalSales"
-                fill="#f59e0b"
+                fill="var(--accent)"
                 radius={[4, 4, 0, 0]}
                 name="Additional"
               />
               <Bar
                 dataKey="expenses"
-                fill="#ef4444"
+                fill="#b24a37"
                 radius={[4, 4, 0, 0]}
                 name="Expenses"
               />
               <Bar
                 dataKey="salaries"
-                fill="#8b5cf6"
+                fill="#8f7a66"
                 radius={[4, 4, 0, 0]}
                 name="Salaries"
               />
               <Bar
                 dataKey="net"
-                fill="#3b82f6"
+                fill="var(--primary)"
                 radius={[4, 4, 0, 0]}
                 name="Net"
               />
@@ -567,10 +579,12 @@ export default function AnalyticsPage() {
               </Pie>
               <Tooltip
                 contentStyle={{
-                  background: "#1e293b",
-                  border: "1px solid #334155",
+                  background: "var(--card)",
+                  border: "1px solid var(--border)",
                   borderRadius: 8,
+                  color: "var(--card-foreground)"
                 }}
+                labelStyle={{ color: "var(--card-foreground)" }}
                 formatter={(v: any) => formatCurrency(Number(v))}
               />
             </PieChart>
@@ -608,34 +622,36 @@ export default function AnalyticsPage() {
               <AreaChart data={data.monthlyAdditionalSales}>
                 <defs>
                   <linearGradient id="rsGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
+                    <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="var(--primary)" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                 <XAxis
                   dataKey="month"
                   tickFormatter={formatMonth}
-                  stroke="#94a3b8"
+                  stroke="var(--muted-foreground)"
                   fontSize={12}
                 />
                 <YAxis
                   tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}k`}
-                  stroke="#94a3b8"
+                  stroke="var(--muted-foreground)"
                   fontSize={12}
                 />
                 <Tooltip
                   contentStyle={{
-                    background: "#1e293b",
-                    border: "1px solid #334155",
+                    background: "var(--card)",
+                    border: "1px solid var(--border)",
                     borderRadius: 8,
+                    color: "var(--card-foreground)"
                   }}
+                  labelStyle={{ color: "var(--card-foreground)" }}
                   formatter={(v: any) => formatCurrency(Number(v))}
                 />
                 <Area
                   type="monotone"
                   dataKey="total"
-                  stroke="#f59e0b"
+                  stroke="var(--primary)"
                   fill="url(#rsGrad)"
                   strokeWidth={2}
                   name="Sales"
@@ -652,7 +668,7 @@ export default function AnalyticsPage() {
                   className="flex items-center justify-between text-sm border-b border-border pb-2 last:border-0"
                 >
                   <div className="flex items-center gap-2 min-w-0">
-                    <span className="w-5 h-5 rounded-full bg-amber-500/10 text-amber-400 flex items-center justify-center text-xs font-bold shrink-0">
+                    <span className="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold shrink-0">
                       {i + 1}
                     </span>
                     <div className="min-w-0">
@@ -681,20 +697,22 @@ export default function AnalyticsPage() {
         <ChartCard title="Weekly Booking Trend" subtitle="Last 12 weeks">
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={data.weeklyTrend}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
               <XAxis
                 dataKey="week"
                 tickFormatter={formatWeek}
-                stroke="#94a3b8"
+                stroke="var(--muted-foreground)"
                 fontSize={12}
               />
-              <YAxis stroke="#94a3b8" fontSize={12} />
+              <YAxis stroke="var(--muted-foreground)" fontSize={12} />
               <Tooltip
                 contentStyle={{
-                  background: "#1e293b",
-                  border: "1px solid #334155",
+                  background: "var(--card)",
+                  border: "1px solid var(--border)",
                   borderRadius: 8,
+                  color: "var(--card-foreground)"
                 }}
+                labelStyle={{ color: "var(--card-foreground)" }}
                 formatter={(v: any, n: any) => [
                   n === "revenue" ? formatCurrency(Number(v)) : v,
                   n,
@@ -703,14 +721,14 @@ export default function AnalyticsPage() {
               <Line
                 type="monotone"
                 dataKey="bookings"
-                stroke="#3b82f6"
+                stroke="var(--accent)"
                 strokeWidth={2}
                 dot={false}
               />
               <Line
                 type="monotone"
                 dataKey="revenue"
-                stroke="#14b8a6"
+                stroke="var(--primary)"
                 strokeWidth={2}
                 dot={false}
                 yAxisId={1}
@@ -727,7 +745,7 @@ export default function AnalyticsPage() {
                 className="flex items-center justify-between text-sm border-b border-border pb-2 last:border-0"
               >
                 <div className="flex items-center gap-2 min-w-0">
-                  <span className="w-5 h-5 rounded-full bg-teal-500/10 text-teal-400 flex items-center justify-center text-xs font-bold shrink-0">
+                  <span className="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold shrink-0">
                     {i + 1}
                   </span>
                   <div className="min-w-0">
@@ -760,24 +778,26 @@ export default function AnalyticsPage() {
             <AreaChart data={data.upcomingOccupancy}>
               <defs>
                 <linearGradient id="occGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                  <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="var(--primary)" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
               <XAxis
                 dataKey="date"
-                stroke="#94a3b8"
+                stroke="var(--muted-foreground)"
                 fontSize={11}
                 interval={6}
               />
-              <YAxis stroke="#94a3b8" fontSize={12} />
+              <YAxis stroke="var(--muted-foreground)" fontSize={12} />
               <Tooltip
                 contentStyle={{
-                  background: "#1e293b",
-                  border: "1px solid #334155",
+                  background: "var(--card)",
+                  border: "1px solid var(--border)",
                   borderRadius: 8,
+                  color: "var(--card-foreground)"
                 }}
+                labelStyle={{ color: "var(--card-foreground)" }}
                 formatter={(v: any, n: any) => [
                   n === "revenue" ? formatCurrency(Number(v)) : v,
                   n,
@@ -786,7 +806,7 @@ export default function AnalyticsPage() {
               <Area
                 type="monotone"
                 dataKey="rooms"
-                stroke="#3b82f6"
+                stroke="var(--primary)"
                 fill="url(#occGrad)"
                 strokeWidth={2}
                 name="Rooms"
@@ -794,7 +814,7 @@ export default function AnalyticsPage() {
               <Line
                 type="monotone"
                 dataKey="guests"
-                stroke="#f59e0b"
+                stroke="var(--accent)"
                 strokeWidth={2}
                 dot={false}
                 name="Guests"
@@ -822,9 +842,9 @@ function KpiCard({
     <motion.div
       whileHover={{ y: -4, scale: 1.01 }}
       transition={{ type: "spring", stiffness: 350, damping: 25 }}
-      className="relative rounded-2xl border border-border/60 bg-card/20 backdrop-blur-xl p-4 sm:p-5 space-y-2 overflow-hidden shadow-sm group hover:border-teal-500/20 hover:shadow-lg hover:shadow-teal-500/5"
+      className="relative rounded-2xl border border-border bg-card p-4 sm:p-5 space-y-2 overflow-hidden shadow-sm group hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5"
     >
-      <div className="absolute -inset-px bg-linear-to-br from-teal-500/[0.07] via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+      <div className="absolute -inset-px bg-linear-to-br from-primary/[0.07] via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
       <div className="relative z-10">
         <div className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-[0.15em]">
           {label}
@@ -835,16 +855,16 @@ function KpiCard({
         {change !== null && (
           <div className="flex items-center gap-1.5 text-xs font-semibold pt-1">
             {change > 0 ? (
-              <span className="inline-flex items-center gap-1 text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+              <span className="inline-flex items-center gap-1 text-emerald-700 bg-emerald-50 dark:text-emerald-400 dark:bg-emerald-950/30 border border-emerald-200/50 dark:border-emerald-500/10 px-2.5 py-0.5 rounded-full">
                 <TrendingUp className="w-3.5 h-3.5" />+{change.toFixed(1)}%
               </span>
             ) : change < 0 ? (
-              <span className="inline-flex items-center gap-1 text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded-full">
+              <span className="inline-flex items-center gap-1 text-red-700 bg-red-50 dark:text-red-400 dark:bg-red-950/30 border border-red-200/50 dark:border-red-500/10 px-2.5 py-0.5 rounded-full">
                 <TrendingDown className="w-3.5 h-3.5" />
                 {change.toFixed(1)}%
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1 text-muted-foreground bg-muted/40 px-2 py-0.5 rounded-full">
+              <span className="inline-flex items-center gap-1 text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">
                 <Minus className="w-3.5 h-3.5" />
                 0%
               </span>
@@ -874,7 +894,7 @@ function ChartCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-2xl border border-border/60 bg-card/15 backdrop-blur-xl p-4 sm:p-5 space-y-4 hover:border-teal-500/10 transition-colors">
+    <div className="rounded-2xl border border-border bg-card p-4 sm:p-5 space-y-4 hover:border-primary/20 transition-all shadow-sm">
       <div>
         <h3 className="font-bold text-sm sm:text-base">{title}</h3>
         <p className="text-xs text-muted-foreground/70 font-medium">

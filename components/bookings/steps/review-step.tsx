@@ -92,7 +92,7 @@ export function ReviewStep({
           <ReviewRow
             label="Total Guests"
             value={
-              <span className="text-teal-400 font-extrabold">
+              <span className="text-primary font-extrabold">
                 {adultCount} Adult{adultCount > 1 ? "s" : ""}, {childCount}{" "}
                 Child{childCount !== 1 ? "ren" : ""}
               </span>
@@ -113,7 +113,7 @@ export function ReviewStep({
                   {formattedDate(checkInDate)} &rarr;{" "}
                   {formattedDate(checkOutDate)}
                 </span>
-                <span className="text-xs text-teal-400 font-bold uppercase tracking-wider bg-teal-500/5 border border-teal-500/10 px-2 py-0.5 rounded-md inline-block mt-1">
+                <span className="text-xs text-primary font-bold uppercase tracking-wider bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-md inline-block mt-1">
                   {nightCount} Night{nightCount > 1 ? "s" : ""} Stay
                 </span>
               </div>
@@ -151,7 +151,7 @@ export function ReviewStep({
                   {mealPlan.map((m) => (
                     <span
                       key={m}
-                      className="text-[10px] bg-white/5 border border-white/5 px-2 py-0.5 rounded-lg text-foreground font-extrabold uppercase"
+                      className="text-[10px] bg-secondary border border-border px-2 py-0.5 rounded-lg text-foreground font-extrabold uppercase"
                     >
                       {m}
                     </span>
@@ -180,7 +180,7 @@ export function ReviewStep({
           <ReviewRow
             label="Paid Online"
             value={
-              <span className="text-teal-400 font-extrabold">
+              <span className="text-primary font-extrabold">
                 {currency} {paid.toLocaleString("en-IN")}
               </span>
             }
@@ -192,8 +192,8 @@ export function ReviewStep({
                 className={cn(
                   "font-black text-base px-2.5 py-0.5 rounded-xl border",
                   balance > 0
-                    ? "text-orange-400 bg-orange-500/5 border-orange-500/10"
-                    : "text-emerald-400 bg-emerald-500/5 border-emerald-500/10",
+                    ? "text-orange-600 dark:text-orange-400 bg-orange-500/5 border-orange-500/10"
+                    : "text-emerald-600 dark:text-emerald-400 bg-emerald-500/5 border-emerald-500/10",
                 )}
               >
                 {currency} {balance.toLocaleString("en-IN")}
@@ -214,13 +214,13 @@ export function ReviewStep({
           <ReviewRow label="Concierge Hotline" value="+91 93193 47443" />
         </ReviewSection>
 
-        <div className="rounded-2xl border border-teal-500/15 bg-teal-500/5 p-5 flex items-start gap-3.5 relative overflow-hidden">
-          <div className="absolute inset-0 bg-linear-to-br from-teal-500/8 via-transparent to-transparent pointer-events-none rounded-2xl" />
-          <div className="w-9 h-9 rounded-xl bg-teal-500/15 border border-teal-500/20 flex items-center justify-center shrink-0 mt-0.5">
-            <HeartHandshake className="w-4.5 h-4.5 text-teal-400" />
+        <div className="rounded-2xl border border-primary/20 bg-primary/5 p-5 flex items-start gap-3.5 relative overflow-hidden">
+          <div className="absolute inset-0 bg-linear-to-br from-primary/8 via-transparent to-transparent pointer-events-none rounded-2xl" />
+          <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 mt-0.5">
+            <HeartHandshake className="w-4.5 h-4.5 text-primary" />
           </div>
           <div className="space-y-1 relative z-10">
-            <h4 className="text-xs font-extrabold uppercase tracking-wider text-teal-300">
+            <h4 className="text-xs font-extrabold uppercase tracking-wider text-primary">
               Ekantah Hospitality Guarantee
             </h4>
             <p className="text-[11px] text-muted-foreground/60 font-medium leading-relaxed">

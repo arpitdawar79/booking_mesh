@@ -179,16 +179,16 @@ export default function DashboardLayout({
               href="/"
               className={`font-bold text-lg flex items-center gap-2.5 ${collapsed ? "hidden" : ""}`}
             >
-              <div className="p-1.5 rounded-lg bg-teal-500/10 border border-teal-500/20">
-                <LayoutDashboard className="w-5 h-5 text-teal-400" />
+              <div className="p-1.5 rounded-lg bg-primary/10 border border-primary/20">
+                <LayoutDashboard className="w-5 h-5 text-primary" />
               </div>
               <span className="truncate bg-linear-to-b from-foreground to-foreground/60 bg-clip-text text-transparent">
                 The Stream
               </span>
             </Link>
             {collapsed && (
-              <div className="p-1.5 rounded-lg bg-teal-500/10 border border-teal-500/20 mx-auto">
-                <LayoutDashboard className="w-5 h-5 text-teal-400" />
+              <div className="p-1.5 rounded-lg bg-primary/10 border border-primary/20 mx-auto">
+                <LayoutDashboard className="w-5 h-5 text-primary" />
               </div>
             )}
             <button
@@ -217,7 +217,7 @@ export default function DashboardLayout({
                   onClick={() => haptic("light")}
                   className={`relative flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all duration-150 ${
                     isActive
-                      ? "text-teal-400"
+                      ? "text-primary"
                       : "text-muted-foreground hover:text-foreground"
                   }`}
                   title={collapsed ? item.label : undefined}
@@ -225,7 +225,7 @@ export default function DashboardLayout({
                   {isActive && (
                     <motion.div
                       layoutId="sidebarActivePill"
-                      className="absolute inset-0 rounded-xl bg-teal-500/10 border border-teal-500/15 -z-10"
+                      className="absolute inset-0 rounded-xl bg-primary/10 border border-primary/15 -z-10"
                       transition={{
                         type: "spring",
                         stiffness: 380,
@@ -257,8 +257,8 @@ export default function DashboardLayout({
               href="/"
               className="font-bold text-lg flex items-center gap-2.5"
             >
-              <div className="p-1.5 rounded-lg bg-teal-500/10 border border-teal-500/20">
-                <LayoutDashboard className="w-5 h-5 text-teal-400" />
+              <div className="p-1.5 rounded-lg bg-primary/10 border border-primary/20">
+                <LayoutDashboard className="w-5 h-5 text-primary" />
               </div>
               <span className="bg-linear-to-b from-foreground to-foreground/60 bg-clip-text text-transparent">
                 The Stream
@@ -287,14 +287,14 @@ export default function DashboardLayout({
                   }}
                   className={`relative flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-bold transition-all duration-150 ${
                     isActive
-                      ? "text-teal-400"
+                      ? "text-primary"
                       : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
                   {isActive && (
                     <motion.div
                       layoutId="mobileActivePill"
-                      className="absolute inset-0 rounded-xl bg-teal-500/10 border border-teal-500/15 -z-10"
+                      className="absolute inset-0 rounded-xl bg-primary/10 border border-primary/15 -z-10"
                       transition={{
                         type: "spring",
                         stiffness: 380,
@@ -378,7 +378,7 @@ export default function DashboardLayout({
                         onClick={() => setDrawerOpen(false)}
                         className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition ${
                           isActive
-                            ? "bg-teal-500/10 text-teal-400"
+                            ? "bg-primary/10 text-primary"
                             : "text-muted-foreground hover:text-foreground hover:bg-muted"
                         }`}
                       >

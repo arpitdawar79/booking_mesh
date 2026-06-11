@@ -67,20 +67,20 @@ export function EmployeeForm({
   }
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-linear-to-br from-slate-900 via-[#0d1525] to-slate-900 p-6 shadow-xl">
-      <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
+    <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-6 shadow-md">
+      <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
       <div className="relative flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-linear-to-br from-emerald-500/20 to-teal-500/10 flex items-center justify-center border border-emerald-500/20">
-            <User className="w-4 h-4 text-emerald-400" />
+          <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/15">
+            <User className="w-4 h-4 text-primary" />
           </div>
-          <h2 className="text-sm font-bold text-white tracking-tight">
+          <h2 className="text-sm font-bold text-foreground tracking-tight">
             {editingId ? "Edit Employee" : "Add Employee"}
           </h2>
         </div>
         <button
           onClick={onClose}
-          className="p-2 rounded-lg hover:bg-white/10 transition text-slate-400 hover:text-white"
+          className="p-2 rounded-lg hover:bg-muted transition text-muted-foreground hover:text-foreground"
         >
           <X className="w-4 h-4" />
         </button>
@@ -90,8 +90,8 @@ export function EmployeeForm({
         className="relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
       >
         <div>
-          <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">
-            Name <span className="text-rose-400">*</span>
+          <label className="block text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+            Name <span className="text-rose-600 dark:text-rose-400">*</span>
           </label>
           <input
             type="text"
@@ -100,11 +100,11 @@ export function EmployeeForm({
             onChange={(e) =>
               setFormData((p) => ({ ...p, name: e.target.value }))
             }
-            className="w-full rounded-xl border border-white/10 bg-white/3 px-4 py-2.5 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition"
+            className="w-full rounded-xl border border-border bg-card px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary/30 transition"
           />
         </div>
         <div>
-          <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">
+          <label className="block text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
             Phone
           </label>
           <input
@@ -114,11 +114,11 @@ export function EmployeeForm({
               setFormData((p) => ({ ...p, phone: e.target.value }))
             }
             placeholder="For WhatsApp salary slips"
-            className="w-full rounded-xl border border-white/10 bg-white/3 px-4 py-2.5 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition"
+            className="w-full rounded-xl border border-border bg-card px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary/30 transition"
           />
         </div>
         <div>
-          <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">
+          <label className="block text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
             Designation
           </label>
           <input
@@ -127,12 +127,12 @@ export function EmployeeForm({
             onChange={(e) =>
               setFormData((p) => ({ ...p, designation: e.target.value }))
             }
-            className="w-full rounded-xl border border-white/10 bg-white/3 px-4 py-2.5 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition"
+            className="w-full rounded-xl border border-border bg-card px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary/30 transition"
           />
         </div>
         <div>
-          <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">
-            Monthly Salary <span className="text-rose-400">*</span>
+          <label className="block text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+            Monthly Salary <span className="text-rose-600 dark:text-rose-400">*</span>
           </label>
           <input
             type="number"
@@ -143,12 +143,12 @@ export function EmployeeForm({
             onChange={(e) =>
               setFormData((p) => ({ ...p, monthlySalary: e.target.value }))
             }
-            className="w-full rounded-xl border border-white/10 bg-white/3 px-4 py-2.5 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition"
+            className="w-full rounded-xl border border-border bg-card px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary/30 transition"
           />
         </div>
         <div>
-          <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">
-            Joining Date <span className="text-rose-400">*</span>
+          <label className="block text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+            Joining Date <span className="text-rose-600 dark:text-rose-400">*</span>
           </label>
           <input
             type="date"
@@ -157,11 +157,11 @@ export function EmployeeForm({
             onChange={(e) =>
               setFormData((p) => ({ ...p, joiningDate: e.target.value }))
             }
-            className="w-full rounded-xl border border-white/10 bg-white/3 px-4 py-2.5 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition"
+            className="w-full rounded-xl border border-border bg-card px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary/30 transition"
           />
         </div>
         <div>
-          <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">
+          <label className="block text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
             Status
           </label>
           <select
@@ -169,12 +169,12 @@ export function EmployeeForm({
             onChange={(e) =>
               setFormData((p) => ({ ...p, status: e.target.value }))
             }
-            className="w-full rounded-xl border border-white/10 bg-white/3 px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition"
+            className="w-full rounded-xl border border-border bg-card px-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/30 transition"
           >
-            <option value="active" className="bg-slate-900">
+            <option value="active" className="bg-card text-foreground">
               Active
             </option>
-            <option value="inactive" className="bg-slate-900">
+            <option value="inactive" className="bg-card text-foreground">
               Inactive
             </option>
           </select>
@@ -183,7 +183,7 @@ export function EmployeeForm({
           <button
             type="submit"
             disabled={saving}
-            className="rounded-xl bg-white text-slate-900 px-5 py-2.5 text-xs font-semibold hover:bg-white/90 disabled:opacity-50 active:scale-[0.98] transition flex items-center gap-1.5 shadow-lg shadow-white/10"
+            className="rounded-xl bg-foreground text-background px-5 py-2.5 text-xs font-semibold hover:opacity-90 disabled:opacity-50 active:scale-[0.98] transition flex items-center gap-1.5 shadow-md"
           >
             <Save className="w-3.5 h-3.5" />{" "}
             {saving ? "Saving..." : editingId ? "Update" : "Save"}
@@ -191,7 +191,7 @@ export function EmployeeForm({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-xl border border-white/10 bg-white/5 px-5 py-2.5 text-xs font-medium text-slate-300 hover:bg-white/10 hover:text-white transition"
+            className="rounded-xl border border-border bg-muted/50 px-5 py-2.5 text-xs font-medium text-foreground hover:bg-muted transition"
           >
             Cancel
           </button>

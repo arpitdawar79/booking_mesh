@@ -21,11 +21,9 @@ export function KpiCard({
   return (
     <MagicCard className="p-3 sm:p-4" borderBeam backlight>
       <div className="space-y-2.5">
-        <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-lg bg-muted/20 border border-border/40 group-hover:scale-105 group-hover:bg-teal-500/10 group-hover:border-teal-500/20 transition-all duration-300 shrink-0">
-            {icon}
-          </div>
-          <span className="text-[9px] font-bold text-muted-foreground/60 uppercase tracking-[0.15em] truncate">
+        <div className="flex items-center gap-2.5">
+          {icon}
+          <span className="text-[10px] font-extrabold text-foreground/75 dark:text-foreground/60 uppercase tracking-[0.15em] truncate">
             {label}
           </span>
         </div>

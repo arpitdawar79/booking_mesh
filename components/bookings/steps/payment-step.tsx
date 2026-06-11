@@ -57,20 +57,20 @@ export function PaymentStep({
         </div>
 
         {/* Financial Summary panel */}
-        <div className="rounded-3xl border border-white/[0.07] bg-[#0d0d0d]/50 p-4 sm:p-5 space-y-4 shadow-sm relative overflow-hidden">
-          <div className="absolute inset-0 bg-linear-to-br from-teal-500/4 via-transparent to-emerald-500/2 pointer-events-none" />
+        <div className="rounded-3xl border border-border bg-card p-4 sm:p-5 space-y-4 shadow-sm relative overflow-hidden">
+          <div className="absolute inset-0 bg-linear-to-br from-primary/4 via-transparent to-accent/2 pointer-events-none" />
 
           <div className="flex items-center justify-between">
             <h3 className="text-xs font-black uppercase tracking-wider text-muted-foreground/70">
               Receipt Overview
             </h3>
             {isFullyPaid ? (
-              <span className="text-[10px] font-black uppercase tracking-wider text-emerald-400 bg-emerald-500/10 border border-emerald-500/15 rounded-xl px-2.5 py-1 flex items-center gap-1.5 animate-in zoom-in-95 duration-200">
+              <span className="text-[10px] font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-xl px-2.5 py-1 flex items-center gap-1.5 animate-in zoom-in-95 duration-200">
                 <ShieldCheck className="w-3.5 h-3.5" />
                 Fully Settled
               </span>
             ) : total > 0 && paid > 0 ? (
-              <span className="text-[10px] font-black uppercase tracking-wider text-orange-400 bg-orange-500/10 border border-orange-500/15 rounded-xl px-2.5 py-1 flex items-center gap-1.5">
+              <span className="text-[10px] font-black uppercase tracking-wider text-orange-600 dark:text-orange-400 bg-orange-500/10 border border-orange-500/20 rounded-xl px-2.5 py-1 flex items-center gap-1.5">
                 <Landmark className="w-3.5 h-3.5" />
                 Partially Paid
               </span>
@@ -93,22 +93,22 @@ export function PaymentStep({
               <span className="text-muted-foreground/60 font-semibold">
                 Online Advanced
               </span>
-              <span className="font-extrabold text-teal-400 flex items-center gap-1">
-                <span className="text-xs text-teal-500/40 font-bold">
+              <span className="font-extrabold text-primary flex items-center gap-1">
+                <span className="text-xs text-primary/40 font-bold">
                   {currency}
                 </span>
                 <NumberFlow value={paid} />
               </span>
             </div>
 
-            <div className="border-t border-white/5 pt-3.5 flex justify-between items-center">
+            <div className="border-t border-border pt-3.5 flex justify-between items-center">
               <span className="text-xs font-black uppercase tracking-wider text-muted-foreground/70">
                 Balance Due
               </span>
               <span
                 className={cn(
                   "text-lg font-black tracking-tight flex items-center gap-1",
-                  balance > 0 ? "text-orange-400" : "text-emerald-400",
+                  balance > 0 ? "text-orange-600 dark:text-orange-400" : "text-emerald-600 dark:text-emerald-400",
                 )}
               >
                 <span className="text-xs font-bold opacity-50">{currency}</span>

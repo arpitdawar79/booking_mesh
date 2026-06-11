@@ -144,7 +144,7 @@ export default function OccupancyReportPage() {
         <div className="flex items-center gap-3">
           <Link
             href="/dashboard/analytics"
-            className="p-2 -ml-2 rounded-xl hover:bg-muted/50 transition-colors"
+            className="p-2 -ml-2 rounded-xl hover:bg-secondary transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
           </Link>
@@ -193,30 +193,32 @@ export default function OccupancyReportPage() {
         <ChartCard title="Monthly Nights & Bookings" subtitle="Volume trends">
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={data.monthly}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
               <XAxis
                 dataKey="month"
                 tickFormatter={formatMonth}
-                stroke="#94a3b8"
+                stroke="var(--muted-foreground)"
                 fontSize={12}
               />
-              <YAxis stroke="#94a3b8" fontSize={12} />
+              <YAxis stroke="var(--muted-foreground)" fontSize={12} />
               <Tooltip
                 contentStyle={{
-                  background: "#1e293b",
-                  border: "1px solid #334155",
+                  background: "var(--card)",
+                  border: "1px solid var(--border)",
                   borderRadius: 8,
+                  color: "var(--card-foreground)"
                 }}
+                labelStyle={{ color: "var(--card-foreground)" }}
               />
               <Bar
                 dataKey="nights"
-                fill="#14b8a6"
+                fill="var(--primary)"
                 radius={[4, 4, 0, 0]}
                 name="Nights"
               />
               <Bar
                 dataKey="bookings"
-                fill="#3b82f6"
+                fill="var(--accent)"
                 radius={[4, 4, 0, 0]}
                 name="Bookings"
               />
@@ -237,17 +239,19 @@ export default function OccupancyReportPage() {
         >
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={data.leadTime}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-              <XAxis dataKey="bucket" stroke="#94a3b8" fontSize={12} />
-              <YAxis stroke="#94a3b8" fontSize={12} />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+              <XAxis dataKey="bucket" stroke="var(--muted-foreground)" fontSize={12} />
+              <YAxis stroke="var(--muted-foreground)" fontSize={12} />
               <Tooltip
                 contentStyle={{
-                  background: "#1e293b",
-                  border: "1px solid #334155",
+                  background: "var(--card)",
+                  border: "1px solid var(--border)",
                   borderRadius: 8,
+                  color: "var(--card-foreground)"
                 }}
+                labelStyle={{ color: "var(--card-foreground)" }}
               />
-              <Bar dataKey="count" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="count" fill="var(--accent)" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </ChartCard>
@@ -267,33 +271,35 @@ export default function OccupancyReportPage() {
             <BarChart data={data.roomType} layout="vertical">
               <CartesianGrid
                 strokeDasharray="3 3"
-                stroke="#334155"
+                stroke="var(--border)"
                 horizontal={false}
               />
-              <XAxis type="number" stroke="#94a3b8" fontSize={12} />
+              <XAxis type="number" stroke="var(--muted-foreground)" fontSize={12} />
               <YAxis
                 dataKey="type"
                 type="category"
                 width={100}
-                stroke="#94a3b8"
+                stroke="var(--muted-foreground)"
                 fontSize={11}
               />
               <Tooltip
                 contentStyle={{
-                  background: "#1e293b",
-                  border: "1px solid #334155",
+                  background: "var(--card)",
+                  border: "1px solid var(--border)",
                   borderRadius: 8,
+                  color: "var(--card-foreground)"
                 }}
+                labelStyle={{ color: "var(--card-foreground)" }}
               />
               <Bar
                 dataKey="nights"
-                fill="#f59e0b"
+                fill="var(--primary)"
                 radius={[0, 4, 4, 0]}
                 name="Nights"
               />
               <Bar
                 dataKey="count"
-                fill="#3b82f6"
+                fill="var(--accent)"
                 radius={[0, 4, 4, 0]}
                 name="Bookings"
               />
@@ -316,23 +322,25 @@ export default function OccupancyReportPage() {
             <AreaChart data={upcomingByWeek}>
               <defs>
                 <linearGradient id="roomsGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#14b8a6" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#14b8a6" stopOpacity={0} />
+                  <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="var(--primary)" stopOpacity={0} />
                 </linearGradient>
                 <linearGradient id="guestsGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                  <stop offset="5%" stopColor="var(--accent)" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="var(--accent)" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-              <XAxis dataKey="week" stroke="#94a3b8" fontSize={11} />
-              <YAxis stroke="#94a3b8" fontSize={12} />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+              <XAxis dataKey="week" stroke="var(--muted-foreground)" fontSize={11} />
+              <YAxis stroke="var(--muted-foreground)" fontSize={12} />
               <Tooltip
                 contentStyle={{
-                  background: "#1e293b",
-                  border: "1px solid #334155",
+                  background: "var(--card)",
+                  border: "1px solid var(--border)",
                   borderRadius: 8,
+                  color: "var(--card-foreground)"
                 }}
+                labelStyle={{ color: "var(--card-foreground)" }}
                 formatter={(v: any, n: any) => [
                   n === "revenue" ? formatCurrency(Number(v)) : v,
                   n,
@@ -341,7 +349,7 @@ export default function OccupancyReportPage() {
               <Area
                 type="monotone"
                 dataKey="rooms"
-                stroke="#14b8a6"
+                stroke="var(--primary)"
                 fill="url(#roomsGrad)"
                 strokeWidth={2}
                 name="Rooms"
@@ -349,7 +357,7 @@ export default function OccupancyReportPage() {
               <Area
                 type="monotone"
                 dataKey="guests"
-                stroke="#3b82f6"
+                stroke="var(--accent)"
                 fill="url(#guestsGrad)"
                 strokeWidth={2}
                 name="Guests"
@@ -357,7 +365,7 @@ export default function OccupancyReportPage() {
               <Line
                 type="monotone"
                 dataKey="revenue"
-                stroke="#f59e0b"
+                stroke="var(--primary)"
                 strokeWidth={2}
                 dot={false}
                 name="Revenue"
@@ -372,7 +380,7 @@ export default function OccupancyReportPage() {
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.6 }}
-        className="rounded-2xl border border-border/60 bg-card/10 backdrop-blur-xl overflow-x-auto"
+        className="rounded-2xl border border-border bg-card overflow-x-auto shadow-sm"
       >
         <table className="w-full text-sm">
           <thead className="bg-muted/30">
@@ -406,7 +414,7 @@ export default function OccupancyReportPage() {
                 <td className="px-4 py-3 text-right font-medium">
                   {row.guests}
                 </td>
-                <td className="px-4 py-3 text-right font-bold text-emerald-400">
+                <td className="px-4 py-3 text-right font-bold text-emerald-600 dark:text-emerald-400">
                   {formatCurrency(row.revenue)}
                 </td>
               </tr>
@@ -423,9 +431,9 @@ function Kpi({ label, value }: { label: string; value: string }) {
     <motion.div
       whileHover={{ y: -4, scale: 1.01 }}
       transition={{ type: "spring", stiffness: 350, damping: 25 }}
-      className="relative rounded-2xl border border-border/60 bg-card/20 backdrop-blur-xl p-3 sm:p-4 space-y-1 overflow-hidden group hover:border-teal-500/20 transition-colors"
+      className="relative rounded-2xl border border-border bg-card p-3 sm:p-4 space-y-1 overflow-hidden group hover:border-primary/20 transition-all shadow-sm"
     >
-      <div className="absolute -inset-px bg-linear-to-br from-teal-500/[0.07] via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+      <div className="absolute -inset-px bg-linear-to-br from-primary/[0.07] via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
       <div className="relative z-10">
         <div className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest truncate">
           {label}
@@ -448,7 +456,7 @@ function ChartCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-2xl border border-border/60 bg-card/15 backdrop-blur-xl p-4 sm:p-5 space-y-4 hover:border-teal-500/10 transition-colors">
+    <div className="rounded-2xl border border-border bg-card p-4 sm:p-5 space-y-4 hover:border-primary/20 transition-all shadow-sm">
       <div>
         <h3 className="font-bold text-sm sm:text-base">{title}</h3>
         <p className="text-xs text-muted-foreground/70 font-medium">

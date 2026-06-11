@@ -129,7 +129,7 @@ export default function BookingsPage() {
     return (
       <div className="flex items-center justify-center min-h-[300px] text-muted-foreground/60 text-sm font-semibold">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 rounded-full border-2 border-teal-500/30 border-t-teal-500 animate-spin" />
+          <div className="w-8 h-8 rounded-full border-2 border-primary/30 border-t-primary animate-spin" />
           <span>Loading bookings...</span>
         </div>
       </div>
@@ -146,25 +146,25 @@ export default function BookingsPage() {
           className="grid grid-cols-2 lg:grid-cols-4 gap-3.5"
         >
           <StatCard
-            icon={<CalendarCheck className="w-4 h-4 text-teal-400" />}
+            icon={<CalendarCheck className="w-4 h-4 text-primary" />}
             label="Total Bookings"
             value={<NumberTicker value={stats.counts.total} />}
             sub={`+${stats.counts.thisMonth} this month`}
           />
           <StatCard
-            icon={<IndianRupee className="w-4 h-4 text-emerald-400" />}
+            icon={<IndianRupee className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />}
             label="Revenue"
             value={`₹${(stats.revenue.total / 1000).toFixed(1)}k`}
             sub={`₹${stats.revenue.outstanding.toLocaleString("en-IN")} outstanding`}
           />
           <StatCard
-            icon={<Users className="w-4 h-4 text-blue-400" />}
+            icon={<Users className="w-4 h-4 text-blue-600 dark:text-blue-400" />}
             label="Confirmed"
             value={<NumberTicker value={stats.counts.confirmed} />}
             sub={`${stats.occupancy.totalNights} nights booked`}
           />
           <StatCard
-            icon={<AlertCircle className="w-4 h-4 text-amber-400" />}
+            icon={<AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400" />}
             label="Cancelled"
             value={<NumberTicker value={stats.counts.cancelled} />}
             sub="Lost bookings"
@@ -177,11 +177,11 @@ export default function BookingsPage() {
         <MagicCard className="p-4 sm:p-5" backlight borderBeam>
           <div className="space-y-3.5">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-teal-500/10 border border-teal-500/15 flex items-center justify-center text-teal-400">
-                <TrendingUp className="w-4 h-4 text-teal-400" />
+              <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/15 flex items-center justify-center text-primary">
+                <TrendingUp className="w-4 h-4 text-primary" />
               </div>
               <div>
-                <h2 className="text-xs font-black uppercase tracking-wider text-teal-400">Upcoming Check-ins</h2>
+                <h2 className="text-xs font-black uppercase tracking-wider text-primary">Upcoming Check-ins</h2>
                 <p className="text-[10px] text-muted-foreground/50 font-medium">Reservations arriving soon</p>
               </div>
             </div>
@@ -190,19 +190,19 @@ export default function BookingsPage() {
                 <Link
                   key={u.id}
                   href={`/dashboard/booking/${u.id}`}
-                  className="relative group min-w-[170px] snap-start rounded-2xl border border-white/5 bg-white/2 p-3 hover:bg-white/5 hover:border-teal-500/35 transition-all duration-300 overflow-hidden shrink-0"
+                  className="relative group min-w-[170px] snap-start rounded-2xl border border-border bg-muted/30 p-3 hover:bg-muted/60 hover:border-primary/50 transition-all duration-300 overflow-hidden shrink-0"
                 >
-                  <div className="absolute inset-0 bg-linear-to-br from-teal-500/5 to-transparent pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="absolute inset-0 bg-linear-to-br from-primary/5 to-transparent pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   <div className="relative z-10 space-y-1">
-                    <div className="text-[9px] font-black uppercase tracking-wider text-teal-400">
+                    <div className="text-[9px] font-black uppercase tracking-wider text-primary">
                       {formatDate(u.checkInDate)}
                     </div>
-                    <div className="font-extrabold text-xs text-foreground truncate group-hover:text-teal-300 transition-colors">
+                    <div className="font-extrabold text-xs text-foreground truncate group-hover:text-primary transition-colors">
                       {u.guestFullName}
                     </div>
                     <div className="text-[10px] text-muted-foreground/60 font-semibold flex items-center justify-between mt-1">
                       <span>{u.nightCount} nights</span>
-                      <span className="text-emerald-400 font-extrabold">₹{Number(u.totalAmount).toLocaleString("en-IN")}</span>
+                      <span className="text-emerald-600 dark:text-emerald-400 font-extrabold">₹{Number(u.totalAmount).toLocaleString("en-IN")}</span>
                     </div>
                   </div>
                 </Link>
@@ -229,18 +229,18 @@ export default function BookingsPage() {
         <div className="flex flex-wrap items-center gap-3">
           {/* Search box with dynamic teal focus state */}
           <div className="relative group">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/45 transition-colors group-focus-within:text-teal-400" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/45 transition-colors group-focus-within:text-primary" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search bookings..."
-              className="pl-10 pr-4 py-2 rounded-xl border border-white/[0.07] bg-[#0c0c0c]/90 text-xs focus:outline-none focus:border-teal-500/40 focus:ring-1 focus:ring-teal-500/15 focus:shadow-[0_0_20px_-5px_rgba(20,184,166,0.2)] w-40 sm:w-56 transition-all duration-300 placeholder:text-muted-foreground/35"
+              className="pl-10 pr-4 py-2 rounded-xl border border-border bg-card text-xs focus:outline-none focus:border-primary/40 focus:ring-1 focus:ring-primary/15 focus:shadow-[0_0_20px_-5px_var(--glow-color)] w-40 sm:w-56 transition-all duration-300 placeholder:text-muted-foreground/50"
             />
           </div>
 
           {/* Animated sliding navigation filter */}
-          <div className="flex rounded-xl border border-white/[0.06] p-1 bg-[#090909]">
+          <div className="flex rounded-xl border border-border p-1 bg-muted/50">
             {(["all", "confirmed", "cancelled", "archived"] as const).map(
               (f) => (
                 <button
@@ -299,11 +299,11 @@ export default function BookingsPage() {
                   <div className="flex items-start justify-between gap-2">
                     <div className="space-y-1 min-w-0">
                       <div className="flex items-center gap-1.5">
-                        <span className="font-mono text-[9px] text-muted-foreground/45 bg-white/3 px-1.5 py-0.5 rounded-sm">
+                        <span className="font-mono text-[9px] text-muted-foreground/45 bg-muted px-1.5 py-0.5 rounded-sm">
                           #{b.bookingId}
                         </span>
                         {b.status === "confirmed" && (
-                          <span className="inline-flex w-1.5 h-1.5 rounded-full bg-teal-400 animate-pulse" />
+                          <span className="inline-flex w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
                         )}
                       </div>
                       <div className="font-extrabold text-sm tracking-tight text-foreground truncate">
@@ -317,10 +317,10 @@ export default function BookingsPage() {
                       <StatusBadge status={b.status} className="!text-[9px] !px-2 !py-0.5 font-bold uppercase tracking-wider" />
                       <span className={`text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-md ${
                         b.paymentStatus === "paid_in_full" 
-                          ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/15" 
+                          ? "bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-500/10" 
                           : b.paymentStatus === "partially_paid"
-                            ? "bg-amber-500/10 text-amber-400 border border-amber-500/15"
-                            : "bg-rose-500/10 text-rose-400 border border-rose-500/15"
+                            ? "bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-500/10"
+                            : "bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-950/30 dark:text-rose-400 dark:border-rose-500/10"
                       }`}>
                         {b.paymentStatus.replace("_", " ")}
                       </span>
@@ -328,15 +328,15 @@ export default function BookingsPage() {
                   </div>
 
                   {/* Stay Visual Line */}
-                  <div className="rounded-xl border border-white/[0.04] bg-[#0c0c0c]/40 p-2.5 flex items-center justify-between text-xs font-semibold gap-2">
+                  <div className="rounded-xl border border-border bg-muted/40 p-2.5 flex items-center justify-between text-xs font-semibold gap-2">
                     <div className="flex flex-col">
                       <span className="text-[9px] text-muted-foreground/40 uppercase font-black">Check-In</span>
                       <span className="text-foreground">{formatDate(b.checkInDate)}</span>
                     </div>
                     <div className="flex-1 flex flex-col items-center justify-center px-2">
-                      <span className="text-[9px] text-teal-400/80 font-black">{b.nightCount} Night{b.nightCount > 1 ? "s" : ""}</span>
-                      <div className="w-full h-[1px] bg-linear-to-r from-transparent via-teal-500/35 to-transparent relative my-0.5">
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-teal-400/60" />
+                      <span className="text-[9px] text-primary/80 font-black">{b.nightCount} Night{b.nightCount > 1 ? "s" : ""}</span>
+                      <div className="w-full h-[1px] bg-linear-to-r from-transparent via-primary/35 to-transparent relative my-0.5">
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-primary/60" />
                       </div>
                     </div>
                     <div className="flex flex-col items-end">
@@ -346,9 +346,9 @@ export default function BookingsPage() {
                   </div>
 
                   {/* Room Allocation Info */}
-                  <div className="flex items-center justify-between text-[11px] font-medium text-muted-foreground/80 border-b border-white/[0.04] pb-2">
+                  <div className="flex items-center justify-between text-[11px] font-medium text-muted-foreground/80 border-b border-border pb-2">
                     <span className="flex items-center gap-1.5">
-                      <Users className="w-3.5 h-3.5 text-teal-400/70" />
+                      <Users className="w-3.5 h-3.5 text-primary/70" />
                       <span>{b.roomCount} × {b.roomType}</span>
                     </span>
                     <span className="text-[10px] text-muted-foreground/40 font-semibold">
@@ -360,7 +360,7 @@ export default function BookingsPage() {
                   <div className="flex items-center justify-between pt-1">
                     <div className="space-y-0.5">
                       <div className="text-[9px] text-muted-foreground/40 uppercase font-black">Total Cost</div>
-                      <div className="text-base font-black text-emerald-400">
+                      <div className="text-base font-black text-emerald-600 dark:text-emerald-400">
                         ₹{Number(b.totalAmount).toLocaleString("en-IN")}
                       </div>
                       {(b.amountPaidOnline > 0 || b.balanceAmount > 0) && (
@@ -372,18 +372,18 @@ export default function BookingsPage() {
                     <div className="flex items-center gap-1.5">
                       <Link
                         href={`/dashboard/booking/${b.id}`}
-                        className="w-10 h-10 rounded-xl bg-white/4 border border-white/5 flex items-center justify-center hover:bg-teal-500/10 hover:border-teal-500/20 active:scale-95 transition-all text-muted-foreground hover:text-teal-400"
+                        className="w-10 h-10 rounded-xl bg-muted/50 border border-border flex items-center justify-center hover:bg-primary/10 hover:border-primary/20 active:scale-95 transition-all text-muted-foreground hover:text-primary"
                         title="View Details"
                       >
                         <Eye className="w-4.5 h-4.5" />
                       </Link>
                       <button
                         onClick={() => handleCopy(b.id)}
-                        className="w-10 h-10 rounded-xl bg-white/4 border border-white/5 flex items-center justify-center hover:bg-teal-500/10 hover:border-teal-500/20 active:scale-95 transition-all text-muted-foreground hover:text-teal-400 cursor-pointer"
+                        className="w-10 h-10 rounded-xl bg-muted/50 border border-border flex items-center justify-center hover:bg-primary/10 hover:border-primary/20 active:scale-95 transition-all text-muted-foreground hover:text-primary cursor-pointer"
                         title="Copy Summary"
                       >
                         {copiedId === b.id ? (
-                          <span className="text-[9px] text-emerald-400 font-extrabold">
+                          <span className="text-[9px] text-emerald-600 dark:text-emerald-400 font-extrabold">
                             Done
                           </span>
                         ) : (
@@ -419,7 +419,7 @@ export default function BookingsPage() {
                       <tr key={b.id} className="group transition-colors duration-200">
                         <td className="font-mono text-xs text-muted-foreground/60">{b.bookingId}</td>
                         <td>
-                          <div className="font-extrabold text-xs text-foreground group-hover:text-teal-400 transition-colors">{b.guestFullName}</div>
+                          <div className="font-extrabold text-xs text-foreground group-hover:text-primary transition-colors">{b.guestFullName}</div>
                           <div className="text-[10px] text-muted-foreground/60">{b.guestEmail}</div>
                         </td>
                         <td className="text-muted-foreground/80 text-xs font-semibold">
@@ -427,10 +427,10 @@ export default function BookingsPage() {
                           <span className="text-muted-foreground/45 mx-1.5">→</span>
                           <span className="text-foreground">{formatDate(b.checkOutDate)}</span>
                         </td>
-                        <td className="font-bold text-teal-400">{b.nightCount}</td>
+                        <td className="font-bold text-primary">{b.nightCount}</td>
                         <td className="text-xs font-semibold text-muted-foreground/85">{b.roomCount} × {b.roomType}</td>
                         <td>
-                          <div className="font-black text-emerald-400 text-xs">
+                          <div className="font-black text-emerald-600 dark:text-emerald-400 text-xs">
                             ₹{Number(b.totalAmount).toLocaleString("en-IN")}
                           </div>
                           <div className="text-[9px] text-muted-foreground/60 mt-0.5 font-semibold leading-none">
@@ -442,10 +442,10 @@ export default function BookingsPage() {
                             <StatusBadge status={b.status} className="!text-[9px] !px-2 !py-0.5 font-bold uppercase tracking-wider" />
                             <span className={`text-[8px] font-black uppercase px-1.5 py-0.5 rounded-sm ${
                               b.paymentStatus === "paid_in_full" 
-                                ? "bg-emerald-500/10 text-emerald-400" 
+                                ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400" 
                                 : b.paymentStatus === "partially_paid"
-                                  ? "bg-amber-500/10 text-amber-400"
-                                  : "bg-rose-500/10 text-rose-400"
+                                  ? "bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400"
+                                  : "bg-rose-50 text-rose-700 dark:bg-rose-950/30 dark:text-rose-400"
                             }`}>
                               {b.paymentStatus.replace("_", " ")}
                             </span>
@@ -455,18 +455,18 @@ export default function BookingsPage() {
                           <div className="flex items-center gap-1.5">
                             <Link
                               href={`/dashboard/booking/${b.id}`}
-                              className="w-7 h-7 rounded-lg bg-white/4 border border-white/5 flex items-center justify-center hover:bg-teal-500/10 hover:border-teal-500/20 transition-all text-muted-foreground hover:text-teal-400"
+                              className="w-7 h-7 rounded-lg bg-muted/50 border border-border flex items-center justify-center hover:bg-primary/10 hover:border-primary/20 transition-all text-muted-foreground hover:text-primary"
                               title="View Details"
                             >
                               <Eye className="w-3.5 h-3.5" />
                             </Link>
                             <button
                               onClick={() => handleCopy(b.id)}
-                              className="w-7 h-7 rounded-lg bg-white/4 border border-white/5 flex items-center justify-center hover:bg-teal-500/10 hover:border-teal-500/20 transition-all text-muted-foreground hover:text-teal-400 cursor-pointer"
+                              className="w-7 h-7 rounded-lg bg-muted/50 border border-border flex items-center justify-center hover:bg-primary/10 hover:border-primary/20 transition-all text-muted-foreground hover:text-primary cursor-pointer"
                               title="Copy Summary"
                             >
                               {copiedId === b.id ? (
-                                <span className="text-[9px] text-emerald-400 font-extrabold">Copied</span>
+                                <span className="text-[9px] text-emerald-600 dark:text-emerald-400 font-extrabold">Copied</span>
                               ) : (
                                 <Copy className="w-3.5 h-3.5" />
                               )}

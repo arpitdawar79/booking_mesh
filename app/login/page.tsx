@@ -64,14 +64,14 @@ export default function LoginPage() {
       <Particles
         quantity={50}
         staticity={50}
-        color="#14b8a6"
+        color="var(--primary)"
         size={1}
         className="z-0"
       />
 
       {/* Ambient glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-teal-500/6 blur-[120px] rounded-full pointer-events-none z-0" />
-      <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[300px] bg-violet-500/4 blur-[90px] rounded-full pointer-events-none z-0" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-primary/5 blur-[120px] rounded-full pointer-events-none z-0" />
+      <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[300px] bg-accent/4 blur-[90px] rounded-full pointer-events-none z-0" />
 
       <motion.div
         initial={{ opacity: 0, y: 30, scale: 0.97 }}
@@ -84,7 +84,7 @@ export default function LoginPage() {
           <motion.div
             whileHover={{ scale: 1.08, rotate: 4 }}
             transition={{ type: "spring", stiffness: 300, damping: 20 }}
-            className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-teal-500/10 border border-teal-500/20 text-teal-400 mb-1 shadow-lg shadow-teal-500/5"
+            className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 text-primary mb-1 shadow-lg shadow-primary/5"
           >
             <Lock className="w-7 h-7 animate-pulse" />
           </motion.div>
@@ -102,7 +102,7 @@ export default function LoginPage() {
             transition={{ delay: 0.6 }}
             className="text-sm text-muted-foreground/70 font-semibold uppercase tracking-[0.15em] flex items-center justify-center gap-2"
           >
-            <Sparkles className="w-3.5 h-3.5 text-teal-400" />
+            <Sparkles className="w-3.5 h-3.5 text-primary" />
             <span>The Stream by Ekantah</span>
           </motion.p>
         </div>
@@ -112,7 +112,7 @@ export default function LoginPage() {
           className="w-full"
           borderWidth={1}
           duration={10}
-          shineColor="#14b8a6"
+          shineColor="var(--primary)"
         >
           <form onSubmit={handleSubmit} className="space-y-5 p-6 sm:p-8">
             <div className="space-y-1.5">
@@ -120,13 +120,13 @@ export default function LoginPage() {
                 Email Address
               </label>
               <div className="relative group/input">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-muted-foreground transition-colors duration-300 group-focus-within/input:text-teal-400" />
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-muted-foreground transition-colors duration-300 group-focus-within/input:text-primary" />
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="w-full rounded-xl border border-border/60 bg-muted/15 pl-11 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500/30 transition-all duration-300 placeholder:text-muted-foreground/40"
+                  className="w-full rounded-xl border border-border/60 bg-muted/15 pl-11 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 transition-all duration-300 placeholder:text-muted-foreground/40"
                   placeholder="admin@ekantah.com"
                 />
               </div>
@@ -137,13 +137,13 @@ export default function LoginPage() {
                 Secret Password
               </label>
               <div className="relative group/input">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-muted-foreground transition-colors duration-300 group-focus-within/input:text-teal-400" />
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-muted-foreground transition-colors duration-300 group-focus-within/input:text-primary" />
                 <input
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="w-full rounded-xl border border-border/60 bg-muted/15 pl-11 pr-11 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500/30 transition-all duration-300 placeholder:text-muted-foreground/40"
+                  className="w-full rounded-xl border border-border/60 bg-muted/15 pl-11 pr-11 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 transition-all duration-300 placeholder:text-muted-foreground/40"
                   placeholder="••••••••"
                 />
                 <button
@@ -166,7 +166,7 @@ export default function LoginPage() {
                   type="checkbox"
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
-                  className="accent-teal-500 w-3.5 h-3.5 rounded border-border"
+                  className="accent-primary w-3.5 h-3.5 rounded border-border"
                 />
                 <span className="text-xs font-medium text-muted-foreground/80">
                   Remember me
@@ -174,7 +174,7 @@ export default function LoginPage() {
               </label>
               <a
                 href="/forgot-password"
-                className="text-xs font-semibold text-teal-400 hover:text-teal-300 transition-colors"
+                className="text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
               >
                 Forgot password?
               </a>
@@ -184,7 +184,7 @@ export default function LoginPage() {
               <motion.div
                 initial={{ opacity: 0, scale: 0.95, y: -5 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
-                className="text-xs font-semibold text-rose-400 bg-rose-500/10 border border-rose-500/15 rounded-xl px-4 py-3"
+                className="text-xs font-semibold text-destructive bg-destructive/10 border border-destructive/15 rounded-xl px-4 py-3"
               >
                 {error}
               </motion.div>
@@ -227,7 +227,7 @@ export default function LoginPage() {
           Don&apos;t have an account?{" "}
           <a
             href="/signup"
-            className="text-teal-400 hover:text-teal-300 font-bold transition-colors"
+            className="text-primary hover:text-primary/80 font-bold transition-colors"
           >
             Sign up
           </a>

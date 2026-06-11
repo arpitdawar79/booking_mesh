@@ -171,11 +171,11 @@ export function StayStep({
               initial={{ opacity: 0, scale: 0.92, y: -4 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.92, y: -4 }}
-              className="flex items-center gap-2.5 rounded-2xl bg-teal-500/6 border border-teal-500/15 px-4 py-3 w-fit shadow-[0_0_20px_-6px_rgba(20,184,166,0.2)]"
+              className="flex items-center gap-2.5 rounded-2xl bg-primary/5 border border-primary/20 px-4 py-3 w-fit shadow-[0_0_20px_-6px_var(--glow-color)]"
             >
-              <Moon className="w-4 h-4 text-teal-400 shrink-0" />
-              <span className="text-xs text-teal-300 font-bold uppercase tracking-wider flex items-center gap-1">
-                <span className="text-teal-400 font-black">
+              <Moon className="w-4 h-4 text-primary shrink-0" />
+              <span className="text-xs text-primary font-bold uppercase tracking-wider flex items-center gap-1">
+                <span className="text-primary font-black">
                   <NumberFlow
                     value={nightCount}
                     transformTiming={{
@@ -209,10 +209,10 @@ export function StayStep({
         </div>
 
         {/* Room Type Stepper */}
-        <div className="rounded-3xl border border-white/5 bg-white/1 p-5 space-y-4">
+        <div className="rounded-3xl border border-border bg-card p-5 space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-teal-500/10 border border-teal-500/15 flex items-center justify-center text-teal-400">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
                 <BedDouble className="w-4 h-4" />
               </div>
               <span className="text-sm font-bold tracking-tight">
@@ -223,8 +223,8 @@ export function StayStep({
               className={cn(
                 "text-[10px] font-black uppercase tracking-wider rounded-xl px-3 py-1 border transition-colors duration-200",
                 allocatedTotal === roomCount
-                  ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/20"
-                  : "text-teal-400 bg-teal-500/10 border-teal-500/15",
+                  ? "text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20"
+                  : "text-primary bg-primary/10 border border-primary/15",
               )}
             >
               {allocatedTotal} / {roomCount} Allocated
@@ -240,10 +240,10 @@ export function StayStep({
                 <div
                   key={type}
                   className={cn(
-                    "flex items-center justify-between p-3 px-4 rounded-2xl border transition-all duration-300 bg-[#0c0c0c]/40",
+                    "flex items-center justify-between p-3 px-4 rounded-2xl border transition-all duration-300 bg-secondary/30",
                     isSelected
-                      ? "border-teal-500/25 bg-teal-500/1"
-                      : "border-white/5 hover:border-white/10",
+                      ? "border-primary/30 bg-primary/5 shadow-sm"
+                      : "border-border hover:border-border/80 hover:bg-secondary/50",
                   )}
                 >
                   <div className="space-y-0.5">
@@ -251,7 +251,7 @@ export function StayStep({
                       className={cn(
                         "text-xs font-bold uppercase tracking-wider transition-colors duration-200",
                         isSelected
-                          ? "text-teal-400 font-extrabold"
+                          ? "text-primary font-extrabold"
                           : "text-muted-foreground/60",
                       )}
                     >
@@ -264,7 +264,7 @@ export function StayStep({
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-1 bg-white/2 rounded-xl p-1 border border-white/5">
+                  <div className="flex items-center gap-1 bg-muted rounded-xl p-1 border border-border">
                     <button
                       type="button"
                       onClick={() => {
@@ -275,7 +275,7 @@ export function StayStep({
                       className={cn(
                         "w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200",
                         count > 0 && !isFullProperty
-                          ? "bg-white/4 text-foreground hover:bg-white/8"
+                          ? "bg-card text-foreground hover:bg-muted"
                           : "text-muted-foreground/20 cursor-not-allowed",
                       )}
                     >
@@ -294,7 +294,7 @@ export function StayStep({
                       className={cn(
                         "w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200",
                         canAdd && !isFullProperty
-                          ? "bg-white/4 text-foreground hover:bg-white/8"
+                          ? "bg-card text-foreground hover:bg-muted"
                           : "text-muted-foreground/20 cursor-not-allowed",
                       )}
                     >
@@ -306,8 +306,8 @@ export function StayStep({
             })}
           </div>
 
-          <div className="text-[11px] text-muted-foreground/50 font-semibold px-1 pt-1 border-t border-white/3 flex items-center gap-1.5">
-            <span className="inline-block w-1.5 h-1.5 rounded-full bg-teal-500" />
+          <div className="text-[11px] text-muted-foreground/50 font-semibold px-1 pt-1 border-t border-border flex items-center gap-1.5">
+            <span className="inline-block w-1.5 h-1.5 rounded-full bg-primary" />
             Summary: {roomSummary || "No rooms assigned yet"}
           </div>
         </div>
@@ -325,9 +325,9 @@ export function StayStep({
         </div>
 
         {/* Meal Plan */}
-        <div className="rounded-3xl border border-white/5 bg-white/1 p-5 space-y-3.5">
+        <div className="rounded-3xl border border-border bg-card p-5 space-y-3.5">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-teal-500/10 flex items-center justify-center text-teal-400">
+            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
               <Utensils className="w-4 h-4" />
             </div>
             <h3 className="text-sm font-black tracking-tight">
