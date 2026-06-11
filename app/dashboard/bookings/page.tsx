@@ -7,22 +7,28 @@ import { MagicCard } from "@/components/ui/magic-card";
 import { Pagination } from "@/components/ui/pagination";
 import { SmartLink } from "@/components/ui/smart-link";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { useToast } from "@/components/ui/toast";
 import { useHaptic, useLongPress } from "@/lib/pwa-hooks";
 import { formatDate } from "@/lib/utils";
 import { motion } from "framer-motion";
 import {
-    AlertCircle,
-    CalendarCheck,
-    CheckCircle,
-    Copy,
-    Eye,
-    IndianRupee,
-    MessageCircle,
-    Phone,
-    PlusCircle,
-    Search,
-    TrendingUp,
-    Users,
+  AlertCircle,
+  CalendarCheck,
+  CheckCircle,
+  Copy,
+  Download,
+  Eye,
+  IndianRupee,
+  MessageCircle,
+  Phone,
+  PlusCircle,
+  Printer,
+  Search,
+  Share2,
+  Smartphone,
+  TrendingUp,
+  Users,
+  XCircle,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -72,6 +78,175 @@ interface Stats {
   }>;
 }
 
+function BookingCard({
+  b,
+  onCopy,
+  onMarkPaid,
+  copiedId,
+  markingPaidId,
+  onContextMenu,
+}: {
+  b: Booking;
+  onCopy: (id: string) => void;
+  onMarkPaid: (id: string, totalAmount: number) => void;
+  copiedId: string | null;
+  markingPaidId: string | null;
+  onContextMenu: (booking: Booking, clientX?: number, clientY?: number) => void;
+}) {
+  const haptic = useHaptic();
+  const longPress = useLongPress(
+    () => {
+      haptic("medium");
+      onContextMenu(b);
+    },
+    undefined,
+    500,
+  );
+
+  return (
+    <MagicCard borderBeam backlight className="w-full">
+      <div
+        className="p-4 space-y-3.5 select-none"
+        {...longPress}
+        onContextMenu={(e) => {
+          e.preventDefault();
+          onContextMenu(b, e.clientX, e.clientY);
+        }}
+      >
+        {/* Header Row */}
+        <div className="flex items-start justify-between gap-2">
+          <div className="space-y-1 min-w-0">
+            <div className="flex items-center gap-1.5">
+              <span className="font-mono text-[9px] text-muted-foreground/45 bg-muted px-1.5 py-0.5 rounded-sm">
+                #{b.bookingId}
+              </span>
+              {b.status === "confirmed" && (
+                <span className="inline-flex w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+              )}
+            </div>
+            <div className="font-extrabold text-sm tracking-tight text-foreground truncate">
+              {b.guestFullName}
+            </div>
+            <div className="text-[11px] text-muted-foreground/60 truncate font-semibold">
+              {b.guestEmail || "No Email"}
+            </div>
+          </div>
+          <div className="flex flex-col items-end gap-1.5 shrink-0">
+            <StatusBadge
+              status={b.status}
+              className="!text-[9px] !px-2 !py-0.5 font-bold uppercase tracking-wider"
+            />
+            <span
+              className={`text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-md ${
+                b.paymentStatus === "paid_in_full"
+                  ? "bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-500/10"
+                  : b.paymentStatus === "partially_paid"
+                    ? "bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-500/10"
+                    : "bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-950/30 dark:text-rose-400 dark:border-rose-500/10"
+              }`}
+            >
+              {b.paymentStatus.replace("_", " ")}
+            </span>
+          </div>
+        </div>
+
+        {/* Stay Visual Line */}
+        <div className="rounded-xl border border-border bg-muted/40 p-2.5 flex items-center justify-between text-xs font-semibold gap-2">
+          <div className="flex flex-col">
+            <span className="text-[9px] text-muted-foreground/40 uppercase font-black">
+              Check-In
+            </span>
+            <span className="text-foreground">{formatDate(b.checkInDate)}</span>
+          </div>
+          <div className="flex-1 flex flex-col items-center justify-center px-2">
+            <span className="text-[9px] text-primary/80 font-black">
+              {b.nightCount} Night{b.nightCount > 1 ? "s" : ""}
+            </span>
+            <div className="w-full h-[1px] bg-linear-to-r from-transparent via-primary/35 to-transparent relative my-0.5">
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-primary/60" />
+            </div>
+          </div>
+          <div className="flex flex-col items-end">
+            <span className="text-[9px] text-muted-foreground/40 uppercase font-black">
+              Check-Out
+            </span>
+            <span className="text-foreground">
+              {formatDate(b.checkOutDate)}
+            </span>
+          </div>
+        </div>
+
+        {/* Room Allocation Info */}
+        <div className="flex items-center justify-between text-[11px] font-medium text-muted-foreground/80 border-b border-border pb-2">
+          <span className="flex items-center gap-1.5">
+            <Users className="w-3.5 h-3.5 text-primary/70" />
+            <span>
+              {b.roomCount} × {b.roomType}
+            </span>
+          </span>
+          <span className="text-[10px] text-muted-foreground/40 font-semibold">
+            Created {formatDate(b.createdAt)}
+          </span>
+        </div>
+
+        {/* Card Footer Actions & Pricing */}
+        <div className="flex items-center justify-between pt-1">
+          <div className="space-y-0.5">
+            <div className="text-[9px] text-muted-foreground/40 uppercase font-black">
+              Total Cost
+            </div>
+            <div className="text-base font-black text-emerald-600 dark:text-emerald-400">
+              ₹{Number(b.totalAmount).toLocaleString("en-IN")}
+            </div>
+            {(b.amountPaidOnline > 0 || b.balanceAmount > 0) && (
+              <div className="text-[9px] text-muted-foreground/50 font-bold">
+                Paid: ₹{Number(b.amountPaidOnline).toLocaleString("en-IN")} |
+                Bal: ₹{Number(b.balanceAmount).toLocaleString("en-IN")}
+              </div>
+            )}
+          </div>
+          <div className="flex items-center gap-1.5">
+            <SmartLink
+              href={`/dashboard/booking/${b.id}`}
+              className="w-10 h-10 rounded-xl bg-muted/50 border border-border flex items-center justify-center hover:bg-primary/10 hover:border-primary/20 active:scale-95 transition-all text-muted-foreground hover:text-primary"
+              title="View Details"
+            >
+              <Eye className="w-4.5 h-4.5" />
+            </SmartLink>
+            <button
+              onClick={() => onCopy(b.id)}
+              className="w-10 h-10 rounded-xl bg-muted/50 border border-border flex items-center justify-center hover:bg-primary/10 hover:border-primary/20 active:scale-95 transition-all text-muted-foreground hover:text-primary cursor-pointer"
+              title="Copy Summary"
+            >
+              {copiedId === b.id ? (
+                <span className="text-[9px] text-emerald-600 dark:text-emerald-400 font-extrabold">
+                  Done
+                </span>
+              ) : (
+                <Copy className="w-4.5 h-4.5" />
+              )}
+            </button>
+            {b.paymentStatus !== "paid_in_full" && (
+              <button
+                onClick={() => onMarkPaid(b.id, b.totalAmount)}
+                disabled={markingPaidId === b.id}
+                className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center hover:bg-emerald-500/20 active:scale-95 transition-all text-emerald-600 dark:text-emerald-400 disabled:opacity-40 cursor-pointer"
+                title="Mark Fully Paid"
+              >
+                {markingPaidId === b.id ? (
+                  <span className="text-[9px] font-extrabold">...</span>
+                ) : (
+                  <CheckCircle className="w-4.5 h-4.5" />
+                )}
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </MagicCard>
+  );
+}
+
 export default function BookingsPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
@@ -86,10 +261,66 @@ export default function BookingsPage() {
   const [contextMenuBooking, setContextMenuBooking] = useState<Booking | null>(
     null,
   );
+  const [contextMenuPos, setContextMenuPos] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
   const haptic = useHaptic();
   const router = useRouter();
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [markingPaidId, setMarkingPaidId] = useState<string | null>(null);
+  const [pdfLoadingId, setPdfLoadingId] = useState<string | null>(null);
+  const [waSendingId, setWaSendingId] = useState<string | null>(null);
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
+  const [waStatus, setWaStatus] = useState<{
+    isConnected: boolean;
+  } | null>(null);
+
+  const { success: showSuccessToast, error: showErrorToast } = useToast();
+
+  useEffect(() => {
+    fetch("/api/whatsapp/status")
+      .then(async (r) => {
+        if (!r.ok) throw new Error("WA status error");
+        return r.json();
+      })
+      .then((data) => setWaStatus({ isConnected: data.isConnected }))
+      .catch(() => setWaStatus(null));
+  }, []);
+
+  function openContextMenu(
+    booking: Booking,
+    clientX?: number,
+    clientY?: number,
+  ) {
+    setContextMenuBooking(booking);
+    if (clientX !== undefined && clientY !== undefined) {
+      setContextMenuPos({ x: clientX, y: clientY });
+    } else {
+      setContextMenuPos(null);
+    }
+  }
+
+  function closeContextMenu() {
+    setContextMenuBooking(null);
+    setContextMenuPos(null);
+  }
+
+  useEffect(() => {
+    if (!contextMenuPos) return;
+    function onClick() {
+      closeContextMenu();
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") closeContextMenu();
+    }
+    document.addEventListener("click", onClick);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("click", onClick);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [contextMenuPos]);
 
   useEffect(() => {
     setPage(1);
@@ -170,6 +401,196 @@ export default function BookingsPage() {
       console.error("Failed to mark fully paid:", err);
     } finally {
       setMarkingPaidId(null);
+    }
+  }
+
+  async function getEmailHtml(id: string): Promise<string> {
+    const res = await fetch("/api/preview-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ bookingId: id, type: "booking_confirmation" }),
+    });
+    return res.text();
+  }
+
+  async function handleDownloadPdf(id: string) {
+    setPdfLoadingId(id);
+    haptic("medium");
+    try {
+      const html = await getEmailHtml(id);
+      const container = document.createElement("div");
+      container.innerHTML = html;
+      container.style.position = "absolute";
+      container.style.left = "-9999px";
+      container.style.top = "0";
+      container.style.width = "800px";
+      document.body.appendChild(container);
+
+      const html2pdf = (await import("html2pdf.js")).default;
+      const pdfBlob = (await html2pdf()
+        .set({
+          margin: 0.5,
+          image: { type: "jpeg", quality: 0.98 },
+          html2canvas: { scale: 2, useCORS: true },
+          jsPDF: { unit: "in", format: "a4", orientation: "portrait" },
+        })
+        .from(container)
+        .outputPdf("blob")) as Blob;
+
+      document.body.removeChild(container);
+      const url = URL.createObjectURL(pdfBlob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Booking_${id}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showSuccessToast("PDF Invoice downloaded.");
+      haptic("success");
+    } catch {
+      showErrorToast("PDF Invoice generation failed.");
+      haptic("error");
+    } finally {
+      setPdfLoadingId(null);
+    }
+  }
+
+  async function handlePrintInvoice(id: string) {
+    haptic("medium");
+    try {
+      const html = await getEmailHtml(id);
+      const w = window.open("", "_blank");
+      if (w) {
+        w.document.write(
+          `<html><head><title>Booking Invoice</title><style>body{font-family:system-ui,sans-serif;padding:24px;color:#111;}</style></head><body>${html}</body></html>`,
+        );
+        w.document.close();
+        setTimeout(() => w.print(), 400);
+      }
+    } catch {
+      showErrorToast("Failed to generate print preview.");
+    }
+  }
+
+  async function handleShare(booking: Booking) {
+    haptic("medium");
+    const shareData = {
+      title: `Booking ${booking.bookingId}`,
+      text: `${booking.guestFullName} — ${formatDate(booking.checkInDate)} to ${formatDate(booking.checkOutDate)} (${booking.nightCount} nights)`,
+      url:
+        typeof window !== "undefined"
+          ? `${window.location.origin}/dashboard/booking/${booking.id}`
+          : "",
+    };
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(
+          `${shareData.title}\n${shareData.text}\n${shareData.url}`,
+        );
+        showSuccessToast("Booking summary copied to clipboard!");
+      }
+    } catch {
+      // User cancelled or share failed silently
+    }
+  }
+
+  async function handleCopySummary(booking: Booking) {
+    haptic("medium");
+    const text = `
+*Booking Confirmation – The Stream by Ekantah*
+
+*Guest:* ${booking.guestFullName}
+*Booking ID:* #${booking.bookingId}
+*Dates:* ${formatDate(booking.checkInDate)} → ${formatDate(booking.checkOutDate)} (${booking.nightCount} nights)
+*Rooms:* ${booking.roomCount} × ${booking.roomType}
+
+*Payment:*
+* Total: ₹${Number(booking.totalAmount).toLocaleString("en-IN")}
+* Paid Online: ₹${Number(booking.amountPaidOnline).toLocaleString("en-IN")}
+* Balance: ₹${Number(booking.balanceAmount).toLocaleString("en-IN")}
+* Status: ${booking.paymentStatus}
+
+We look forward to hosting you!
+    `.trim();
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedId(booking.id);
+      showSuccessToast("Booking summary copied to clipboard.");
+      setTimeout(() => setCopiedId(null), 2000);
+    } catch {
+      showErrorToast("Could not write to clipboard.");
+      haptic("error");
+    }
+  }
+
+  async function handleSendWhatsApp(id: string, sendPdf: boolean) {
+    if (!waStatus?.isConnected) {
+      showErrorToast("WhatsApp setup is not connected.");
+      haptic("error");
+      return;
+    }
+    setWaSendingId(id);
+    haptic("light");
+    try {
+      const res = await fetch("/api/whatsapp/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          bookingId: id,
+          type: "booking_confirmation",
+          sendPdf,
+        }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        showSuccessToast(
+          sendPdf
+            ? "WhatsApp invoice dispatched!"
+            : "WhatsApp confirmation dispatched!",
+        );
+        haptic("success");
+      } else {
+        showErrorToast(json.error || "Failed to send WhatsApp message.");
+        haptic("error");
+      }
+    } catch {
+      showErrorToast("Failed to send WhatsApp message.");
+      haptic("error");
+    } finally {
+      setWaSendingId(null);
+    }
+  }
+
+  async function handleCancel(id: string) {
+    if (!confirm("Are you sure you want to cancel this booking?")) return;
+    setCancellingId(id);
+    haptic("medium");
+    try {
+      const res = await fetch("/api/bookings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, status: "cancelled" }),
+      });
+      const json = await res.json();
+      if (json.booking) {
+        setBookings((prev) =>
+          prev.map((b) => (b.id === id ? { ...b, status: "cancelled" } : b)),
+        );
+        showSuccessToast("Booking reservation cancelled.");
+        haptic("success");
+      } else {
+        showErrorToast(json.error || "Failed to cancel booking.");
+        haptic("error");
+      }
+    } catch (err) {
+      console.error("Failed to cancel:", err);
+      showErrorToast("Failed to cancel booking.");
+      haptic("error");
+    } finally {
+      setCancellingId(null);
     }
   }
 
@@ -362,159 +783,17 @@ export default function BookingsPage() {
         <>
           {/* Mobile: Ticket styled Card List */}
           <div className="lg:hidden space-y-3.5">
-            {bookings.map((b) => {
-              const longPress = useLongPress(
-                () => {
-                  haptic("medium");
-                  setContextMenuBooking(b);
-                },
-                undefined,
-                500,
-              );
-              return (
-                <MagicCard key={b.id} borderBeam backlight className="w-full">
-                  <div className="p-4 space-y-3.5 select-none" {...longPress}>
-                    {/* Header Row */}
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="space-y-1 min-w-0">
-                        <div className="flex items-center gap-1.5">
-                          <span className="font-mono text-[9px] text-muted-foreground/45 bg-muted px-1.5 py-0.5 rounded-sm">
-                            #{b.bookingId}
-                          </span>
-                          {b.status === "confirmed" && (
-                            <span className="inline-flex w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                          )}
-                        </div>
-                        <div className="font-extrabold text-sm tracking-tight text-foreground truncate">
-                          {b.guestFullName}
-                        </div>
-                        <div className="text-[11px] text-muted-foreground/60 truncate font-semibold">
-                          {b.guestEmail || "No Email"}
-                        </div>
-                      </div>
-                      <div className="flex flex-col items-end gap-1.5 shrink-0">
-                        <StatusBadge
-                          status={b.status}
-                          className="!text-[9px] !px-2 !py-0.5 font-bold uppercase tracking-wider"
-                        />
-                        <span
-                          className={`text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-md ${
-                            b.paymentStatus === "paid_in_full"
-                              ? "bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-500/10"
-                              : b.paymentStatus === "partially_paid"
-                                ? "bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-500/10"
-                                : "bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-950/30 dark:text-rose-400 dark:border-rose-500/10"
-                          }`}
-                        >
-                          {b.paymentStatus.replace("_", " ")}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Stay Visual Line */}
-                    <div className="rounded-xl border border-border bg-muted/40 p-2.5 flex items-center justify-between text-xs font-semibold gap-2">
-                      <div className="flex flex-col">
-                        <span className="text-[9px] text-muted-foreground/40 uppercase font-black">
-                          Check-In
-                        </span>
-                        <span className="text-foreground">
-                          {formatDate(b.checkInDate)}
-                        </span>
-                      </div>
-                      <div className="flex-1 flex flex-col items-center justify-center px-2">
-                        <span className="text-[9px] text-primary/80 font-black">
-                          {b.nightCount} Night{b.nightCount > 1 ? "s" : ""}
-                        </span>
-                        <div className="w-full h-[1px] bg-linear-to-r from-transparent via-primary/35 to-transparent relative my-0.5">
-                          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-primary/60" />
-                        </div>
-                      </div>
-                      <div className="flex flex-col items-end">
-                        <span className="text-[9px] text-muted-foreground/40 uppercase font-black">
-                          Check-Out
-                        </span>
-                        <span className="text-foreground">
-                          {formatDate(b.checkOutDate)}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Room Allocation Info */}
-                    <div className="flex items-center justify-between text-[11px] font-medium text-muted-foreground/80 border-b border-border pb-2">
-                      <span className="flex items-center gap-1.5">
-                        <Users className="w-3.5 h-3.5 text-primary/70" />
-                        <span>
-                          {b.roomCount} × {b.roomType}
-                        </span>
-                      </span>
-                      <span className="text-[10px] text-muted-foreground/40 font-semibold">
-                        Created {formatDate(b.createdAt)}
-                      </span>
-                    </div>
-
-                    {/* Card Footer Actions & Pricing */}
-                    <div className="flex items-center justify-between pt-1">
-                      <div className="space-y-0.5">
-                        <div className="text-[9px] text-muted-foreground/40 uppercase font-black">
-                          Total Cost
-                        </div>
-                        <div className="text-base font-black text-emerald-600 dark:text-emerald-400">
-                          ₹{Number(b.totalAmount).toLocaleString("en-IN")}
-                        </div>
-                        {(b.amountPaidOnline > 0 || b.balanceAmount > 0) && (
-                          <div className="text-[9px] text-muted-foreground/50 font-bold">
-                            Paid: ₹
-                            {Number(b.amountPaidOnline).toLocaleString("en-IN")}{" "}
-                            | Bal: ₹
-                            {Number(b.balanceAmount).toLocaleString("en-IN")}
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <SmartLink
-                          href={`/dashboard/booking/${b.id}`}
-                          className="w-10 h-10 rounded-xl bg-muted/50 border border-border flex items-center justify-center hover:bg-primary/10 hover:border-primary/20 active:scale-95 transition-all text-muted-foreground hover:text-primary"
-                          title="View Details"
-                        >
-                          <Eye className="w-4.5 h-4.5" />
-                        </SmartLink>
-                        <button
-                          onClick={() => handleCopy(b.id)}
-                          className="w-10 h-10 rounded-xl bg-muted/50 border border-border flex items-center justify-center hover:bg-primary/10 hover:border-primary/20 active:scale-95 transition-all text-muted-foreground hover:text-primary cursor-pointer"
-                          title="Copy Summary"
-                        >
-                          {copiedId === b.id ? (
-                            <span className="text-[9px] text-emerald-600 dark:text-emerald-400 font-extrabold">
-                              Done
-                            </span>
-                          ) : (
-                            <Copy className="w-4.5 h-4.5" />
-                          )}
-                        </button>
-                        {b.paymentStatus !== "paid_in_full" && (
-                          <button
-                            onClick={() =>
-                              handleMarkFullyPaid(b.id, b.totalAmount)
-                            }
-                            disabled={markingPaidId === b.id}
-                            className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center hover:bg-emerald-500/20 active:scale-95 transition-all text-emerald-600 dark:text-emerald-400 disabled:opacity-40 cursor-pointer"
-                            title="Mark Fully Paid"
-                          >
-                            {markingPaidId === b.id ? (
-                              <span className="text-[9px] font-extrabold">
-                                ...
-                              </span>
-                            ) : (
-                              <CheckCircle className="w-4.5 h-4.5" />
-                            )}
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </MagicCard>
-              );
-            })}
+            {bookings.map((b) => (
+              <BookingCard
+                key={b.id}
+                b={b}
+                onCopy={handleCopy}
+                onMarkPaid={handleMarkFullyPaid}
+                copiedId={copiedId}
+                markingPaidId={markingPaidId}
+                onContextMenu={openContextMenu}
+              />
+            ))}
           </div>
 
           {/* Desktop: Elegant details table with glass panel wrapper */}
@@ -538,7 +817,11 @@ export default function BookingsPage() {
                     {bookings.map((b) => (
                       <tr
                         key={b.id}
-                        className="group transition-colors duration-200"
+                        className="group transition-colors duration-200 cursor-context-menu"
+                        onContextMenu={(e) => {
+                          e.preventDefault();
+                          openContextMenu(b, e.clientX, e.clientY);
+                        }}
                       >
                         <td className="font-mono text-xs text-muted-foreground/60">
                           {b.bookingId}
@@ -656,9 +939,9 @@ export default function BookingsPage() {
 
           {/* Mobile Long-Press Context Menu Drawer */}
           <Drawer
-            open={!!contextMenuBooking}
+            open={!!contextMenuBooking && !contextMenuPos}
             onOpenChange={(open) => {
-              if (!open) setContextMenuBooking(null);
+              if (!open) closeContextMenu();
             }}
           >
             <DrawerContent className="p-4 bg-card border-t border-border">
@@ -673,7 +956,7 @@ export default function BookingsPage() {
                       router.push(
                         `/dashboard/booking/${contextMenuBooking.id}`,
                       );
-                      setContextMenuBooking(null);
+                      closeContextMenu();
                     }}
                     className="w-full flex items-center gap-3 rounded-xl border border-border bg-muted/40 px-4 py-3 text-xs font-bold text-foreground hover:bg-primary/10 hover:border-primary/20 active:scale-[0.98] transition-all"
                   >
@@ -683,8 +966,44 @@ export default function BookingsPage() {
                   <button
                     type="button"
                     onClick={() => {
-                      handleCopy(contextMenuBooking.id);
-                      setContextMenuBooking(null);
+                      handleDownloadPdf(contextMenuBooking.id);
+                      closeContextMenu();
+                    }}
+                    disabled={pdfLoadingId === contextMenuBooking.id}
+                    className="w-full flex items-center gap-3 rounded-xl border border-border bg-muted/40 px-4 py-3 text-xs font-bold text-foreground hover:bg-primary/10 hover:border-primary/20 active:scale-[0.98] transition-all disabled:opacity-40"
+                  >
+                    <Download className="w-4 h-4 text-primary" />
+                    {pdfLoadingId === contextMenuBooking.id
+                      ? "Generating PDF..."
+                      : "Download PDF"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handlePrintInvoice(contextMenuBooking.id);
+                      closeContextMenu();
+                    }}
+                    className="w-full flex items-center gap-3 rounded-xl border border-border bg-muted/40 px-4 py-3 text-xs font-bold text-foreground hover:bg-primary/10 hover:border-primary/20 active:scale-[0.98] transition-all"
+                  >
+                    <Printer className="w-4 h-4 text-primary" />
+                    Print Invoice
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleShare(contextMenuBooking);
+                      closeContextMenu();
+                    }}
+                    className="w-full flex items-center gap-3 rounded-xl border border-border bg-muted/40 px-4 py-3 text-xs font-bold text-foreground hover:bg-primary/10 hover:border-primary/20 active:scale-[0.98] transition-all"
+                  >
+                    <Share2 className="w-4 h-4 text-primary" />
+                    Share
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleCopySummary(contextMenuBooking);
+                      closeContextMenu();
                     }}
                     className="w-full flex items-center gap-3 rounded-xl border border-border bg-muted/40 px-4 py-3 text-xs font-bold text-foreground hover:bg-primary/10 hover:border-primary/20 active:scale-[0.98] transition-all"
                   >
@@ -695,7 +1014,7 @@ export default function BookingsPage() {
                     <>
                       <a
                         href={`tel:${contextMenuBooking.guestPhone}`}
-                        onClick={() => setContextMenuBooking(null)}
+                        onClick={() => closeContextMenu()}
                         className="w-full flex items-center gap-3 rounded-xl border border-border bg-primary/10 px-4 py-3 text-xs font-bold text-primary hover:bg-primary/20 active:scale-[0.98] transition-all"
                       >
                         <Phone className="w-4 h-4" />
@@ -705,12 +1024,40 @@ export default function BookingsPage() {
                         href={`https://wa.me/${contextMenuBooking.guestPhone.replace(/\D/g, "")}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        onClick={() => setContextMenuBooking(null)}
+                        onClick={() => closeContextMenu()}
                         className="w-full flex items-center gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 active:scale-[0.98] transition-all"
                       >
                         <MessageCircle className="w-4 h-4" />
                         WhatsApp Guest
                       </a>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          handleSendWhatsApp(contextMenuBooking.id, true);
+                          closeContextMenu();
+                        }}
+                        disabled={waSendingId === contextMenuBooking.id}
+                        className="w-full flex items-center gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 active:scale-[0.98] transition-all disabled:opacity-40"
+                      >
+                        <Smartphone className="w-4 h-4" />
+                        {waSendingId === contextMenuBooking.id
+                          ? "Sending..."
+                          : "WhatsApp Invoice"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          handleSendWhatsApp(contextMenuBooking.id, false);
+                          closeContextMenu();
+                        }}
+                        disabled={waSendingId === contextMenuBooking.id}
+                        className="w-full flex items-center gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 active:scale-[0.98] transition-all disabled:opacity-40"
+                      >
+                        <MessageCircle className="w-4 h-4" />
+                        {waSendingId === contextMenuBooking.id
+                          ? "Sending..."
+                          : "WhatsApp Text"}
+                      </button>
                     </>
                   )}
                   {contextMenuBooking.paymentStatus !== "paid_in_full" && (
@@ -721,7 +1068,7 @@ export default function BookingsPage() {
                           contextMenuBooking.id,
                           contextMenuBooking.totalAmount,
                         );
-                        setContextMenuBooking(null);
+                        closeContextMenu();
                       }}
                       disabled={markingPaidId === contextMenuBooking.id}
                       className="w-full flex items-center gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 active:scale-[0.98] transition-all disabled:opacity-40"
@@ -732,10 +1079,204 @@ export default function BookingsPage() {
                         : "Mark Fully Paid"}
                     </button>
                   )}
+                  {contextMenuBooking.status !== "cancelled" && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleCancel(contextMenuBooking.id);
+                        closeContextMenu();
+                      }}
+                      disabled={cancellingId === contextMenuBooking.id}
+                      className="w-full flex items-center gap-3 rounded-xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-500/20 active:scale-[0.98] transition-all disabled:opacity-40"
+                    >
+                      <XCircle className="w-4 h-4" />
+                      {cancellingId === contextMenuBooking.id
+                        ? "Cancelling..."
+                        : "Cancel Reservation"}
+                    </button>
+                  )}
                 </div>
               )}
             </DrawerContent>
           </Drawer>
+
+          {/* Desktop Right-Click Context Menu */}
+          {contextMenuPos && contextMenuBooking && (
+            <div
+              className="fixed inset-0 z-50"
+              onClick={() => closeContextMenu()}
+            >
+              <div
+                className="absolute z-50 min-w-[200px] rounded-xl border border-border bg-card p-2 shadow-xl shadow-black/10"
+                style={{
+                  left: Math.min(
+                    contextMenuPos.x,
+                    typeof window !== "undefined"
+                      ? window.innerWidth - 220
+                      : contextMenuPos.x,
+                  ),
+                  top: Math.min(
+                    contextMenuPos.y,
+                    typeof window !== "undefined"
+                      ? window.innerHeight - 300
+                      : contextMenuPos.y,
+                  ),
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="text-[10px] font-black uppercase tracking-wider text-muted-foreground/50 px-2 py-1 mb-1">
+                  Quick Actions
+                </div>
+                <div className="space-y-0.5">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      router.push(
+                        `/dashboard/booking/${contextMenuBooking.id}`,
+                      );
+                      closeContextMenu();
+                    }}
+                    className="w-full flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs font-bold text-foreground hover:bg-muted/60 transition-colors"
+                  >
+                    <Eye className="w-3.5 h-3.5 text-primary" />
+                    View Details
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleDownloadPdf(contextMenuBooking.id);
+                      closeContextMenu();
+                    }}
+                    disabled={pdfLoadingId === contextMenuBooking.id}
+                    className="w-full flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs font-bold text-foreground hover:bg-muted/60 transition-colors disabled:opacity-40"
+                  >
+                    <Download className="w-3.5 h-3.5 text-primary" />
+                    {pdfLoadingId === contextMenuBooking.id
+                      ? "Generating..."
+                      : "Download PDF"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handlePrintInvoice(contextMenuBooking.id);
+                      closeContextMenu();
+                    }}
+                    className="w-full flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs font-bold text-foreground hover:bg-muted/60 transition-colors"
+                  >
+                    <Printer className="w-3.5 h-3.5 text-primary" />
+                    Print Invoice
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleShare(contextMenuBooking);
+                      closeContextMenu();
+                    }}
+                    className="w-full flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs font-bold text-foreground hover:bg-muted/60 transition-colors"
+                  >
+                    <Share2 className="w-3.5 h-3.5 text-primary" />
+                    Share
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleCopySummary(contextMenuBooking);
+                      closeContextMenu();
+                    }}
+                    className="w-full flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs font-bold text-foreground hover:bg-muted/60 transition-colors"
+                  >
+                    <Copy className="w-3.5 h-3.5 text-primary" />
+                    Copy Summary
+                  </button>
+                  {contextMenuBooking.guestPhone && (
+                    <>
+                      <a
+                        href={`tel:${contextMenuBooking.guestPhone}`}
+                        onClick={() => closeContextMenu()}
+                        className="w-full flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs font-bold text-foreground hover:bg-muted/60 transition-colors"
+                      >
+                        <Phone className="w-3.5 h-3.5 text-primary" />
+                        Call Guest
+                      </a>
+                      <a
+                        href={`https://wa.me/${contextMenuBooking.guestPhone.replace(/\D/g, "")}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={() => closeContextMenu()}
+                        className="w-full flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 transition-colors"
+                      >
+                        <MessageCircle className="w-3.5 h-3.5" />
+                        WhatsApp Guest
+                      </a>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          handleSendWhatsApp(contextMenuBooking.id, true);
+                          closeContextMenu();
+                        }}
+                        disabled={waSendingId === contextMenuBooking.id}
+                        className="w-full flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 transition-colors disabled:opacity-40"
+                      >
+                        <Smartphone className="w-3.5 h-3.5" />
+                        {waSendingId === contextMenuBooking.id
+                          ? "Sending..."
+                          : "WhatsApp Invoice"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          handleSendWhatsApp(contextMenuBooking.id, false);
+                          closeContextMenu();
+                        }}
+                        disabled={waSendingId === contextMenuBooking.id}
+                        className="w-full flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 transition-colors disabled:opacity-40"
+                      >
+                        <MessageCircle className="w-3.5 h-3.5" />
+                        {waSendingId === contextMenuBooking.id
+                          ? "Sending..."
+                          : "WhatsApp Text"}
+                      </button>
+                    </>
+                  )}
+                  {contextMenuBooking.paymentStatus !== "paid_in_full" && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleMarkFullyPaid(
+                          contextMenuBooking.id,
+                          contextMenuBooking.totalAmount,
+                        );
+                        closeContextMenu();
+                      }}
+                      disabled={markingPaidId === contextMenuBooking.id}
+                      className="w-full flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 transition-colors disabled:opacity-40"
+                    >
+                      <CheckCircle className="w-3.5 h-3.5" />
+                      {markingPaidId === contextMenuBooking.id
+                        ? "Processing..."
+                        : "Mark Fully Paid"}
+                    </button>
+                  )}
+                  {contextMenuBooking.status !== "cancelled" && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleCancel(contextMenuBooking.id);
+                        closeContextMenu();
+                      }}
+                      disabled={cancellingId === contextMenuBooking.id}
+                      className="w-full flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 transition-colors disabled:opacity-40"
+                    >
+                      <XCircle className="w-3.5 h-3.5" />
+                      {cancellingId === contextMenuBooking.id
+                        ? "Cancelling..."
+                        : "Cancel Reservation"}
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </>
       )}
     </div>
