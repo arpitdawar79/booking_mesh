@@ -344,7 +344,7 @@ export default function GuestDetailPage() {
       {/* Booking History */}
       <div className="space-y-3">
         <h2 className="text-sm font-semibold">Booking History</h2>
-        {bookings.length === 0 ? (
+        {(bookings || []).length === 0 ? (
           <div className="rounded-xl border border-border p-4 sm:p-6 text-center text-muted-foreground text-sm">
             No bookings found.
           </div>
@@ -387,8 +387,8 @@ export default function GuestDetailPage() {
                       <StatusBadge status={b.status} />
                     </td>
                     <td className="px-4 py-3 text-xs text-muted-foreground">
-                      {b.payments.length} payment
-                      {b.payments.length !== 1 ? "s" : ""}
+                      {b.payments?.length ?? 0} payment
+                      {(b.payments?.length ?? 0) !== 1 ? "s" : ""}
                     </td>
                   </tr>
                 ))}

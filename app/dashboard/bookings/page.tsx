@@ -19,6 +19,7 @@ import {
   Download,
   Eye,
   IndianRupee,
+  Loader2,
   MessageCircle,
   Phone,
   PlusCircle,
@@ -417,28 +418,18 @@ export default function BookingsPage() {
     setPdfLoadingId(id);
     haptic("medium");
     try {
-      const html = await getEmailHtml(id);
-      const container = document.createElement("div");
-      container.innerHTML = html;
-      container.style.position = "absolute";
-      container.style.left = "-9999px";
-      container.style.top = "0";
-      container.style.width = "800px";
-      document.body.appendChild(container);
+      const res = await fetch("/api/generate-pdf", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bookingId: id, type: "booking_confirmation" }),
+      });
 
-      const html2pdf = (await import("html2pdf.js")).default;
-      const pdfBlob = (await html2pdf()
-        .set({
-          margin: 0.5,
-          image: { type: "jpeg", quality: 0.98 },
-          html2canvas: { scale: 2, useCORS: true },
-          jsPDF: { unit: "in", format: "a4", orientation: "portrait" },
-        })
-        .from(container)
-        .outputPdf("blob")) as Blob;
+      if (!res.ok) {
+        throw new Error("PDF generation failed");
+      }
 
-      document.body.removeChild(container);
-      const url = URL.createObjectURL(pdfBlob);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
       a.download = `Booking_${id}.pdf`;
@@ -972,7 +963,11 @@ We look forward to hosting you!
                     disabled={pdfLoadingId === contextMenuBooking.id}
                     className="w-full flex items-center gap-3 rounded-xl border border-border bg-muted/40 px-4 py-3 text-xs font-bold text-foreground hover:bg-primary/10 hover:border-primary/20 active:scale-[0.98] transition-all disabled:opacity-40"
                   >
-                    <Download className="w-4 h-4 text-primary" />
+                    {pdfLoadingId === contextMenuBooking.id ? (
+                      <Loader2 className="w-4 h-4 text-primary animate-spin" />
+                    ) : (
+                      <Download className="w-4 h-4 text-primary" />
+                    )}
                     {pdfLoadingId === contextMenuBooking.id
                       ? "Generating PDF..."
                       : "Download PDF"}
@@ -1150,7 +1145,11 @@ We look forward to hosting you!
                     disabled={pdfLoadingId === contextMenuBooking.id}
                     className="w-full flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs font-bold text-foreground hover:bg-muted/60 transition-colors disabled:opacity-40"
                   >
-                    <Download className="w-3.5 h-3.5 text-primary" />
+                    {pdfLoadingId === contextMenuBooking.id ? (
+                      <Loader2 className="w-3.5 h-3.5 text-primary animate-spin" />
+                    ) : (
+                      <Download className="w-3.5 h-3.5 text-primary" />
+                    )}
                     {pdfLoadingId === contextMenuBooking.id
                       ? "Generating..."
                       : "Download PDF"}
