@@ -1,0 +1,757 @@
+{
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/app/api/additional-sales/route.ts": {
+    "mtime": 1780924454.3398001,
+    "ast_hash": "dc99c70c4a59c81d020907ccc15cf5cf",
+    "semantic_hash": "dc99c70c4a59c81d020907ccc15cf5cf"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/app/api/admin/users/[id]/route.ts": {
+    "mtime": 1780947341.7804923,
+    "ast_hash": "fe5f7575c944fe0f6e0ff8db4ece8ed9",
+    "semantic_hash": "fe5f7575c944fe0f6e0ff8db4ece8ed9"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/app/api/admin/users/route.ts": {
+    "mtime": 1780947334.5282187,
+    "ast_hash": "59a3f584558ba8feb5c95e899a078161",
+    "semantic_hash": "59a3f584558ba8feb5c95e899a078161"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/app/api/analytics/calendar/route.ts": {
+    "mtime": 1780924596.192099,
+    "ast_hash": "a3bd38007d99026727d354f178de7a59",
+    "semantic_hash": "a3bd38007d99026727d354f178de7a59"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/app/api/analytics/route.ts": {
+    "mtime": 1780999361.3999417,
+    "ast_hash": "f7d1ea5ad07daf45f0567c7754c5d3ee",
+    "semantic_hash": "f7d1ea5ad07daf45f0567c7754c5d3ee"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/app/api/auth/me/route.ts": {
+    "mtime": 1780947347.3356817,
+    "ast_hash": "d62aa85a41e37bd5099396d1a7c08a66",
+    "semantic_hash": "d62aa85a41e37bd5099396d1a7c08a66"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/app/api/auth/route.ts": {
+    "mtime": 1780948670.357803,
+    "ast_hash": "710bb78679663b011ed5c2bf3ab21b9a",
+    "semantic_hash": "710bb78679663b011ed5c2bf3ab21b9a"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/app/api/availability/route.ts": {
+    "mtime": 1780867430.913262,
+    "ast_hash": "ac51b96aec939002d31d07521888b58d",
+    "semantic_hash": "ac51b96aec939002d31d07521888b58d"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/app/api/bookings/route.ts": {
+    "mtime": 1780999812.3511147,
+    "ast_hash": "b4a430deb4bdd47db2520a761d968168",
+    "semantic_hash": "b4a430deb4bdd47db2520a761d968168"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/app/api/bookings/stats/route.ts": {
+    "mtime": 1780868222.476296,
+    "ast_hash": "dd9b0e93344a7c063db8d735cb6a1270",
+    "semantic_hash": "dd9b0e93344a7c063db8d735cb6a1270"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/app/api/crons/history/route.ts": {
+    "mtime": 1780946380.9996936,
+    "ast_hash": "05a59352593fba2d96a3bb2e51761812",
+    "semantic_hash": "05a59352593fba2d96a3bb2e51761812"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/app/api/crons/route.ts": {
+    "mtime": 1780949639.9172947,
+    "ast_hash": "0051a51a6484b7243ac8a6605dc94840",
+    "semantic_hash": "0051a51a6484b7243ac8a6605dc94840"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/app/api/expenses/route.ts": {
+    "mtime": 1780905447.5943108,
+    "ast_hash": "dacaf7fa424046755395c6ea523fda0e",
+    "semantic_hash": "dacaf7fa424046755395c6ea523fda0e"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/app/api/guests/route.ts": {
+    "mtime": 1780867445.8106153,
+    "ast_hash": "b9d3cdfbc38838f22f02b5b79c1d4d79",
+    "semantic_hash": "b9d3cdfbc38838f22f02b5b79c1d4d79"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/app/api/health/route.ts": {
+    "mtime": 1780866398.6624336,
+    "ast_hash": "fb994710d3e136920aaf2306f13d7fd1",
+    "semantic_hash": "fb994710d3e136920aaf2306f13d7fd1"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/app/api/payments/route.ts": {
+    "mtime": 1780867450.377548,
+    "ast_hash": "313de1e2789c202d98ec60e2f41db7fd",
+    "semantic_hash": "313de1e2789c202d98ec60e2f41db7fd"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/app/api/preview-email/route.ts": {
+    "mtime": 1780930660.9559786,
+    "ast_hash": "73fb4e7d06c315101f6cccc3c4d26175",
+    "semantic_hash": "73fb4e7d06c315101f6cccc3c4d26175"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/app/api/reports/gstr/route.ts": {
+    "mtime": 1780867467.9576771,
+    "ast_hash": "9fe99e2b6efaa961bffd55c168196a8d",
+    "semantic_hash": "9fe99e2b6efaa961bffd55c168196a8d"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/app/api/salary/route.ts": {
+    "mtime": 1780912042.439075,
+    "ast_hash": "5dccf204563b5aa2505bfa865a762273",
+    "semantic_hash": "5dccf204563b5aa2505bfa865a762273"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/app/api/salary/send-whatsapp/route.ts": {
+    "mtime": 1780912136.1848247,
+    "ast_hash": "9830f72b9df134b4f6852c4122f727e5",
+    "semantic_hash": "9830f72b9df134b4f6852c4122f727e5"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/app/api/send-email/route.ts": {
+    "mtime": 1780867312.901906,
+    "ast_hash": "c8332cce745839892058014e523a8c6d",
+    "semantic_hash": "c8332cce745839892058014e523a8c6d"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/app/api/whatsapp/config/route.ts": {
+    "mtime": 1780897974.504417,
+    "ast_hash": "cf689b0f784446154ba04f0212485f59",
+    "semantic_hash": "cf689b0f784446154ba04f0212485f59"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/app/api/whatsapp/groups/route.ts": {
+    "mtime": 1780898790.9609861,
+    "ast_hash": "b5127e35da4d16792e037817163e8762",
+    "semantic_hash": "b5127e35da4d16792e037817163e8762"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/app/api/whatsapp/logout/route.ts": {
+    "mtime": 1780854271.6493526,
+    "ast_hash": "b934b1aba3a45df1e9b20667f2cc0ade",
+    "semantic_hash": "b934b1aba3a45df1e9b20667f2cc0ade"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/app/api/whatsapp/restart/route.ts": {
+    "mtime": 1780848628.0247447,
+    "ast_hash": "11e2ab18cfd85ced5f4d3450a55b00ee",
+    "semantic_hash": "11e2ab18cfd85ced5f4d3450a55b00ee"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/app/api/whatsapp/send/route.ts": {
+    "mtime": 1780867320.8694773,
+    "ast_hash": "c6624ae3ca90437371ba1f1cbc8f212f",
+    "semantic_hash": "c6624ae3ca90437371ba1f1cbc8f212f"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/app/api/whatsapp/status/route.ts": {
+    "mtime": 1780847767.1057138,
+    "ast_hash": "7c571565fadf91f70d3eb70b2c529242",
+    "semantic_hash": "7c571565fadf91f70d3eb70b2c529242"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/app/dashboard/additional-sales/page.tsx": {
+    "mtime": 1781083071.4045079,
+    "ast_hash": "517dab3b6db643eab4bb0a290ba76d1a",
+    "semantic_hash": "517dab3b6db643eab4bb0a290ba76d1a"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/app/dashboard/analytics/calendar/page.tsx": {
+    "mtime": 1780924735.4897285,
+    "ast_hash": "709c94685335334cff6ab6b2b9f70ccd",
+    "semantic_hash": "709c94685335334cff6ab6b2b9f70ccd"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/app/dashboard/analytics/occupancy/page.tsx": {
+    "mtime": 1780844597.3054001,
+    "ast_hash": "48aa482737ccd16e028f73bdb38c4180",
+    "semantic_hash": "48aa482737ccd16e028f73bdb38c4180"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/app/dashboard/analytics/page.tsx": {
+    "mtime": 1780924630.3491576,
+    "ast_hash": "7e21ab4fc118e7384dd53a985385326b",
+    "semantic_hash": "7e21ab4fc118e7384dd53a985385326b"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/app/dashboard/analytics/revenue/page.tsx": {
+    "mtime": 1780924652.2830517,
+    "ast_hash": "110352284ccabb02efe950bd42068621",
+    "semantic_hash": "110352284ccabb02efe950bd42068621"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/app/dashboard/booking/[id]/page.tsx": {
+    "mtime": 1781080267.2736647,
+    "ast_hash": "f268a966cccfe0397702b676dfe97ee8",
+    "semantic_hash": "f268a966cccfe0397702b676dfe97ee8"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/app/dashboard/bookings/page.tsx": {
+    "mtime": 1781080310.9613385,
+    "ast_hash": "2e8c6e927d5b03a49f5c76b5f71fa626",
+    "semantic_hash": "2e8c6e927d5b03a49f5c76b5f71fa626"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/app/dashboard/crons/page.tsx": {
+    "mtime": 1780946458.595598,
+    "ast_hash": "8065fe1f23e09f6b5d64b4cb9864af07",
+    "semantic_hash": "8065fe1f23e09f6b5d64b4cb9864af07"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/app/dashboard/expenses/page.tsx": {
+    "mtime": 1781083055.8764203,
+    "ast_hash": "a33827c57c30f118ce944a5811eb8ac8",
+    "semantic_hash": "a33827c57c30f118ce944a5811eb8ac8"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/app/dashboard/guests/[id]/page.tsx": {
+    "mtime": 1780919071.1126285,
+    "ast_hash": "3d815d559a5aa820ce2a6dd4adec3e89",
+    "semantic_hash": "3d815d559a5aa820ce2a6dd4adec3e89"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/app/dashboard/guests/page.tsx": {
+    "mtime": 1780905674.4247391,
+    "ast_hash": "c11566db4cf1555b20c5dd1698e65107",
+    "semantic_hash": "c11566db4cf1555b20c5dd1698e65107"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/app/dashboard/layout.tsx": {
+    "mtime": 1781085878.6956367,
+    "ast_hash": "d61b5c0e39516f7d20dac9acc6915427",
+    "semantic_hash": "d61b5c0e39516f7d20dac9acc6915427"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/app/dashboard/new/page.tsx": {
+    "mtime": 1781081465.1841629,
+    "ast_hash": "d01899fb165c721349d578d95b872d06",
+    "semantic_hash": "d01899fb165c721349d578d95b872d06"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/app/dashboard/page.tsx": {
+    "mtime": 1780936786.990268,
+    "ast_hash": "dcfab75f6afd333dafc16c27a8bd64cb",
+    "semantic_hash": "dcfab75f6afd333dafc16c27a8bd64cb"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/app/dashboard/salary/employee-form.tsx": {
+    "mtime": 1780914915.0208917,
+    "ast_hash": "ccad709a679e5f4d9d8dc9614176e4c1",
+    "semantic_hash": "ccad709a679e5f4d9d8dc9614176e4c1"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/app/dashboard/salary/page.tsx": {
+    "mtime": 1780914797.9566104,
+    "ast_hash": "c9ce32e347dcaf158a5b548f725ea0cf",
+    "semantic_hash": "c9ce32e347dcaf158a5b548f725ea0cf"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/app/dashboard/salary/slip-form.tsx": {
+    "mtime": 1780915308.2999399,
+    "ast_hash": "2facb0470a63336da7b6bff77705e7a5",
+    "semantic_hash": "2facb0470a63336da7b6bff77705e7a5"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/app/dashboard/salary/slip-preview.tsx": {
+    "mtime": 1780913451.4591951,
+    "ast_hash": "4817b73c5f4159598ad9641a07ade269",
+    "semantic_hash": "4817b73c5f4159598ad9641a07ade269"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/app/dashboard/templates/page.tsx": {
+    "mtime": 1780844722.3978522,
+    "ast_hash": "735368e0e04780fc0a0cef6ed0eafeaa",
+    "semantic_hash": "735368e0e04780fc0a0cef6ed0eafeaa"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/app/dashboard/whatsapp/page.tsx": {
+    "mtime": 1780898944.6402602,
+    "ast_hash": "2d657343625cf0c29bd32060f77d0f9f",
+    "semantic_hash": "2d657343625cf0c29bd32060f77d0f9f"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/app/forgot-password/page.tsx": {
+    "mtime": 1781085813.4662213,
+    "ast_hash": "67028c00dd55c2275ccada2917428acf",
+    "semantic_hash": "67028c00dd55c2275ccada2917428acf"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/app/layout.tsx": {
+    "mtime": 1781086625.6572287,
+    "ast_hash": "736e1a805be37a29e47a8e7edeb89630",
+    "semantic_hash": "736e1a805be37a29e47a8e7edeb89630"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/app/login/page.tsx": {
+    "mtime": 1781085790.9584367,
+    "ast_hash": "8aaf67739e29ca23f5d48ae8bcc6edf3",
+    "semantic_hash": "8aaf67739e29ca23f5d48ae8bcc6edf3"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/app/manifest.ts": {
+    "mtime": 1780936720.72179,
+    "ast_hash": "64c206917565b28782f99f090bc87020",
+    "semantic_hash": "64c206917565b28782f99f090bc87020"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/app/page.tsx": {
+    "mtime": 1781085745.4000921,
+    "ast_hash": "73c40a248dfb5e3d276f02c1ac01ffb0",
+    "semantic_hash": "73c40a248dfb5e3d276f02c1ac01ffb0"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/app/reset-password/page.tsx": {
+    "mtime": 1780949966.670913,
+    "ast_hash": "c9c42aeeda22afd47a1c7854c79fe86c",
+    "semantic_hash": "c9c42aeeda22afd47a1c7854c79fe86c"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/app/serwist/[path]/route.ts": {
+    "mtime": 1780932530.150718,
+    "ast_hash": "6e93e5cfaeb28fb67986640199cf3f2c",
+    "semantic_hash": "6e93e5cfaeb28fb67986640199cf3f2c"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/app/signup/page.tsx": {
+    "mtime": 1780948680.5409238,
+    "ast_hash": "9becaef28fa3e1fc2851d78555147407",
+    "semantic_hash": "9becaef28fa3e1fc2851d78555147407"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/app/sw.ts": {
+    "mtime": 1780936730.9250689,
+    "ast_hash": "891663bef4581f22c907b6876480039f",
+    "semantic_hash": "891663bef4581f22c907b6876480039f"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/app/~offline/page.tsx": {
+    "mtime": 1780932388.1775439,
+    "ast_hash": "e307d3cdb37c745bc944054ae821225e",
+    "semantic_hash": "e307d3cdb37c745bc944054ae821225e"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/check-db.mjs": {
+    "mtime": 1780868398.803486,
+    "ast_hash": "6d641e0d4a41140d76b6dccddbf8eb47",
+    "semantic_hash": "6d641e0d4a41140d76b6dccddbf8eb47"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/components/bookings/booking-actions.tsx": {
+    "mtime": 1780999311.3582819,
+    "ast_hash": "444bee5660ff3b6c54b3c283cb9a8c6e",
+    "semantic_hash": "444bee5660ff3b6c54b3c283cb9a8c6e"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/components/bookings/booking-wizard.tsx": {
+    "mtime": 1781085973.122067,
+    "ast_hash": "f4db8dbf29daafaf5a926261e64626e7",
+    "semantic_hash": "f4db8dbf29daafaf5a926261e64626e7"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/components/bookings/steps/guest-step.tsx": {
+    "mtime": 1781081315.9991336,
+    "ast_hash": "bae00750dc647aa581baf9e2ebdbe541",
+    "semantic_hash": "bae00750dc647aa581baf9e2ebdbe541"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/components/bookings/steps/payment-step.tsx": {
+    "mtime": 1781081373.3242767,
+    "ast_hash": "49567bb39cc68b01800b704c44af7894",
+    "semantic_hash": "49567bb39cc68b01800b704c44af7894"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/components/bookings/steps/review-step.tsx": {
+    "mtime": 1781081386.6502597,
+    "ast_hash": "8193cf3ce9ed1c610b2fdbb9f7c3e8fd",
+    "semantic_hash": "8193cf3ce9ed1c610b2fdbb9f7c3e8fd"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/components/bookings/steps/stay-step.tsx": {
+    "mtime": 1781081392.8380904,
+    "ast_hash": "93fb6594eada238bb16c6a46cf9e216e",
+    "semantic_hash": "93fb6594eada238bb16c6a46cf9e216e"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/components/dashboard/kpi-card.tsx": {
+    "mtime": 1781085702.6241577,
+    "ast_hash": "60098de94cbebdaf2783d9a906596e72",
+    "semantic_hash": "60098de94cbebdaf2783d9a906596e72"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/components/dashboard/module-card.tsx": {
+    "mtime": 1781085719.3196805,
+    "ast_hash": "3d5af9041dfdd6ad53f9db43db267235",
+    "semantic_hash": "3d5af9041dfdd6ad53f9db43db267235"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/components/dashboard/stat-card.tsx": {
+    "mtime": 1781085696.4078133,
+    "ast_hash": "bcbeb90fb63423c9c8f44877cf1a348e",
+    "semantic_hash": "bcbeb90fb63423c9c8f44877cf1a348e"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/components/pwa/install-prompt.tsx": {
+    "mtime": 1780945262.641625,
+    "ast_hash": "1e9769e58657af6510a5cecfa4274594",
+    "semantic_hash": "1e9769e58657af6510a5cecfa4274594"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/components/pwa/page-transition.tsx": {
+    "mtime": 1780936663.060981,
+    "ast_hash": "03e7679e8b94571a0ef124dba8fe2b8a",
+    "semantic_hash": "03e7679e8b94571a0ef124dba8fe2b8a"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/components/pwa/pull-to-refresh.tsx": {
+    "mtime": 1780937815.0285182,
+    "ast_hash": "6acc2c80dca9dc8b8f61f4ddd08adb32",
+    "semantic_hash": "6acc2c80dca9dc8b8f61f4ddd08adb32"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/components/pwa/pwa-shell.tsx": {
+    "mtime": 1780937157.5294335,
+    "ast_hash": "71b579cc8a738c106932fe3e86ab4ba0",
+    "semantic_hash": "71b579cc8a738c106932fe3e86ab4ba0"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/components/pwa/skeleton.tsx": {
+    "mtime": 1780936654.4775944,
+    "ast_hash": "2bedeae56396b487b18a8b6cb29b7f7d",
+    "semantic_hash": "2bedeae56396b487b18a8b6cb29b7f7d"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/components/quick-add/fab.tsx": {
+    "mtime": 1781083450.2444541,
+    "ast_hash": "8e0af9057e456729f22f29420b41588b",
+    "semantic_hash": "8e0af9057e456729f22f29420b41588b"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/components/quick-add/quick-add-drawer.tsx": {
+    "mtime": 1781084021.5605528,
+    "ast_hash": "3580efac44b0b21350fc21abee91ec0c",
+    "semantic_hash": "3580efac44b0b21350fc21abee91ec0c"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/components/ui/animated-grid.tsx": {
+    "mtime": 1780843834.4599755,
+    "ast_hash": "4e0f825ffc1825f7f1e1da33aefe7c7a",
+    "semantic_hash": "4e0f825ffc1825f7f1e1da33aefe7c7a"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/components/ui/drawer.tsx": {
+    "mtime": 1780843828.8399632,
+    "ast_hash": "79c338e931f2b1572aca159c86270cc1",
+    "semantic_hash": "79c338e931f2b1572aca159c86270cc1"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/components/ui/form-primitives.tsx": {
+    "mtime": 1781081301.0855122,
+    "ast_hash": "e6834a7b7331736215747df6e21d376d",
+    "semantic_hash": "e6834a7b7331736215747df6e21d376d"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/components/ui/magic-card.tsx": {
+    "mtime": 1780843836.260101,
+    "ast_hash": "fe7a1c5cf199281191d3da228c73dc3e",
+    "semantic_hash": "fe7a1c5cf199281191d3da228c73dc3e"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/components/ui/mobile-bottom-nav.tsx": {
+    "mtime": 1781085836.6911652,
+    "ast_hash": "22fbc8364b2de33edbb8c8cf18e017ca",
+    "semantic_hash": "22fbc8364b2de33edbb8c8cf18e017ca"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/components/ui/pagination.tsx": {
+    "mtime": 1780867635.423224,
+    "ast_hash": "6a95a94a2e50a3c6d3f38f2be2f42605",
+    "semantic_hash": "6a95a94a2e50a3c6d3f38f2be2f42605"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/components/ui/slide-over.tsx": {
+    "mtime": 1781080855.7414544,
+    "ast_hash": "20c6a830e0d4b7c11bd018c06878e8e7",
+    "semantic_hash": "20c6a830e0d4b7c11bd018c06878e8e7"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/components/ui/status-badge.tsx": {
+    "mtime": 1780867638.6807513,
+    "ast_hash": "d02a2fd4dd10a2ca2683f09d3121299a",
+    "semantic_hash": "d02a2fd4dd10a2ca2683f09d3121299a"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/components/ui/toast.tsx": {
+    "mtime": 1781080841.8944535,
+    "ast_hash": "089ce1f02a9c6ed0b24e286186cc7ed2",
+    "semantic_hash": "089ce1f02a9c6ed0b24e286186cc7ed2"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/ecosystem.config.js": {
+    "mtime": 1780917524.863388,
+    "ast_hash": "ca5ec5bc761886681d0f06d3de8fd673",
+    "semantic_hash": "ca5ec5bc761886681d0f06d3de8fd673"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/emails/admin-daily-digest-email.tsx": {
+    "mtime": 1780999398.7886622,
+    "ast_hash": "0da7ca675c5cfa71cc1584e3612fee71",
+    "semantic_hash": "0da7ca675c5cfa71cc1584e3612fee71"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/emails/booking-confirmation-email.tsx": {
+    "mtime": 1780999362.767628,
+    "ast_hash": "9d724f360e7aa3fad1f45d99537129e1",
+    "semantic_hash": "9d724f360e7aa3fad1f45d99537129e1"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/emails/cancellation-email.tsx": {
+    "mtime": 1780896713.1785514,
+    "ast_hash": "99fd5c884d476b63fbd335dd0f5dd75a",
+    "semantic_hash": "99fd5c884d476b63fbd335dd0f5dd75a"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/emails/checkout-email.tsx": {
+    "mtime": 1780896722.5769138,
+    "ast_hash": "ba20ebaaa596325fa3ac14d655d8829e",
+    "semantic_hash": "ba20ebaaa596325fa3ac14d655d8829e"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/emails/components/amount-row.tsx": {
+    "mtime": 1780896618.7764072,
+    "ast_hash": "0c26b336f017e3d705558b27bd7e19bb",
+    "semantic_hash": "0c26b336f017e3d705558b27bd7e19bb"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/emails/components/contact-block.tsx": {
+    "mtime": 1780896640.5760012,
+    "ast_hash": "4bcc71c768aec3d3fcd60aea5b113dcf",
+    "semantic_hash": "4bcc71c768aec3d3fcd60aea5b113dcf"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/emails/components/cta-button.tsx": {
+    "mtime": 1780896629.5711586,
+    "ast_hash": "96a513b428f73bb442ef27533f4cbe22",
+    "semantic_hash": "96a513b428f73bb442ef27533f4cbe22"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/emails/components/data-row.tsx": {
+    "mtime": 1780896615.1291728,
+    "ast_hash": "428b68486213032765b08e863af3028e",
+    "semantic_hash": "428b68486213032765b08e863af3028e"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/emails/components/email-footer.tsx": {
+    "mtime": 1780896630.9691186,
+    "ast_hash": "3e0ee23cda770da90d1801476fdabce9",
+    "semantic_hash": "3e0ee23cda770da90d1801476fdabce9"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/emails/components/email-header.tsx": {
+    "mtime": 1780896591.1133046,
+    "ast_hash": "9227a9d1fb7cfa973af50a6b9943f2f3",
+    "semantic_hash": "9227a9d1fb7cfa973af50a6b9943f2f3"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/emails/components/email-hero.tsx": {
+    "mtime": 1780896597.9342296,
+    "ast_hash": "7c5a4bf4b06626c1b73aa539816c1cdc",
+    "semantic_hash": "7c5a4bf4b06626c1b73aa539816c1cdc"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/emails/components/email-section.tsx": {
+    "mtime": 1780896612.7788286,
+    "ast_hash": "c7f0d486d186ff6238321309e384a037",
+    "semantic_hash": "c7f0d486d186ff6238321309e384a037"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/emails/components/email-shell.tsx": {
+    "mtime": 1780911090.154185,
+    "ast_hash": "a2da39583d58510821c8ad2082297862",
+    "semantic_hash": "a2da39583d58510821c8ad2082297862"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/emails/components/index.ts": {
+    "mtime": 1780896652.2878761,
+    "ast_hash": "0ff25581a99d6927fbadd956c6432af9",
+    "semantic_hash": "0ff25581a99d6927fbadd956c6432af9"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/emails/components/info-card.tsx": {
+    "mtime": 1780896647.169398,
+    "ast_hash": "25bd6f6bb6d592783b90ecb83199b354",
+    "semantic_hash": "25bd6f6bb6d592783b90ecb83199b354"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/emails/components/sparkle-decoration.tsx": {
+    "mtime": 1780896601.0778131,
+    "ast_hash": "5353776df635d7d8d662af2f454b823b",
+    "semantic_hash": "5353776df635d7d8d662af2f454b823b"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/emails/components/themes.ts": {
+    "mtime": 1780896572.2921822,
+    "ast_hash": "aaf1b90ab768898cc73debb368d16d65",
+    "semantic_hash": "aaf1b90ab768898cc73debb368d16d65"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/emails/notification-email.tsx": {
+    "mtime": 1780896734.0953834,
+    "ast_hash": "74c48f26254fa35b06e593eda0a4e579",
+    "semantic_hash": "74c48f26254fa35b06e593eda0a4e579"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/emails/pre-arrival-email.tsx": {
+    "mtime": 1780897161.8125777,
+    "ast_hash": "4e8e5fc4c6ab98e634017faff7fcb8ac",
+    "semantic_hash": "4e8e5fc4c6ab98e634017faff7fcb8ac"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/emails/refund-credited-email.tsx": {
+    "mtime": 1780896754.7380488,
+    "ast_hash": "8d2d31cf8e60cdff5a0b4c28beaf83b9",
+    "semantic_hash": "8d2d31cf8e60cdff5a0b4c28beaf83b9"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/emails/salary-slip-email.tsx": {
+    "mtime": 1780912069.232901,
+    "ast_hash": "25e5827da01ed6211af1119cc7b40db4",
+    "semantic_hash": "25e5827da01ed6211af1119cc7b40db4"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/emails/thank-you-email.tsx": {
+    "mtime": 1780896775.6542647,
+    "ast_hash": "d85ac0d7aac0e23a18d06a51390aa721",
+    "semantic_hash": "d85ac0d7aac0e23a18d06a51390aa721"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/jobs/cron-runner.ts": {
+    "mtime": 1780946326.9976523,
+    "ast_hash": "c27693dc7122344dde82120e1273bc98",
+    "semantic_hash": "c27693dc7122344dde82120e1273bc98"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/lib/auth.ts": {
+    "mtime": 1780946417.9813764,
+    "ast_hash": "58dd9d44eba4eaad5fcc889986ef9d4c",
+    "semantic_hash": "58dd9d44eba4eaad5fcc889986ef9d4c"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/lib/cron-jobs.ts": {
+    "mtime": 1780999252.960194,
+    "ast_hash": "530cf465ff12cd6a4c55618580f7c5a0",
+    "semantic_hash": "530cf465ff12cd6a4c55618580f7c5a0"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/lib/email.ts": {
+    "mtime": 1780999381.7749076,
+    "ast_hash": "ed1ea2fbb445fbba71c3d41f0fdef24a",
+    "semantic_hash": "ed1ea2fbb445fbba71c3d41f0fdef24a"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/lib/env.ts": {
+    "mtime": 1780866379.4120452,
+    "ast_hash": "fdebbe35e61e714af6c26e1ca3dc5384",
+    "semantic_hash": "fdebbe35e61e714af6c26e1ca3dc5384"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/lib/logger.ts": {
+    "mtime": 1780866397.1384828,
+    "ast_hash": "613ac7f25ddf6d9b610a11eac8cadda0",
+    "semantic_hash": "613ac7f25ddf6d9b610a11eac8cadda0"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/lib/pdf.ts": {
+    "mtime": 1780912078.329297,
+    "ast_hash": "2241b551e65adea02d539d77893ed59f",
+    "semantic_hash": "2241b551e65adea02d539d77893ed59f"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/lib/prisma.ts": {
+    "mtime": 1780836272.4538288,
+    "ast_hash": "a2aec2320deb59a9ae0c672c1f286f08",
+    "semantic_hash": "a2aec2320deb59a9ae0c672c1f286f08"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/lib/pwa-hooks.ts": {
+    "mtime": 1780936620.3632188,
+    "ast_hash": "68dfb7b5bf300fec94d9eacbfa77c261",
+    "semantic_hash": "68dfb7b5bf300fec94d9eacbfa77c261"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/lib/share.ts": {
+    "mtime": 1780918401.6298263,
+    "ast_hash": "c8fcdff881306b407d0945fa9dca8dfd",
+    "semantic_hash": "c8fcdff881306b407d0945fa9dca8dfd"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/lib/utils.ts": {
+    "mtime": 1780918324.16505,
+    "ast_hash": "446c0008b087dc083b218f96cf9c0f1c",
+    "semantic_hash": "446c0008b087dc083b218f96cf9c0f1c"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/lib/validation.ts": {
+    "mtime": 1781073312.7380412,
+    "ast_hash": "28e46e12f353be5bc922a3e7e2c0ced1",
+    "semantic_hash": "28e46e12f353be5bc922a3e7e2c0ced1"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/lib/whatsapp.ts": {
+    "mtime": 1780932640.0211444,
+    "ast_hash": "a387ab012467b5a4c315d9ba87318450",
+    "semantic_hash": "a387ab012467b5a4c315d9ba87318450"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/middleware.ts": {
+    "mtime": 1780947284.246002,
+    "ast_hash": "f3abff0a01a18be62281b4f0b6344f4c",
+    "semantic_hash": "f3abff0a01a18be62281b4f0b6344f4c"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/next-env.d.ts": {
+    "mtime": 1781083015.7121363,
+    "ast_hash": "2a74d3909800ca5467fa83b0ab4a4890",
+    "semantic_hash": "2a74d3909800ca5467fa83b0ab4a4890"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/next.config.ts": {
+    "mtime": 1780937633.1743097,
+    "ast_hash": "0e2e0069f89189f3d475f2059fc67070",
+    "semantic_hash": "0e2e0069f89189f3d475f2059fc67070"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/package.json": {
+    "mtime": 1781086647.2999964,
+    "ast_hash": "4f2526ef0020308267063b017b6260ea",
+    "semantic_hash": "4f2526ef0020308267063b017b6260ea"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/postcss.config.mjs": {
+    "mtime": 1780836257.4302926,
+    "ast_hash": "4ae674cb9a5e6dc8c6afe2598c150776",
+    "semantic_hash": "4ae674cb9a5e6dc8c6afe2598c150776"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/prisma/migrations/20260607125757_init/migration.sql": {
+    "mtime": 1780846300.6364055,
+    "ast_hash": "460f85b89830f22ba77e9d1e629becec",
+    "semantic_hash": "460f85b89830f22ba77e9d1e629becec"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/prisma/migrations/20260608132211_rename_to_additional_sales/migration.sql": {
+    "mtime": 1780924931.0277343,
+    "ast_hash": "77a1cbdf2f5a6dbf73d3f8b3cde042f7",
+    "semantic_hash": "77a1cbdf2f5a6dbf73d3f8b3cde042f7"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/prisma/migrations/20260608144650_add_extra_mattress_count_to_bookings/migration.sql": {
+    "mtime": 1780930010.927218,
+    "ast_hash": "59a0d3ca4361f6ebc468fba25b3815bd",
+    "semantic_hash": "59a0d3ca4361f6ebc468fba25b3815bd"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/prisma/migrations/20260608200118_cron_jobs/migration.sql": {
+    "mtime": 1780948878.4774077,
+    "ast_hash": "c0dc39d21c947a1cf93156264af1f28e",
+    "semantic_hash": "c0dc39d21c947a1cf93156264af1f28e"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/prisma/seed.ts": {
+    "mtime": 1780947304.7855606,
+    "ast_hash": "a5f11a05f9c3b9c7f91c38b9a7caffef",
+    "semantic_hash": "a5f11a05f9c3b9c7f91c38b9a7caffef"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/scripts/test-emails.ts": {
+    "mtime": 1780926222.1313996,
+    "ast_hash": "5a3ed00625642547a79b8d08131d41bd",
+    "semantic_hash": "5a3ed00625642547a79b8d08131d41bd"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/scripts/test-whatsapp.ts": {
+    "mtime": 1780911270.856846,
+    "ast_hash": "fd9e5ace5e111698bc2bb493e652f360",
+    "semantic_hash": "fd9e5ace5e111698bc2bb493e652f360"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/send_booking_confirmation.py": {
+    "mtime": 1780846300.6827621,
+    "ast_hash": "29529e7efc4dacdd94f599daebe09a24",
+    "semantic_hash": "29529e7efc4dacdd94f599daebe09a24"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/tsconfig.json": {
+    "mtime": 1780836730.8885217,
+    "ast_hash": "7831df54b0184c9a88a681bd02b3e9e4",
+    "semantic_hash": "7831df54b0184c9a88a681bd02b3e9e4"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/types/html2pdf.d.ts": {
+    "mtime": 1780845596.855916,
+    "ast_hash": "33a556cadd2affffd8971e26e1510fe9",
+    "semantic_hash": "33a556cadd2affffd8971e26e1510fe9"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/FEATURE_ROADMAP.md": {
+    "mtime": 1780865637.7934332,
+    "ast_hash": "b84577c78f9a9383887e2b605ccf09b1",
+    "semantic_hash": "b84577c78f9a9383887e2b605ccf09b1"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/README.md": {
+    "mtime": 1780835229.2724624,
+    "ast_hash": "d281c7c1b1b1439b1db9189aaf735a66",
+    "semantic_hash": "d281c7c1b1b1439b1db9189aaf735a66"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/booking-confirmation-the-stream.html": {
+    "mtime": 1780835586.625348,
+    "ast_hash": "c6cf7754865ef37ddfefe2f28358a0d6",
+    "semantic_hash": "c6cf7754865ef37ddfefe2f28358a0d6"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/public/screenshots/README.md": {
+    "mtime": 1780936791.4573987,
+    "ast_hash": "35da896b20384cf71252e70d005c343c",
+    "semantic_hash": "35da896b20384cf71252e70d005c343c"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/thestream.md": {
+    "mtime": 1780836168.1724916,
+    "ast_hash": "5696e8d9eb1cd0cf7db6b96138f1a8e0",
+    "semantic_hash": "5696e8d9eb1cd0cf7db6b96138f1a8e0"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/public/apple-touch-icon.png": {
+    "mtime": 1780932012.3820477,
+    "ast_hash": "f065ecf645b6028ce7a673dd068601c5",
+    "semantic_hash": "f065ecf645b6028ce7a673dd068601c5"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/public/favicon-16x16.png": {
+    "mtime": 1780932012.3788903,
+    "ast_hash": "9bd0ade05b90ff3edb5e6703d9b53e34",
+    "semantic_hash": "9bd0ade05b90ff3edb5e6703d9b53e34"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/public/favicon-32x32.png": {
+    "mtime": 1780932012.3771117,
+    "ast_hash": "56f79d94d180052ff84b31ee45d3beaa",
+    "semantic_hash": "56f79d94d180052ff84b31ee45d3beaa"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/public/icons/icon-128x128.png": {
+    "mtime": 1780932012.335691,
+    "ast_hash": "70846dc8683bb5691a6b782ede9c5a3f",
+    "semantic_hash": "70846dc8683bb5691a6b782ede9c5a3f"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/public/icons/icon-144x144.png": {
+    "mtime": 1780932012.3391726,
+    "ast_hash": "7a63c7c2463e1a9441e2445659707481",
+    "semantic_hash": "7a63c7c2463e1a9441e2445659707481"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/public/icons/icon-152x152.png": {
+    "mtime": 1780932012.3428133,
+    "ast_hash": "4aa56584a04a81ecaf17b3c5a2425c83",
+    "semantic_hash": "4aa56584a04a81ecaf17b3c5a2425c83"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/public/icons/icon-192x192.png": {
+    "mtime": 1780932012.3473637,
+    "ast_hash": "f612c3948d9c3da8d516cecfc5ca9879",
+    "semantic_hash": "f612c3948d9c3da8d516cecfc5ca9879"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/public/icons/icon-384x384.png": {
+    "mtime": 1780932012.3589218,
+    "ast_hash": "082306e60930facadb107fcdc23b9bc9",
+    "semantic_hash": "082306e60930facadb107fcdc23b9bc9"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/public/icons/icon-512x512.png": {
+    "mtime": 1780932012.3751917,
+    "ast_hash": "ff1244217d1bb28ccf4159bf15feb1c4",
+    "semantic_hash": "ff1244217d1bb28ccf4159bf15feb1c4"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/public/icons/icon-72x72.png": {
+    "mtime": 1780932012.329592,
+    "ast_hash": "3e6450d815f82a29c25a0b3426de78cd",
+    "semantic_hash": "3e6450d815f82a29c25a0b3426de78cd"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/public/icons/icon-96x96.png": {
+    "mtime": 1780932012.3326864,
+    "ast_hash": "154f0cf9c6f7bd0601983ac0c5f55ec0",
+    "semantic_hash": "154f0cf9c6f7bd0601983ac0c5f55ec0"
+  },
+  "/Users/macbook/Desktop/projects/Ekantah Email templates/public/icons/maskable-icon-512x512.png": {
+    "mtime": 1780932012.39016,
+    "ast_hash": "19112993255e876c49faa0751686754f",
+    "semantic_hash": "19112993255e876c49faa0751686754f"
+  }
+}
