@@ -338,7 +338,8 @@ async function resolveJid(phone: string): Promise<string | null> {
   const state = getState();
   const jid = toJid(phone);
   try {
-    const results = await state.sock!.onWhatsApp(jid);
+    if (!state.sock) return jid;
+    const results = await state.sock.onWhatsApp(jid);
     const match = results?.[0];
     if (match && match.exists) {
       return match.jid;
@@ -364,12 +365,17 @@ export async function sendWhatsAppMessage(
     return { success: false, error: "Number is not registered on WhatsApp" };
   }
 
+  const sock = state.sock;
+  if (!sock) {
+    return { success: false, error: "WhatsApp not connected" };
+  }
+
   try {
-    await state.sock!.presenceSubscribe(jid);
-    await state.sock!.sendPresenceUpdate("composing", jid);
+    await sock.presenceSubscribe(jid);
+    await sock.sendPresenceUpdate("composing", jid);
     await sleep(400);
-    await state.sock!.sendMessage(jid, { text: message });
-    await state.sock!.sendPresenceUpdate("paused", jid);
+    await sock.sendMessage(jid, { text: message });
+    await sock.sendPresenceUpdate("paused", jid);
     return { success: true };
   } catch (err) {
     return {
@@ -396,6 +402,11 @@ export async function sendWhatsAppPdf(
     return { success: false, error: "Number is not registered on WhatsApp" };
   }
 
+  const sock = state.sock;
+  if (!sock) {
+    return { success: false, error: "WhatsApp not connected" };
+  }
+
   const messageContent: AnyMessageContent = {
     document: pdfBuffer,
     mimetype: "application/pdf",
@@ -404,7 +415,7 @@ export async function sendWhatsAppPdf(
   };
 
   try {
-    await state.sock!.sendMessage(jid, messageContent);
+    await sock.sendMessage(jid, messageContent);
     return { success: true };
   } catch (err) {
     return {
@@ -433,8 +444,13 @@ export async function sendWhatsAppImage(
     return { success: false, error: "Number is not registered on WhatsApp" };
   }
 
+  const sock = state.sock;
+  if (!sock) {
+    return { success: false, error: "WhatsApp not connected" };
+  }
+
   try {
-    await state.sock!.sendMessage(jid, {
+    await sock.sendMessage(jid, {
       image: imageBuffer,
       caption: caption || undefined,
     });
@@ -675,8 +691,13 @@ export async function getWhatsAppGroups(): Promise<
   }
 
   const state = getState();
+  const sock = state.sock;
+  if (!sock) {
+    return null;
+  }
+
   try {
-    const groups = await state.sock!.groupFetchAllParticipating();
+    const groups = await sock.groupFetchAllParticipating();
     return Object.values(groups).map((g: any) => ({
       id: g.id,
       name: g.subject || "Unnamed Group",
@@ -706,8 +727,13 @@ export async function sendWhatsAppGroupMessage(
   const state = getState();
   const jid = groupJid.includes("@") ? groupJid : `${groupJid}@g.us`;
 
+  const sock = state.sock;
+  if (!sock) {
+    return { success: false, error: "WhatsApp not connected" };
+  }
+
   try {
-    await state.sock!.sendMessage(jid, { text: message });
+    await sock.sendMessage(jid, { text: message });
     return { success: true };
   } catch (err) {
     return {
@@ -736,6 +762,11 @@ export async function sendWhatsAppGroupPdf(
   const state = getState();
   const jid = groupJid.includes("@") ? groupJid : `${groupJid}@g.us`;
 
+  const sock = state.sock;
+  if (!sock) {
+    return { success: false, error: "WhatsApp not connected" };
+  }
+
   const messageContent: AnyMessageContent = {
     document: pdfBuffer,
     mimetype: "application/pdf",
@@ -744,7 +775,7 @@ export async function sendWhatsAppGroupPdf(
   };
 
   try {
-    await state.sock!.sendMessage(jid, messageContent);
+    await sock.sendMessage(jid, messageContent);
     return { success: true };
   } catch (err) {
     return {

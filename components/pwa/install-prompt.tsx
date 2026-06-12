@@ -3,6 +3,7 @@
 import { useHaptic, useInstallPrompt } from "@/lib/pwa-hooks";
 import { AnimatePresence, motion } from "framer-motion";
 import { Download, Share2, Smartphone, X } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export function InstallPrompt() {
@@ -10,6 +11,7 @@ export function InstallPrompt() {
     useInstallPrompt();
   const haptic = useHaptic();
   const [show, setShow] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     const timer = setTimeout(() => setShow(true), 2000);
@@ -23,7 +25,16 @@ export function InstallPrompt() {
 
   const handleInstall = () => {
     haptic("medium");
-    install();
+    if (canInstall) {
+      install();
+    } else {
+      router.push("/dashboard/install");
+    }
+  };
+
+  const handleLearnMore = () => {
+    haptic("light");
+    router.push("/dashboard/install");
   };
 
   if (!show || installed || dismissed) return null;
@@ -99,7 +110,7 @@ export function InstallPrompt() {
               className="mt-4 w-full flex items-center justify-center gap-2 rounded-xl bg-foreground text-background h-12 text-sm font-semibold active:scale-[0.98] transition-all hover:bg-foreground/90"
             >
               <Download className="h-4 w-4" />
-              Install App
+              {canInstall ? "Install App" : "See Instructions"}
             </button>
           )}
 

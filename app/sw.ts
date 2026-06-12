@@ -137,8 +137,8 @@ self.addEventListener("push", (event) => {
   const data = event.data.json();
   const options: NotificationOptions & { actions?: any[] } = {
     body: data.body || "",
-    icon: "/icons/icon-192x192.png",
-    badge: "/icons/icon-72x72.png",
+    icon: "/icons/iconxxxhdpi.png",
+    badge: "/icons/iconhdpi.png",
     tag: data.tag || "default",
     data: data.url ? { url: data.url } : undefined,
     requireInteraction: data.requireInteraction ?? false,
