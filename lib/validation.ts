@@ -328,3 +328,104 @@ export type EmployeeCreateInput = z.infer<typeof employeeCreateSchema>;
 export type EmployeeUpdateInput = z.infer<typeof employeeUpdateSchema>;
 export type SalarySlipCreateInput = z.infer<typeof salarySlipCreateSchema>;
 export type SalarySlipUpdateInput = z.infer<typeof salarySlipUpdateSchema>;
+
+// ─── Marketing & WhatsApp Lead schemas ───
+
+export const extractContactsSchema = z.object({
+  enrichProfiles: z.boolean().default(true),
+  groupIds: z.array(z.string()).optional(),
+});
+
+export const leadUpdateSchema = z.object({
+  id: z.string().min(1),
+  name: z.string().optional(),
+  tags: z.array(z.string()).optional(),
+  city: z.string().optional(),
+  state: z.string().optional(),
+  email: z.string().email().optional().or(z.literal("")),
+  notes: z.string().optional(),
+  status: z.enum(["active", "opted_out", "blocked", "invalid"]).optional(),
+});
+
+export const leadTagSchema = z.object({
+  leadIds: z.array(z.string()).min(1),
+  tag: z.string().min(1),
+  action: z.enum(["add", "remove"]),
+});
+
+export const campaignCreateSchema = z.object({
+  name: z.string().min(1, "Campaign name is required"),
+  messageBody: z.string().min(1, "Message body is required"),
+  templateId: z.string().optional().nullable(),
+  targetTags: z.array(z.string()).default([]),
+  targetSources: z
+    .enum([
+      "personal_chat",
+      "group_member",
+      "broadcast_list",
+      "manual_entry",
+      "booking_guest",
+    ])
+    .array()
+    .default([]),
+  excludeOptedOut: z.boolean().default(true),
+  scheduledAt: z
+    .string()
+    .regex(
+      /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/,
+      "Invalid datetime format (yyyy-MM-ddTHH:mm)",
+    )
+    .optional()
+    .nullable(),
+});
+
+export const campaignUpdateSchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1).optional(),
+  messageBody: z.string().min(1).optional(),
+  status: z
+    .enum(["draft", "scheduled", "sending", "completed", "paused", "cancelled"])
+    .optional(),
+  targetTags: z.array(z.string()).optional(),
+  targetSources: z
+    .enum([
+      "personal_chat",
+      "group_member",
+      "broadcast_list",
+      "manual_entry",
+      "booking_guest",
+    ])
+    .array()
+    .optional(),
+  excludeOptedOut: z.boolean().optional(),
+  scheduledAt: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/)
+    .optional()
+    .nullable(),
+});
+
+export const campaignSendSchema = z.object({
+  campaignId: z.string().min(1),
+  dryRun: z.boolean().default(false),
+});
+
+export const templateCreateSchema = z.object({
+  name: z.string().min(1, "Template name is required"),
+  body: z.string().min(1, "Template body is required"),
+  category: z.string().default("general"),
+  variables: z.array(z.string()).default([]),
+});
+
+export const templateUpdateSchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1).optional(),
+  body: z.string().min(1).optional(),
+  category: z.string().optional(),
+  variables: z.array(z.string()).optional(),
+});
+
+export type CampaignCreateInput = z.infer<typeof campaignCreateSchema>;
+export type CampaignUpdateInput = z.infer<typeof campaignUpdateSchema>;
+export type TemplateCreateInput = z.infer<typeof templateCreateSchema>;
+export type LeadUpdateInput = z.infer<typeof leadUpdateSchema>;

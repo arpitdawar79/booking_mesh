@@ -9,17 +9,18 @@ import { MagicCard } from "@/components/ui/magic-card";
 import { cn, formatDate } from "@/lib/utils";
 import { motion } from "framer-motion";
 import {
-  AlertCircle,
-  Banknote,
-  BarChart3,
-  CalendarCheck,
-  ChevronRight,
-  ClipboardList,
-  IndianRupee,
-  Receipt,
-  ShoppingCart,
-  TrendingUp,
-  Users,
+    AlertCircle,
+    Banknote,
+    BarChart3,
+    CalendarCheck,
+    ChevronRight,
+    ClipboardList,
+    IndianRupee,
+    Megaphone,
+    Receipt,
+    ShoppingCart,
+    TrendingUp,
+    Users,
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -190,12 +191,14 @@ export default function DashboardPage() {
           change={null}
           suffix={netProfit >= 0 ? "in profit" : "in loss"}
           icon={
-            <div className={cn(
-              "p-1.5 rounded-xl shrink-0 border",
-              netProfit >= 0
-                ? "bg-emerald-500/10 dark:bg-emerald-500/10 border-emerald-500/20 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-400"
-                : "bg-rose-500/10 dark:bg-rose-500/10 border-rose-500/20 dark:border-rose-500/20 text-rose-700 dark:text-rose-400"
-            )}>
+            <div
+              className={cn(
+                "p-1.5 rounded-xl shrink-0 border",
+                netProfit >= 0
+                  ? "bg-emerald-500/10 dark:bg-emerald-500/10 border-emerald-500/20 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-400"
+                  : "bg-rose-500/10 dark:bg-rose-500/10 border-rose-500/20 dark:border-rose-500/20 text-rose-700 dark:text-rose-400",
+              )}
+            >
               <BarChart3 className="w-4.5 h-4.5" />
             </div>
           }
@@ -395,6 +398,16 @@ export default function DashboardPage() {
             }
             title="Analytics"
             description="Deep dive into revenue, occupancy & P&L."
+          />
+          <ModuleCard
+            href="/dashboard/marketing"
+            icon={
+              <div className="p-1.5 rounded-xl bg-fuchsia-500/10 dark:bg-fuchsia-500/10 border border-fuchsia-500/20 dark:border-fuchsia-500/20 text-fuchsia-700 dark:text-fuchsia-400 group-hover:scale-105 transition-all duration-300 shrink-0">
+                <Megaphone className="w-4.5 h-4.5" />
+              </div>
+            }
+            title="Marketing"
+            description="WhatsApp contact extraction & broadcast campaigns."
           />
         </div>
       </motion.div>

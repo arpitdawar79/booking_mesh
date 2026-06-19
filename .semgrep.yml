@@ -1,0 +1,59 @@
+rules:
+  - id: prisma-raw-query-sql-injection
+    pattern-either:
+      - pattern: $PRISMA.$queryRawUnsafe(...)
+      - pattern: $PRISMA.$executeRawUnsafe(...)
+      - pattern: $PRISMA.$queryRaw(..., $VAR + $VAR2, ...)
+      - pattern: $PRISMA.$queryRaw(..., `...${$VAR}...`, ...)
+    message: "Potential SQL injection vulnerability. Do not use raw string concatenation or queryRawUnsafe. Use prisma.$queryRaw with standard template literals (without unsafe concatenation) so that Prisma compiles them to safe parameterized queries."
+    languages:
+      - typescript
+      - javascript
+    severity: ERROR
+
+  - id: missing-api-auth-check
+    patterns:
+      - pattern-either:
+          - pattern: |
+              export async function GET($REQ: $TYPE) {
+                ...
+              }
+          - pattern: |
+              export async function POST($REQ: $TYPE) {
+                ...
+              }
+          - pattern: |
+              export async function PATCH($REQ: $TYPE) {
+                ...
+              }
+          - pattern: |
+              export async function DELETE($REQ: $TYPE) {
+                ...
+              }
+      - pattern-not-inside: |
+          export async function $FUNC($REQ: $TYPE) {
+            ...
+            await getUserFromToken(...);
+            ...
+          }
+      - pattern-not-inside: |
+          export async function $FUNC($REQ: $TYPE) {
+            ...
+            getUserFromToken(...);
+            ...
+          }
+    message: "API Route endpoint detected without a visible call to `getUserFromToken`. Verify if this route should be authenticated."
+    languages:
+      - typescript
+    severity: WARNING
+    paths:
+      include:
+        - "**/app/api/**/*.ts"
+        - "**/app/api/**/*.tsx"
+      exclude:
+        - "**/app/api/auth/**"
+        - "**/app/api/login/**"
+        - "**/app/api/signup/**"
+        - "**/app/api/health/**"
+        - "**/app/api/passkeys/login-options/**"
+        - "**/app/api/passkeys/login/**"

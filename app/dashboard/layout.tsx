@@ -9,25 +9,26 @@ import { ToastProvider } from "@/components/ui/toast";
 import { useHaptic, useScrollDirection } from "@/lib/pwa-hooks";
 import { motion } from "framer-motion";
 import {
-  Banknote,
-  BarChart3,
-  CalendarDays,
-  ChevronLeft,
-  ChevronRight,
-  Clock,
-  Hotel,
-  IndianRupee,
-  LayoutDashboard,
-  LogOut,
-  Mail,
-  Menu,
-  MoreHorizontal,
-  PlusCircle,
-  Receipt,
-  ShoppingCart,
-  Smartphone,
-  Users,
-  X,
+    Banknote,
+    BarChart3,
+    CalendarDays,
+    ChevronLeft,
+    ChevronRight,
+    Clock,
+    Hotel,
+    IndianRupee,
+    LayoutDashboard,
+    LogOut,
+    Mail,
+    Megaphone,
+    Menu,
+    MoreHorizontal,
+    PlusCircle,
+    Receipt,
+    ShoppingCart,
+    Smartphone,
+    Users,
+    X,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -64,6 +65,7 @@ const navItems = [
   { href: "/dashboard/crons", label: "Crons", icon: Clock },
   { href: "/dashboard/templates", label: "Templates", icon: Mail },
   { href: "/dashboard/whatsapp", label: "WhatsApp Setup", icon: Smartphone },
+  { href: "/dashboard/marketing", label: "Marketing", icon: Megaphone },
 ];
 
 function LogoutForm({

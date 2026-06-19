@@ -946,3 +946,186 @@ export async function sendSalarySlipWhatsApp(
 
   return pdfResult;
 }
+
+// ─── Contact Extraction & Marketing Functions ───
+
+export interface ExtractedContact {
+  jid: string;
+  phoneNumber: string;
+  name: string | null;
+  pushName: string | null;
+  isAdmin: boolean;
+  source: "group_member" | "personal_chat";
+  sourceGroupId: string | null;
+  sourceGroupName: string | null;
+}
+
+export interface EnrichedProfile {
+  profilePicUrl: string | null;
+  aboutText: string | null;
+  isWhatsAppUser: boolean;
+}
+
+/**
+ * Extract all contacts from WhatsApp groups by fetching group metadata
+ * for each group the connected account participates in. Returns a flat
+ * list of unique participants across all groups.
+ */
+export async function extractGroupContacts(
+  groupIds?: string[],
+): Promise<{ contacts: ExtractedContact[]; groupsScanned: number } | null> {
+  const connected = await waitForConnection();
+  if (!connected) return null;
+
+  const state = getState();
+  const sock = state.sock;
+  if (!sock) return null;
+
+  try {
+    const groups = await sock.groupFetchAllParticipating();
+    const targetGroups = groupIds
+      ? Object.values(groups).filter((g: any) => groupIds.includes(g.id))
+      : Object.values(groups);
+
+    const contacts: ExtractedContact[] = [];
+    const seenJids = new Set<string>();
+
+    for (const group of targetGroups) {
+      const groupId = group.id as string;
+      const groupName = (group.subject as string) || "Unnamed Group";
+
+      let metadata: any;
+      try {
+        metadata = await sock.groupMetadata(groupId);
+      } catch {
+        // Fallback to the data from groupFetchAllParticipating
+        metadata = group;
+      }
+
+      const participants = metadata?.participants || [];
+      for (const p of participants) {
+        const jid = p.id as string;
+        if (jid === sock.user?.id) continue; // skip self
+        if (seenJids.has(jid)) continue;
+        seenJids.add(jid);
+
+        const phoneNumber = jid.split("@")[0];
+        contacts.push({
+          jid,
+          phoneNumber,
+          name: null,
+          pushName: (p.name as string) || (p.notify as string) || null,
+          isAdmin:
+            (p.admin as string) === "admin" ||
+            (p.admin as string) === "superadmin",
+          source: "group_member",
+          sourceGroupId: groupId,
+          sourceGroupName: groupName,
+        });
+      }
+    }
+
+    return { contacts, groupsScanned: targetGroups.length };
+  } catch (err) {
+    log(
+      `extractGroupContacts failed: ${err instanceof Error ? err.message : String(err)}`,
+    );
+    return null;
+  }
+}
+
+/**
+ * Enrich a contact's profile by fetching their profile picture URL and
+ * about/status text. Non-fatal: returns nulls if the profile is private.
+ */
+export async function enrichContactProfile(
+  jid: string,
+): Promise<EnrichedProfile> {
+  const state = getState();
+  const sock = state.sock;
+  if (!sock) {
+    return { profilePicUrl: null, aboutText: null, isWhatsAppUser: true };
+  }
+
+  let profilePicUrl: string | null = null;
+  let aboutText: string | null = null;
+  let isWhatsAppUser = true;
+
+  try {
+    const picUrl = await sock.profilePictureUrl(jid, "preview");
+    profilePicUrl = picUrl || null;
+  } catch {
+    // Profile picture is private or unavailable
+  }
+
+  try {
+    const statusResult = await sock.fetchStatus(jid);
+    const statusEntry = (statusResult as any[])?.[0];
+    aboutText = (statusEntry?.status as string) || null;
+  } catch {
+    // Status is private or unavailable
+  }
+
+  try {
+    const results = await sock.onWhatsApp(jid);
+    const match = results?.[0];
+    isWhatsAppUser = match?.exists ?? true;
+  } catch {
+    // Assume they're on WhatsApp since they came from a group
+  }
+
+  return { profilePicUrl, aboutText, isWhatsAppUser };
+}
+
+/**
+ * Send a broadcast marketing message to a single recipient.
+ * Uses the same presenceSubscribe + composing pattern for natural delivery.
+ */
+export async function sendBroadcastMessage(
+  phone: string,
+  message: string,
+): Promise<{ success: boolean; error?: string; jid?: string }> {
+  const connected = await waitForConnection();
+  if (!connected) {
+    return { success: false, error: "WhatsApp not connected" };
+  }
+
+  const state = getState();
+  const jid = await resolveJid(phone);
+  if (!jid) {
+    return { success: false, error: "Number is not registered on WhatsApp" };
+  }
+
+  const sock = state.sock;
+  if (!sock) {
+    return { success: false, error: "WhatsApp not connected" };
+  }
+
+  try {
+    await sock.presenceSubscribe(jid);
+    await sock.sendPresenceUpdate("composing", jid);
+    await sleep(300);
+    await sock.sendMessage(jid, { text: message });
+    await sock.sendPresenceUpdate("paused", jid);
+    return { success: true, jid };
+  } catch (err) {
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : String(err),
+    };
+  }
+}
+
+/**
+ * Resolve a phone number to a JID and verify the user is on WhatsApp.
+ * Used during contact extraction to filter out invalid numbers.
+ */
+export async function verifyWhatsAppNumber(
+  phone: string,
+): Promise<{ exists: boolean; jid: string | null }> {
+  const connected = await waitForConnection();
+  if (!connected) return { exists: false, jid: null };
+
+  const jid = await resolveJid(phone);
+  return { exists: jid !== null, jid };
+}

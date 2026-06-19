@@ -385,3 +385,133 @@ model PasskeyCredential {
   @@index([credentialId])
   @@map("passkey_credentials")
 }
+
+// ─── Marketing & WhatsApp Lead Management ───
+
+enum LeadSource {
+  personal_chat
+  group_member
+  broadcast_list
+  manual_entry
+  booking_guest
+}
+
+enum LeadStatus {
+  active
+  opted_out
+  blocked
+  invalid
+}
+
+model UserLead {
+  id              String     @id @default(cuid())
+  phoneNumber     String     @unique @map("phone_number")
+  name            String?
+  pushName        String?    @map("push_name")
+  source          LeadSource @default(group_member) @map("source")
+  sourceGroupId   String?    @map("source_group_id")
+  sourceGroupName String?    @map("source_group_name")
+  isWhatsAppUser  Boolean    @default(true) @map("is_whatsapp_user")
+  isGroupAdmin    Boolean    @default(false) @map("is_group_admin")
+  profilePicUrl   String?    @map("profile_pic_url")
+  aboutText       String?    @map("about_text")
+  tags            String[]   @default([])
+  city            String?
+  state           String?
+  email           String?
+  notes           String?
+  status          LeadStatus @default(active)
+  lastSeenAt      DateTime?  @map("last_seen_at")
+  lastEnrichedAt  DateTime?  @map("last_enriched_at")
+  createdAt       DateTime   @default(now()) @map("created_at")
+  updatedAt       DateTime   @updatedAt @map("updated_at")
+
+  campaignLogs    CampaignLog[]
+
+  @@index([source])
+  @@index([status])
+  @@index([sourceGroupId])
+  @@map("user_leads")
+}
+
+enum CampaignStatus {
+  draft
+  scheduled
+  sending
+  completed
+  paused
+  cancelled
+}
+
+model MarketingCampaign {
+  id            String          @id @default(cuid())
+  name          String
+  messageBody   String          @map("message_body")
+  templateId    String?         @map("template_id")
+  status        CampaignStatus  @default(draft)
+  targetTags    String[]        @default([]) @map("target_tags")
+  targetSources LeadSource[]    @default([]) @map("target_sources")
+  excludeOptedOut Boolean       @default(true) @map("exclude_opted_out")
+  totalRecipients Int           @default(0) @map("total_recipients")
+  sentCount     Int             @default(0) @map("sent_count")
+  deliveredCount Int            @default(0) @map("delivered_count")
+  failedCount   Int             @default(0) @map("failed_count")
+  readCount     Int             @default(0) @map("read_count")
+  scheduledAt   DateTime?       @map("scheduled_at")
+  startedAt     DateTime?       @map("started_at")
+  completedAt   DateTime?       @map("completed_at")
+  createdBy      String?        @map("created_by")
+  createdAt     DateTime        @default(now()) @map("created_at")
+  updatedAt     DateTime        @updatedAt @map("updated_at")
+
+  template      CampaignTemplate? @relation(fields: [templateId], references: [id])
+  logs          CampaignLog[]
+
+  @@index([status])
+  @@map("marketing_campaigns")
+}
+
+enum CampaignLogStatus {
+  pending
+  sent
+  delivered
+  read
+  failed
+  opted_out
+}
+
+model CampaignLog {
+  id          String            @id @default(cuid())
+  campaignId  String            @map("campaign_id")
+  leadId      String            @map("lead_id")
+  phoneNumber String            @map("phone_number")
+  status      CampaignLogStatus @default(pending)
+  error       String?
+  sentAt      DateTime?         @map("sent_at")
+  deliveredAt DateTime?         @map("delivered_at")
+  readAt      DateTime?         @map("read_at")
+  createdAt   DateTime          @default(now()) @map("created_at")
+
+  campaign    MarketingCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  lead        UserLead          @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@unique([campaignId, leadId])
+  @@index([campaignId])
+  @@index([leadId])
+  @@index([status])
+  @@map("campaign_logs")
+}
+
+model CampaignTemplate {
+  id          String   @id @default(cuid())
+  name        String
+  body        String
+  category    String   @default("general")
+  variables   String[] @default([])
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  campaigns   MarketingCampaign[]
+
+  @@map("campaign_templates")
+}

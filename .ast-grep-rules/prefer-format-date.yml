@@ -1,0 +1,6 @@
+id: prefer-format-date
+message: Use the centralized formatDate() helper from '@/lib/utils' instead of calling toLocaleDateString() directly to ensure consistent date formatting across the app.
+severity: warning
+language: tsx
+rule:
+  pattern: $DATE.toLocaleDateString($$$)
