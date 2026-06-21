@@ -1,11 +1,11 @@
 # Graph Report - Ekantah Email templates  (2026-06-21)
 
 ## Corpus Check
-- 202 files · ~283,759 words
+- 202 files · ~284,016 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1037 nodes · 1985 edges · 77 communities (41 shown, 36 thin omitted)
+- 1037 nodes · 1989 edges · 74 communities (39 shown, 35 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 22 edges (avg confidence: 0.81)
 - Token cost: 0 input · 0 output
 
@@ -78,13 +78,10 @@
 - [[_COMMUNITY_Community 67|Community 67]]
 - [[_COMMUNITY_Community 68|Community 68]]
 - [[_COMMUNITY_Community 69|Community 69]]
-- [[_COMMUNITY_Community 70|Community 70]]
 - [[_COMMUNITY_Community 71|Community 71]]
 - [[_COMMUNITY_Community 72|Community 72]]
 - [[_COMMUNITY_Community 73|Community 73]]
 - [[_COMMUNITY_Community 74|Community 74]]
-- [[_COMMUNITY_Community 75|Community 75]]
-- [[_COMMUNITY_Community 76|Community 76]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `cn()` - 65 edges
@@ -94,9 +91,9 @@
 5. `getUserFromToken()` - 20 edges
 6. `getState()` - 20 edges
 7. `scripts` - 19 edges
-8. `compilerOptions` - 16 edges
-9. `useToast()` - 15 edges
-10. `waitForConnection()` - 15 edges
+8. `waitForConnection()` - 16 edges
+9. `compilerOptions` - 16 edges
+10. `useToast()` - 15 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `POST()` --calls--> `sendBroadcastMessage()`  [INFERRED]
@@ -107,25 +104,25 @@
   app/api/whatsapp/send/route.ts → lib/whatsapp.ts
 - `POST()` --calls--> `getUserFromToken()`  [INFERRED]
   app/api/push/send/route.ts → lib/auth.ts
-- `SaleForm()` --calls--> `useToast()`  [EXTRACTED]
-  app/dashboard/additional-sales/page.tsx → components/ui/toast.tsx
+- `POST()` --calls--> `sendEmail()`  [EXTRACTED]
+  app/api/send-email/route.ts → lib/email.ts
 
 ## Import Cycles
 - 1-file cycle: `send_booking_confirmation.py -> send_booking_confirmation.py`
 
-## Communities (77 total, 36 thin omitted)
+## Communities (74 total, 35 thin omitted)
 
 ### Community 0 - "WhatsApp Integration and PDF"
-Cohesion: 0.06
-Nodes (72): CRON_JOBS, getJobFn(), POST(), SalarySlipEmail(), POST(), GET(), adminDigestJob, checkoutReminderJob (+64 more)
+Cohesion: 0.05
+Nodes (84): PATCH(), POST(), CRON_JOBS, getJobFn(), POST(), POST(), GET(), adminDigestJob (+76 more)
 
 ### Community 1 - "Bookings and Cron"
-Cohesion: 0.11
-Nodes (22): PATCH(), POST(), EmailType, getTransporter(), renderAdminDigestHtml(), renderEmailHtml(), sendEmail(), sendRawEmail() (+14 more)
+Cohesion: 0.22
+Nodes (8): formatLog(), log(), LogEntry, logger, LogLevel, bookingCreateSchema, bookingStatusSchema, bookingUpdateSchema
 
 ### Community 2 - "Email Template Components"
 Cohesion: 0.09
-Nodes (48): AmountRow(), AmountRowProps, ContactBlock(), ContactBlockProps, CTAButton(), CTAButtonProps, DataRow(), DataRowProps (+40 more)
+Nodes (49): AmountRow(), AmountRowProps, ContactBlock(), ContactBlockProps, CTAButton(), CTAButtonProps, DataRow(), DataRowProps (+41 more)
 
 ### Community 3 - "Authentication and Push APIs"
 Cohesion: 0.07
@@ -144,8 +141,8 @@ Cohesion: 0.16
 Nodes (15): EmployeeForm(), Employee, fmtCurrency(), fmtDate(), METHOD_LABELS, MONTH_NAMES, SalaryPage(), SalarySlip (+7 more)
 
 ### Community 7 - "Configuration and Dev Tooling"
-Cohesion: 0.11
-Nodes (19): scripts, build, db:generate, db:migrate, db:migrate:prod, db:migrate:reset, db:push, db:seed (+11 more)
+Cohesion: 0.05
+Nodes (37): author, description, devDependencies, concurrently, dependency-cruiser, dotenv-cli, esbuild, madge (+29 more)
 
 ### Community 8 - "Design System and Utilities"
 Cohesion: 0.09
@@ -164,8 +161,8 @@ Cohesion: 0.11
 Nodes (26): CalendarGrid(), CalendarGridProps, CalendarLegend(), WEEKDAYS, BookingInfo, BookingMiniCard(), DayCell(), DayCellProps (+18 more)
 
 ### Community 12 - "Campaigns and Validation"
-Cohesion: 0.09
-Nodes (19): AdditionalSaleCreateInput, AdditionalSaleUpdateInput, authSchema, availabilityQuerySchema, BookingCreateInput, BookingUpdateInput, CampaignCreateInput, CampaignUpdateInput (+11 more)
+Cohesion: 0.08
+Nodes (22): POST(), POST(), AdditionalSaleCreateInput, AdditionalSaleUpdateInput, authSchema, availabilityQuerySchema, BookingCreateInput, BookingUpdateInput (+14 more)
 
 ### Community 13 - "Development Features Roadmap"
 Cohesion: 0.09
@@ -193,7 +190,7 @@ Nodes (8): Booking, BookingCard(), Stats, useLongPress(), NumberTicker(), Number
 
 ### Community 20 - "Dashboard Layout Mobile"
 Cohesion: 0.14
-Nodes (22): GET(), POST(), register(), DELETE(), GET(), activeJobs, cancelJob(), getJobFromDB() (+14 more)
+Nodes (21): GET(), POST(), register(), DELETE(), GET(), activeJobs, cancelJob(), getJobFromDB() (+13 more)
 
 ### Community 21 - "Offline Queue Hooks"
 Cohesion: 0.13
@@ -239,14 +236,6 @@ Nodes (9): bufferToBase64Url(), credentialToJSON(), usePasskeys(), LoginPage(), 
 Cohesion: 0.18
 Nodes (7): Campaign, CampaignStatusBadge(), ExtractionJobStatus, Lead, LeadStats, Tab, Template
 
-### Community 67 - "Community 67"
-Cohesion: 0.18
-Nodes (11): devDependencies, concurrently, dependency-cruiser, dotenv-cli, esbuild, madge, @serwist/turbopack, tsx (+3 more)
-
-### Community 70 - "Community 70"
-Cohesion: 0.25
-Nodes (7): author, description, keywords, license, main, name, version
-
 ### Community 73 - "Community 73"
 Cohesion: 0.40
 Nodes (4): Notes, Required placeholders, Send an email, The Stream by Ekantah Email Templates
@@ -254,22 +243,22 @@ Nodes (4): Notes, Required placeholders, Send an email, The Stream by Ekantah Em
 ## Knowledge Gaps
 - **332 isolated node(s):** `prisma`, `prisma`, `prisma`, `CRON_JOBS`, `DEMO_BOOKING` (+327 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **36 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **35 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `cn()` connect `Design System and Utilities` to `Push Client Pwa`, `Community 65`, `Community 66`, `Community 69`, `Auth Pages and Passkeys`, `Layout and Theme Config`, `Drawer Crons Booking`, `Steps Stay Step`, `Bookings Booking Wizard`, `Quick Add Drawer`?**
   _High betweenness centrality (0.063) - this node is a cross-community bridge._
-- **Why does `formatDate()` connect `Community 68` to `Push Client Pwa`, `WhatsApp Integration and PDF`, `Email Template Components`, `Bookings and Cron`, `Dashboard UI and Stats`, `Design System and Utilities`, `Drawer Crons Booking`, `Toast Bookings Smart`?**
+- **Why does `formatDate()` connect `Community 68` to `Push Client Pwa`, `WhatsApp Integration and PDF`, `Email Template Components`, `Dashboard UI and Stats`, `Design System and Utilities`, `Drawer Crons Booking`, `Toast Bookings Smart`?**
   _High betweenness centrality (0.053) - this node is a cross-community bridge._
 - **Why does `Pagination()` connect `Pwa Hooks Install` to `Send Whatsapp Post`, `Toast Bookings Smart`, `Additional Sales UI`?**
   _High betweenness centrality (0.022) - this node is a cross-community bridge._
 - **What connects `prisma`, `prisma`, `prisma` to the rest of the system?**
   _341 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `WhatsApp Integration and PDF` be split into smaller, more focused modules?**
-  _Cohesion score 0.05854049719326383 - nodes in this community are weakly interconnected._
-- **Should `Bookings and Cron` be split into smaller, more focused modules?**
-  _Cohesion score 0.10582010582010581 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.05089108910891089 - nodes in this community are weakly interconnected._
 - **Should `Email Template Components` be split into smaller, more focused modules?**
-  _Cohesion score 0.09350547730829421 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.091324200913242 - nodes in this community are weakly interconnected._
+- **Should `Authentication and Push APIs` be split into smaller, more focused modules?**
+  _Cohesion score 0.07103825136612021 - nodes in this community are weakly interconnected._

@@ -47,7 +47,10 @@ type WAStatus = "connecting" | "qr" | "open" | "close" | "logged_out";
 
 interface WAState {
   sock: WASocket | null;
-  contacts: Map<string, { name?: string; notify?: string }>;
+  contacts: Map<
+    string,
+    { name?: string; notify?: string; phoneNumber?: string }
+  >;
   qrCode: string | null;
   status: WAStatus;
   reconnectAttempts: number;
@@ -276,6 +279,7 @@ export async function initWhatsApp(): Promise<WASocket | null> {
         state.contacts.set(c.id, {
           name: c.name ?? existing?.name,
           notify: c.notify ?? existing?.notify,
+          phoneNumber: c.phoneNumber ?? existing?.phoneNumber,
         });
       }
     });
@@ -286,6 +290,7 @@ export async function initWhatsApp(): Promise<WASocket | null> {
         state.contacts.set(u.id, {
           name: u.name ?? existing?.name,
           notify: u.notify ?? existing?.notify,
+          phoneNumber: u.phoneNumber ?? existing?.phoneNumber,
         });
       }
     });
@@ -1110,11 +1115,22 @@ export async function extractGroupContacts(
         if (seenJids.has(phoneNumber)) continue;
         seenJids.add(phoneNumber);
 
+        // Group metadata participants only have { id, admin } — no name/notify.
+        // Cross-reference with the in-memory contacts map to get names.
+        const contactInfo =
+          state.contacts.get(pnJid) || state.contacts.get(rawId);
+        const resolvedName = contactInfo?.name ?? null;
+        const resolvedPushName =
+          (p.name as string) ||
+          (p.notify as string) ||
+          contactInfo?.notify ||
+          null;
+
         contacts.push({
           jid: pnJid,
           phoneNumber,
-          name: null,
-          pushName: (p.name as string) || (p.notify as string) || null,
+          name: resolvedName,
+          pushName: resolvedPushName,
           isAdmin:
             (p.admin as string) === "admin" ||
             (p.admin as string) === "superadmin",
@@ -1152,15 +1168,32 @@ export async function extractPersonalContacts(): Promise<{
   try {
     const myJid = sock.user?.id;
     const contacts: ExtractedContact[] = [];
+    let skippedLids = 0;
 
     for (const [jid, info] of state.contacts) {
-      // Only personal chats (s.whatsapp.net), skip groups and self
-      if (!jid.endsWith("@s.whatsapp.net")) continue;
+      // Skip groups (@g.us) and broadcast lists (@broadcast)
+      if (jid.endsWith("@g.us") || jid.endsWith("@broadcast")) continue;
       if (jid === myJid) continue;
 
-      const phoneNumber = jid.split("@")[0];
+      let pnJid: string | undefined;
+
+      if (jid.endsWith("@s.whatsapp.net")) {
+        // Already a phone number JID
+        pnJid = jid;
+      } else if (jid.endsWith("@lid") && info?.phoneNumber) {
+        // LID with a known phone number mapping
+        pnJid = info.phoneNumber.endsWith("@s.whatsapp.net")
+          ? info.phoneNumber
+          : `${info.phoneNumber}@s.whatsapp.net`;
+      } else {
+        // LID without a phone number mapping — can't use it
+        skippedLids++;
+        continue;
+      }
+
+      const phoneNumber = pnJid.split("@")[0];
       contacts.push({
-        jid,
+        jid: pnJid,
         phoneNumber,
         name: info?.name ?? null,
         pushName: info?.notify ?? null,
@@ -1170,6 +1203,10 @@ export async function extractPersonalContacts(): Promise<{
         sourceGroupName: null,
       });
     }
+
+    log(
+      `extractPersonalContacts: ${contacts.length} personal contacts found (${skippedLids} LIDs skipped, ${state.contacts.size} total in map)`,
+    );
 
     return { contacts };
   } catch (err) {

@@ -258,6 +258,7 @@ async function runExtractionJob(
           if (existing) {
             const updateData: Record<string, unknown> = {
               pushName: contact.pushName || existing.pushName,
+              name: contact.name || existing.name,
               isGroupAdmin: contact.isAdmin || existing.isGroupAdmin,
               lastSeenAt: new Date(),
             };

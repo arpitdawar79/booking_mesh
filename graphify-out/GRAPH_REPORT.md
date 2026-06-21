@@ -1,7 +1,7 @@
 # Graph Report - Ekantah Email templates  (2026-06-21)
 
 ## Corpus Check
-- 202 files · ~284,016 words
+- 202 files · ~284,149 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `9d29dc3c`
+- Built from commit: `eaf2069d`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 

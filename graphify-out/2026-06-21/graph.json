@@ -310,7 +310,7 @@
       "source_location": "L81",
       "_origin": "ast",
       "id": "bookings_route_post",
-      "community": 1,
+      "community": 0,
       "norm_label": "post()"
     },
     {
@@ -320,7 +320,7 @@
       "source_location": "L276",
       "_origin": "ast",
       "id": "bookings_route_patch",
-      "community": 1,
+      "community": 0,
       "norm_label": "patch()"
     },
     {
@@ -590,7 +590,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_api_marketing_campaigns_id_send_route_ts_send_route",
-      "community": 75,
+      "community": 12,
       "norm_label": "route.ts"
     },
     {
@@ -600,7 +600,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "app_api_marketing_campaigns_id_send_route_ts_send_route_post",
-      "community": 75,
+      "community": 12,
       "norm_label": "post()"
     },
     {
@@ -820,7 +820,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "preview_email_route",
-      "community": 1,
+      "community": 0,
       "norm_label": "route.ts"
     },
     {
@@ -830,7 +830,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "preview_email_route_demo_booking",
-      "community": 1,
+      "community": 0,
       "norm_label": "demo_booking"
     },
     {
@@ -840,7 +840,7 @@
       "source_location": "L51",
       "_origin": "ast",
       "id": "preview_email_route_post",
-      "community": 1,
+      "community": 0,
       "norm_label": "post()"
     },
     {
@@ -900,7 +900,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "gstr_route",
-      "community": 12,
+      "community": 38,
       "norm_label": "route.ts"
     },
     {
@@ -910,7 +910,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "gstr_route_get",
-      "community": 12,
+      "community": 38,
       "norm_label": "get()"
     },
     {
@@ -990,7 +990,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "send_email_route",
-      "community": 1,
+      "community": 67,
       "norm_label": "route.ts"
     },
     {
@@ -1000,7 +1000,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "send_email_route_post",
-      "community": 1,
+      "community": 67,
       "norm_label": "post()"
     },
     {
@@ -1150,7 +1150,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "contacts_route",
-      "community": 38,
+      "community": 17,
       "norm_label": "route.ts"
     },
     {
@@ -1160,7 +1160,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "contacts_route_get",
-      "community": 38,
+      "community": 17,
       "norm_label": "get()"
     },
     {
@@ -1170,7 +1170,7 @@
       "source_location": "L49",
       "_origin": "ast",
       "id": "contacts_route_patch",
-      "community": 38,
+      "community": 17,
       "norm_label": "patch()"
     },
     {
@@ -1260,7 +1260,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_api_whatsapp_send_route_ts_send_route",
-      "community": 76,
+      "community": 12,
       "norm_label": "route.ts"
     },
     {
@@ -1270,7 +1270,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "app_api_whatsapp_send_route_ts_send_route_post",
-      "community": 76,
+      "community": 12,
       "norm_label": "post()"
     },
     {
@@ -5610,7 +5610,7 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "emails_salary_slip_email_salaryslipemail",
-      "community": 0,
+      "community": 2,
       "norm_label": "salaryslipemail()"
     },
     {
@@ -6120,7 +6120,7 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "lib_email_emailtype",
-      "community": 1,
+      "community": 0,
       "norm_label": "emailtype"
     },
     {
@@ -6140,7 +6140,7 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "lib_email_gettransporter",
-      "community": 1,
+      "community": 0,
       "norm_label": "gettransporter()"
     },
     {
@@ -6180,7 +6180,7 @@
       "source_location": "L108",
       "_origin": "ast",
       "id": "lib_email_renderemailhtml",
-      "community": 1,
+      "community": 0,
       "norm_label": "renderemailhtml()"
     },
     {
@@ -6190,7 +6190,7 @@
       "source_location": "L164",
       "_origin": "ast",
       "id": "lib_email_sendemail",
-      "community": 1,
+      "community": 0,
       "norm_label": "sendemail()"
     },
     {
@@ -6200,7 +6200,7 @@
       "source_location": "L211",
       "_origin": "ast",
       "id": "lib_email_renderadmindigesthtml",
-      "community": 1,
+      "community": 0,
       "norm_label": "renderadmindigesthtml()"
     },
     {
@@ -6210,7 +6210,7 @@
       "source_location": "L271",
       "_origin": "ast",
       "id": "lib_email_sendrawemail",
-      "community": 1,
+      "community": 0,
       "norm_label": "sendrawemail()"
     },
     {
@@ -7090,7 +7090,7 @@
       "source_location": "L74",
       "_origin": "ast",
       "id": "lib_validation_sendemailschema",
-      "community": 1,
+      "community": 67,
       "norm_label": "sendemailschema"
     },
     {
@@ -7100,7 +7100,7 @@
       "source_location": "L84",
       "_origin": "ast",
       "id": "lib_validation_sendwhatsappschema",
-      "community": 76,
+      "community": 12,
       "norm_label": "sendwhatsappschema"
     },
     {
@@ -7210,7 +7210,7 @@
       "source_location": "L162",
       "_origin": "ast",
       "id": "lib_validation_gstrexportschema",
-      "community": 12,
+      "community": 38,
       "norm_label": "gstrexportschema"
     },
     {
@@ -7450,7 +7450,7 @@
       "source_location": "L351",
       "_origin": "ast",
       "id": "lib_validation_leadtagschema",
-      "community": 38,
+      "community": 17,
       "norm_label": "leadtagschema"
     },
     {
@@ -7480,7 +7480,7 @@
       "source_location": "L409",
       "_origin": "ast",
       "id": "lib_validation_campaignsendschema",
-      "community": 75,
+      "community": 12,
       "norm_label": "campaignsendschema"
     },
     {
@@ -7950,14 +7950,14 @@
       "source_location": "L1187",
       "_origin": "ast",
       "id": "lib_whatsapp_enrichcontactprofile",
-      "community": 20,
+      "community": 0,
       "norm_label": "enrichcontactprofile()"
     },
     {
       "label": "sendBroadcastMessage()",
       "file_type": "code",
       "source_file": "lib/whatsapp.ts",
-      "source_location": "L1230",
+      "source_location": "L1253",
       "_origin": "ast",
       "id": "lib_whatsapp_sendbroadcastmessage",
       "community": 0,
@@ -7967,7 +7967,7 @@
       "label": "verifyWhatsAppNumber()",
       "file_type": "code",
       "source_file": "lib/whatsapp.ts",
-      "source_location": "L1269",
+      "source_location": "L1292",
       "_origin": "ast",
       "id": "lib_whatsapp_verifywhatsappnumber",
       "community": 0,
@@ -8090,7 +8090,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "package",
-      "community": 70,
+      "community": 7,
       "norm_label": "package.json"
     },
     {
@@ -8100,7 +8100,7 @@
       "source_location": "L2",
       "_origin": "ast",
       "id": "package_name",
-      "community": 70,
+      "community": 7,
       "norm_label": "name"
     },
     {
@@ -8110,7 +8110,7 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "package_version",
-      "community": 70,
+      "community": 7,
       "norm_label": "version"
     },
     {
@@ -8120,7 +8120,7 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "package_description",
-      "community": 70,
+      "community": 7,
       "norm_label": "description"
     },
     {
@@ -8130,7 +8130,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "package_main",
-      "community": 70,
+      "community": 7,
       "norm_label": "main"
     },
     {
@@ -8330,7 +8330,7 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "package_keywords",
-      "community": 70,
+      "community": 7,
       "norm_label": "keywords"
     },
     {
@@ -8340,7 +8340,7 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "package_author",
-      "community": 70,
+      "community": 7,
       "norm_label": "author"
     },
     {
@@ -8350,7 +8350,7 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "package_license",
-      "community": 70,
+      "community": 7,
       "norm_label": "license"
     },
     {
@@ -8820,7 +8820,7 @@
       "source_location": "L76",
       "_origin": "ast",
       "id": "package_devdependencies",
-      "community": 67,
+      "community": 7,
       "norm_label": "devdependencies"
     },
     {
@@ -8830,7 +8830,7 @@
       "source_location": "L77",
       "_origin": "ast",
       "id": "package_devdependencies_serwist_turbopack",
-      "community": 67,
+      "community": 7,
       "norm_label": "@serwist/turbopack"
     },
     {
@@ -8840,7 +8840,7 @@
       "source_location": "L78",
       "_origin": "ast",
       "id": "package_devdependencies_types_node_cron",
-      "community": 67,
+      "community": 7,
       "norm_label": "@types/node-cron"
     },
     {
@@ -8850,7 +8850,7 @@
       "source_location": "L79",
       "_origin": "ast",
       "id": "package_devdependencies_types_qrcode",
-      "community": 67,
+      "community": 7,
       "norm_label": "@types/qrcode"
     },
     {
@@ -8860,7 +8860,7 @@
       "source_location": "L80",
       "_origin": "ast",
       "id": "package_devdependencies_types_react_datepicker",
-      "community": 67,
+      "community": 7,
       "norm_label": "@types/react-datepicker"
     },
     {
@@ -8870,7 +8870,7 @@
       "source_location": "L81",
       "_origin": "ast",
       "id": "package_devdependencies_concurrently",
-      "community": 67,
+      "community": 7,
       "norm_label": "concurrently"
     },
     {
@@ -8880,7 +8880,7 @@
       "source_location": "L82",
       "_origin": "ast",
       "id": "package_devdependencies_dependency_cruiser",
-      "community": 67,
+      "community": 7,
       "norm_label": "dependency-cruiser"
     },
     {
@@ -8890,7 +8890,7 @@
       "source_location": "L83",
       "_origin": "ast",
       "id": "package_devdependencies_dotenv_cli",
-      "community": 67,
+      "community": 7,
       "norm_label": "dotenv-cli"
     },
     {
@@ -8900,7 +8900,7 @@
       "source_location": "L84",
       "_origin": "ast",
       "id": "package_devdependencies_esbuild",
-      "community": 67,
+      "community": 7,
       "norm_label": "esbuild"
     },
     {
@@ -8910,7 +8910,7 @@
       "source_location": "L85",
       "_origin": "ast",
       "id": "package_devdependencies_madge",
-      "community": 67,
+      "community": 7,
       "norm_label": "madge"
     },
     {
@@ -8920,7 +8920,7 @@
       "source_location": "L86",
       "_origin": "ast",
       "id": "package_devdependencies_tsx",
-      "community": 67,
+      "community": 7,
       "norm_label": "tsx"
     },
     {
@@ -9080,7 +9080,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "scripts_test_emails",
-      "community": 1,
+      "community": 0,
       "norm_label": "test-emails.ts"
     },
     {
@@ -9090,7 +9090,7 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "scripts_test_emails_email_types",
-      "community": 1,
+      "community": 0,
       "norm_label": "email_types"
     },
     {
@@ -9100,7 +9100,7 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "scripts_test_emails_main",
-      "community": 1,
+      "community": 0,
       "norm_label": "main()"
     },
     {
@@ -11597,9 +11597,9 @@
       "source_file": "app/api/crons/route.ts",
       "source_location": "L1",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "crons_route",
-      "target": "lib_cron_jobs_runcontactenrichmentjob",
-      "confidence_score": 1.0
+      "target": "lib_cron_jobs_runcontactenrichmentjob"
     },
     {
       "relation": "imports",
@@ -24305,9 +24305,9 @@
       "source_file": "jobs/cron-runner.ts",
       "source_location": "L39",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "jobs_cron_runner",
-      "target": "jobs_cron_runner_contactenrichmentjob",
-      "confidence_score": 1.0
+      "target": "jobs_cron_runner_contactenrichmentjob"
     },
     {
       "relation": "contains",
@@ -24369,9 +24369,9 @@
       "source_file": "jobs/cron-runner.ts",
       "source_location": "L1",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "jobs_cron_runner",
-      "target": "lib_cron_jobs_runcontactenrichmentjob",
-      "confidence_score": 1.0
+      "target": "lib_cron_jobs_runcontactenrichmentjob"
     },
     {
       "relation": "imports",
@@ -25010,9 +25010,9 @@
       "source_file": "lib/cron-jobs.ts",
       "source_location": "L588",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_cron_jobs",
-      "target": "lib_cron_jobs_runcontactenrichmentjob",
-      "confidence_score": 1.0
+      "target": "lib_cron_jobs_runcontactenrichmentjob"
     },
     {
       "relation": "contains",
@@ -25040,9 +25040,9 @@
       "source_file": "lib/cron-jobs.ts",
       "source_location": "L584",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_cron_jobs",
-      "target": "lib_cron_jobs_sleep",
-      "confidence_score": 1.0
+      "target": "lib_cron_jobs_sleep"
     },
     {
       "relation": "contains",
@@ -25159,9 +25159,9 @@
       "source_file": "lib/cron-jobs.ts",
       "source_location": "L4",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_cron_jobs",
-      "target": "lib_whatsapp_enrichcontactprofile",
-      "confidence_score": 1.0
+      "target": "lib_whatsapp_enrichcontactprofile"
     },
     {
       "relation": "imports",
@@ -25478,8 +25478,19 @@
       "source_file": "lib/cron-jobs.ts",
       "source_location": "L618",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_cron_jobs_runcontactenrichmentjob",
-      "target": "lib_cron_jobs_sleep",
+      "target": "lib_cron_jobs_sleep"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "lib/cron-jobs.ts",
+      "source_location": "L592",
+      "weight": 1.0,
+      "source": "lib_cron_jobs_runcontactenrichmentjob",
+      "target": "lib_whatsapp",
       "confidence_score": 1.0
     },
     {
@@ -25492,6 +25503,17 @@
       "weight": 1.0,
       "source": "lib_cron_jobs_runcontactenrichmentjob",
       "target": "lib_whatsapp_enrichcontactprofile"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "lib/cron-jobs.ts",
+      "source_location": "L593",
+      "weight": 1.0,
+      "source": "lib_cron_jobs_runcontactenrichmentjob",
+      "target": "lib_whatsapp_getconnectionstatus"
     },
     {
       "relation": "contains",
@@ -26089,9 +26111,9 @@
       "source_file": "lib/extraction-job.ts",
       "source_location": "L3",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_extraction_job",
-      "target": "lib_whatsapp_extractpersonalcontacts",
-      "confidence_score": 1.0
+      "target": "lib_whatsapp_extractpersonalcontacts"
     },
     {
       "relation": "calls",
@@ -26166,9 +26188,9 @@
       "source_file": "lib/extraction-job.ts",
       "source_location": "L188",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_extraction_job_runextractionjob",
-      "target": "lib_whatsapp_extractpersonalcontacts",
-      "confidence_score": 1.0
+      "target": "lib_whatsapp_extractpersonalcontacts"
     },
     {
       "relation": "contains",
@@ -27686,9 +27708,9 @@
       "source_file": "lib/whatsapp.ts",
       "source_location": "L1142",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_whatsapp",
-      "target": "lib_whatsapp_extractpersonalcontacts",
-      "confidence_score": 1.0
+      "target": "lib_whatsapp_extractpersonalcontacts"
     },
     {
       "relation": "contains",
@@ -28145,9 +28167,9 @@
       "source_file": "lib/whatsapp.ts",
       "source_location": "L1148",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_whatsapp_extractpersonalcontacts",
-      "target": "lib_whatsapp_getstate",
-      "confidence_score": 1.0
+      "target": "lib_whatsapp_getstate"
     },
     {
       "relation": "calls",
@@ -28319,6 +28341,17 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "lib/whatsapp.ts",
+      "source_location": "L1193",
+      "weight": 1.0,
+      "source": "lib_whatsapp_enrichcontactprofile",
+      "target": "lib_whatsapp_log",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "lib/whatsapp.ts",
       "source_location": "L1030",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -28332,9 +28365,9 @@
       "source_file": "lib/whatsapp.ts",
       "source_location": "L1176",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_whatsapp_extractpersonalcontacts",
-      "target": "lib_whatsapp_log",
-      "confidence_score": 1.0
+      "target": "lib_whatsapp_log"
     },
     {
       "relation": "calls",
@@ -28539,6 +28572,17 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "lib/whatsapp.ts",
+      "source_location": "L1191",
+      "weight": 1.0,
+      "source": "lib_whatsapp_enrichcontactprofile",
+      "target": "lib_whatsapp_waitforconnection",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "lib/whatsapp.ts",
       "source_location": "L977",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -28552,9 +28596,9 @@
       "source_file": "lib/whatsapp.ts",
       "source_location": "L1145",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_whatsapp_extractpersonalcontacts",
-      "target": "lib_whatsapp_waitforconnection",
-      "confidence_score": 1.0
+      "target": "lib_whatsapp_waitforconnection"
     },
     {
       "relation": "calls",
