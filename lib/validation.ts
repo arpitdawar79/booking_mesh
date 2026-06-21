@@ -332,8 +332,9 @@ export type SalarySlipUpdateInput = z.infer<typeof salarySlipUpdateSchema>;
 // ─── Marketing & WhatsApp Lead schemas ───
 
 export const extractContactsSchema = z.object({
-  enrichProfiles: z.boolean().default(true),
+  enrichProfiles: z.boolean().default(false),
   groupIds: z.array(z.string()).optional(),
+  includePersonalContacts: z.boolean().default(true),
 });
 
 export const leadUpdateSchema = z.object({

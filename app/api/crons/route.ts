@@ -1,6 +1,7 @@
 import {
     runAdminDigestJob,
     runCheckoutReminderJob,
+    runContactEnrichmentJob,
     runJob,
     runPreArrivalReminderJob,
 } from "@/lib/cron-jobs";
@@ -29,6 +30,14 @@ const CRON_JOBS = [
     description: "Send pre-arrival reminders to guests checking in tomorrow",
     label: "Pre-arrival Reminder",
   },
+  {
+    name: "contact-enrichment",
+    schedule: "*/30 * * * *",
+    timezone: "Asia/Kolkata",
+    description:
+      "Enriches unenriched WhatsApp leads (profile pic, about text) in small batches of 20",
+    label: "Contact Enrichment",
+  },
 ];
 
 function getJobFn(name: string) {
@@ -39,6 +48,8 @@ function getJobFn(name: string) {
       return runCheckoutReminderJob;
     case "pre-arrival":
       return runPreArrivalReminderJob;
+    case "contact-enrichment":
+      return runContactEnrichmentJob;
     default:
       return null;
   }

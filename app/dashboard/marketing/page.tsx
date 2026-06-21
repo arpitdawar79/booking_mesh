@@ -12,7 +12,6 @@ import {
   MessageSquare,
   Phone,
   Plus,
-  RefreshCw,
   Search,
   Send,
   Smartphone,
@@ -21,7 +20,29 @@ import {
   Users,
   XCircle,
 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+
+interface ExtractionJobStatus {
+  id: string;
+  type: string;
+  status: "pending" | "running" | "completed" | "failed" | "cancelled";
+  progress: number;
+  totalItems: number;
+  processedItems: number;
+  enrichProfiles: boolean;
+  result: {
+    totalExtracted?: number;
+    newContacts?: number;
+    updatedContacts?: number;
+    enrichedProfiles?: number;
+    groupsScanned?: number;
+    personalContacts?: number;
+  } | null;
+  error: string | null;
+  startedAt: string | null;
+  completedAt: string | null;
+  createdAt: string;
+}
 
 interface LeadStats {
   total: number;
@@ -84,6 +105,8 @@ export default function MarketingPage() {
   const [templates, setTemplates] = useState<Template[]>([]);
   const [extracting, setExtracting] = useState(false);
   const [extractResult, setExtractResult] = useState<string | null>(null);
+  const [activeJob, setActiveJob] = useState<ExtractionJobStatus | null>(null);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [loading, setLoading] = useState(true);
   const [showCampaignForm, setShowCampaignForm] = useState(false);
   const [showTemplateForm, setShowTemplateForm] = useState(false);
@@ -124,10 +147,68 @@ export default function MarketingPage() {
     }
   }, []);
 
+  const pollJob = useCallback(
+    async (jobId: string) => {
+      try {
+        const res = await fetch(`/api/whatsapp/contacts/extract/${jobId}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        const job: ExtractionJobStatus = data.job;
+        setActiveJob(job);
+
+        if (job.status === "completed") {
+          setExtracting(false);
+          if (pollRef.current) clearInterval(pollRef.current);
+          pollRef.current = null;
+          localStorage.removeItem("activeExtractionJobId");
+          const s = job.result;
+          if (s) {
+            const personal = s.personalContacts ?? 0;
+            setExtractResult(
+              `Extracted ${s.totalExtracted} contacts (${s.groupsScanned} groups + ${personal} personal). ${s.newContacts} new, ${s.updatedContacts} updated. Profile enrichment runs automatically in the background.`,
+            );
+          }
+          fetchStats();
+          fetchLeads();
+        } else if (job.status === "failed" || job.status === "cancelled") {
+          setExtracting(false);
+          if (pollRef.current) clearInterval(pollRef.current);
+          pollRef.current = null;
+          localStorage.removeItem("activeExtractionJobId");
+          setExtractResult(
+            job.status === "failed"
+              ? `Extraction failed: ${job.error || "Unknown error"}`
+              : "Extraction cancelled.",
+          );
+        }
+      } catch {
+        // Network error — keep polling, will retry
+      }
+    },
+    [fetchStats, fetchLeads],
+  );
+
   useEffect(() => {
-    Promise.all([fetchStats(), fetchLeads(), fetchCampaigns(), fetchTemplates()])
-      .finally(() => setLoading(false));
+    Promise.all([
+      fetchStats(),
+      fetchLeads(),
+      fetchCampaigns(),
+      fetchTemplates(),
+    ]).finally(() => setLoading(false));
   }, [fetchStats, fetchLeads, fetchCampaigns, fetchTemplates]);
+
+  // On mount: check for active extraction job in localStorage (survives refresh)
+  useEffect(() => {
+    const savedJobId = localStorage.getItem("activeExtractionJobId");
+    if (savedJobId) {
+      setExtracting(true);
+      pollJob(savedJobId);
+      pollRef.current = setInterval(() => pollJob(savedJobId), 2000);
+    }
+    return () => {
+      if (pollRef.current) clearInterval(pollRef.current);
+    };
+  }, [pollJob]);
 
   const handleExtract = async () => {
     setExtracting(true);
@@ -136,27 +217,51 @@ export default function MarketingPage() {
       const res = await fetch("/api/whatsapp/contacts/extract", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ enrichProfiles: true }),
+        body: JSON.stringify({
+          enrichProfiles: false,
+          includePersonalContacts: true,
+        }),
       });
       const data = await res.json();
       if (res.ok) {
-        const s = data.stats;
-        setExtractResult(
-          `Extracted ${s.totalExtracted} contacts from ${s.groupsScanned} groups. ${s.newContacts} new, ${s.updatedContacts} updated, ${s.enrichedProfiles} profiles enriched.`,
-        );
-        fetchStats();
-        fetchLeads();
+        const jobId = data.jobId as string;
+        localStorage.setItem("activeExtractionJobId", jobId);
+        // Start polling
+        pollJob(jobId);
+        pollRef.current = setInterval(() => pollJob(jobId), 2000);
       } else {
         setExtractResult(`Error: ${data.error}`);
+        setExtracting(false);
       }
     } catch (err) {
-      setExtractResult(`Error: ${err instanceof Error ? err.message : String(err)}`);
+      setExtractResult(
+        `Error: ${err instanceof Error ? err.message : String(err)}`,
+      );
+      setExtracting(false);
     }
+  };
+
+  const handleCancelExtract = async () => {
+    if (!activeJob) return;
+    try {
+      await fetch(`/api/whatsapp/contacts/extract/${activeJob.id}`, {
+        method: "DELETE",
+      });
+    } catch {
+      // ignore
+    }
+    if (pollRef.current) clearInterval(pollRef.current);
+    pollRef.current = null;
     setExtracting(false);
+    localStorage.removeItem("activeExtractionJobId");
   };
 
   const handleSendCampaign = async (campaignId: string, dryRun: boolean) => {
-    if (!dryRun && !confirm("Send this campaign to all recipients? This cannot be undone.")) return;
+    if (
+      !dryRun &&
+      !confirm("Send this campaign to all recipients? This cannot be undone.")
+    )
+      return;
     setSendingCampaign(campaignId);
     try {
       const res = await fetch(`/api/marketing/campaigns/${campaignId}/send`, {
@@ -167,9 +272,13 @@ export default function MarketingPage() {
       const data = await res.json();
       if (res.ok) {
         if (dryRun) {
-          alert(`Dry run: ${data.totalRecipients} recipients would receive this message.`);
+          alert(
+            `Dry run: ${data.totalRecipients} recipients would receive this message.`,
+          );
         } else {
-          alert(`Campaign sent! ${data.stats.sent} sent, ${data.stats.failed} failed.`);
+          alert(
+            `Campaign sent! ${data.stats.sent} sent, ${data.stats.failed} failed.`,
+          );
           fetchCampaigns();
         }
       } else {
@@ -225,20 +334,69 @@ export default function MarketingPage() {
               WhatsApp contact extraction, campaigns & broadcast messaging.
             </p>
           </div>
-          <button
-            onClick={handleExtract}
-            disabled={extracting}
-            className="flex items-center gap-2 px-3 py-2 rounded-xl bg-primary/10 border border-primary/20 text-primary text-xs font-bold hover:bg-primary/20 transition disabled:opacity-50"
-          >
-            {extracting ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Download className="w-4 h-4" />
+          <div className="flex items-center gap-2">
+            {extracting && activeJob && (
+              <button
+                onClick={handleCancelExtract}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 text-xs font-bold hover:bg-rose-500/20 transition"
+              >
+                <XCircle className="w-4 h-4" />
+                Cancel
+              </button>
             )}
-            {extracting ? "Extracting..." : "Extract Contacts"}
-          </button>
+            <button
+              onClick={handleExtract}
+              disabled={extracting}
+              className="flex items-center gap-2 px-3 py-2 rounded-xl bg-primary/10 border border-primary/20 text-primary text-xs font-bold hover:bg-primary/20 transition disabled:opacity-50"
+            >
+              {extracting ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Download className="w-4 h-4" />
+              )}
+              {extracting ? "Extracting..." : "Extract Contacts"}
+            </button>
+          </div>
         </div>
       </motion.div>
+
+      {/* Extraction Progress Bar */}
+      {extracting && activeJob && (
+        <motion.div
+          initial={{ opacity: 0, y: 5 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="p-3.5 rounded-xl bg-primary/5 border border-primary/15 space-y-2"
+        >
+          <div className="flex items-center justify-between text-xs font-bold">
+            <span className="flex items-center gap-1.5 text-primary">
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              {activeJob.status === "pending"
+                ? "Starting extraction..."
+                : "Extracting contacts..."}
+            </span>
+            <span className="text-primary font-extrabold tabular-nums">
+              {activeJob.progress}%
+            </span>
+          </div>
+          <div className="h-2 rounded-full bg-muted/40 overflow-hidden">
+            <motion.div
+              className="h-full rounded-full bg-gradient-to-r from-primary/70 to-primary"
+              initial={{ width: 0 }}
+              animate={{ width: `${activeJob.progress}%` }}
+              transition={{ type: "spring", stiffness: 200, damping: 30 }}
+            />
+          </div>
+          <div className="flex items-center justify-between text-[10px] text-muted-foreground font-medium">
+            <span>
+              {activeJob.processedItems} / {activeJob.totalItems} items
+              processed
+            </span>
+            <span className="text-primary/70">
+              Enrichment runs automatically via cron
+            </span>
+          </div>
+        </motion.div>
+      )}
 
       {extractResult && (
         <motion.div
@@ -299,8 +457,12 @@ export default function MarketingPage() {
                   <Users className="w-4 h-4" />
                 </div>
                 <div>
-                  <div className="text-2xl font-extrabold">{stats?.total || 0}</div>
-                  <div className="text-[10px] text-muted-foreground font-bold uppercase">Total Leads</div>
+                  <div className="text-2xl font-extrabold">
+                    {stats?.total || 0}
+                  </div>
+                  <div className="text-[10px] text-muted-foreground font-bold uppercase">
+                    Total Leads
+                  </div>
                 </div>
               </div>
             </MagicCard>
@@ -310,8 +472,12 @@ export default function MarketingPage() {
                   <CheckCircle2 className="w-4 h-4" />
                 </div>
                 <div>
-                  <div className="text-2xl font-extrabold">{stats?.active || 0}</div>
-                  <div className="text-[10px] text-muted-foreground font-bold uppercase">Active</div>
+                  <div className="text-2xl font-extrabold">
+                    {stats?.active || 0}
+                  </div>
+                  <div className="text-[10px] text-muted-foreground font-bold uppercase">
+                    Active
+                  </div>
                 </div>
               </div>
             </MagicCard>
@@ -321,8 +487,12 @@ export default function MarketingPage() {
                   <Smartphone className="w-4 h-4" />
                 </div>
                 <div>
-                  <div className="text-2xl font-extrabold">{campaigns.length}</div>
-                  <div className="text-[10px] text-muted-foreground font-bold uppercase">Campaigns</div>
+                  <div className="text-2xl font-extrabold">
+                    {campaigns.length}
+                  </div>
+                  <div className="text-[10px] text-muted-foreground font-bold uppercase">
+                    Campaigns
+                  </div>
                 </div>
               </div>
             </MagicCard>
@@ -332,8 +502,12 @@ export default function MarketingPage() {
                   <MessageSquare className="w-4 h-4" />
                 </div>
                 <div>
-                  <div className="text-2xl font-extrabold">{templates.length}</div>
-                  <div className="text-[10px] text-muted-foreground font-bold uppercase">Templates</div>
+                  <div className="text-2xl font-extrabold">
+                    {templates.length}
+                  </div>
+                  <div className="text-[10px] text-muted-foreground font-bold uppercase">
+                    Templates
+                  </div>
                 </div>
               </div>
             </MagicCard>
@@ -347,8 +521,13 @@ export default function MarketingPage() {
               </h3>
               <div className="space-y-1.5">
                 {stats.bySource.map((s) => (
-                  <div key={s.source} className="flex items-center justify-between text-xs">
-                    <span className="font-medium capitalize">{s.source.replace(/_/g, " ")}</span>
+                  <div
+                    key={s.source}
+                    className="flex items-center justify-between text-xs"
+                  >
+                    <span className="font-medium capitalize">
+                      {s.source.replace(/_/g, " ")}
+                    </span>
                     <span className="font-bold text-primary">{s.count}</span>
                   </div>
                 ))}
@@ -364,9 +543,16 @@ export default function MarketingPage() {
               </h3>
               <div className="space-y-1.5">
                 {stats.topGroups.map((g, i) => (
-                  <div key={i} className="flex items-center justify-between text-xs">
-                    <span className="font-medium truncate max-w-[70%]">{g.name}</span>
-                    <span className="font-bold text-muted-foreground">{g.count} contacts</span>
+                  <div
+                    key={i}
+                    className="flex items-center justify-between text-xs"
+                  >
+                    <span className="font-medium truncate max-w-[70%]">
+                      {g.name}
+                    </span>
+                    <span className="font-bold text-muted-foreground">
+                      {g.count} contacts
+                    </span>
                   </div>
                 ))}
               </div>
@@ -398,7 +584,11 @@ export default function MarketingPage() {
 
       {/* Leads Tab */}
       {tab === "leads" && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="space-y-3"
+        >
           {/* Search & Filter */}
           <div className="flex gap-2 flex-wrap">
             <div className="relative flex-1 min-w-[200px]">
@@ -449,7 +639,9 @@ export default function MarketingPage() {
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2.5 min-w-0">
                       <div className="w-8 h-8 rounded-full bg-primary/10 border border-primary/15 flex items-center justify-center text-[10px] font-bold text-primary shrink-0">
-                        {(lead.name || lead.pushName || lead.phoneNumber)?.[0]?.toUpperCase() || "?"}
+                        {(lead.name ||
+                          lead.pushName ||
+                          lead.phoneNumber)?.[0]?.toUpperCase() || "?"}
                       </div>
                       <div className="min-w-0">
                         <div className="font-semibold text-xs truncate">
@@ -459,7 +651,9 @@ export default function MarketingPage() {
                           <Phone className="w-2.5 h-2.5" />
                           {lead.phoneNumber}
                           {lead.isGroupAdmin && (
-                            <span className="text-amber-600 font-bold">Admin</span>
+                            <span className="text-amber-600 font-bold">
+                              Admin
+                            </span>
                           )}
                         </div>
                       </div>
@@ -524,7 +718,11 @@ export default function MarketingPage() {
 
       {/* Campaigns Tab */}
       {tab === "campaigns" && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="space-y-3"
+        >
           <div className="flex items-center justify-between">
             <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground/80">
               Campaigns
@@ -571,13 +769,19 @@ export default function MarketingPage() {
                     <div className="flex items-center gap-3 text-[10px] text-muted-foreground font-medium">
                       <span>{c.totalRecipients} recipients</span>
                       {c.sentCount > 0 && (
-                        <span className="text-emerald-600">{c.sentCount} sent</span>
+                        <span className="text-emerald-600">
+                          {c.sentCount} sent
+                        </span>
                       )}
                       {c.failedCount > 0 && (
-                        <span className="text-rose-600">{c.failedCount} failed</span>
+                        <span className="text-rose-600">
+                          {c.failedCount} failed
+                        </span>
                       )}
                       {c.template && (
-                        <span className="text-primary">Template: {c.template.name}</span>
+                        <span className="text-primary">
+                          Template: {c.template.name}
+                        </span>
                       )}
                     </div>
                   </div>
@@ -623,7 +827,11 @@ export default function MarketingPage() {
 
       {/* Templates Tab */}
       {tab === "templates" && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="space-y-3"
+        >
           <div className="flex items-center justify-between">
             <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground/80">
               Message Templates
@@ -707,7 +915,12 @@ function CampaignStatusBadge({ status }: { status: string }) {
     cancelled: "bg-rose-500/10 text-rose-600",
   };
   return (
-    <span className={cn("px-1.5 py-0.5 rounded text-[9px] font-bold capitalize", styles[status] || styles.draft)}>
+    <span
+      className={cn(
+        "px-1.5 py-0.5 rounded text-[9px] font-bold capitalize",
+        styles[status] || styles.draft,
+      )}
+    >
       {status}
     </span>
   );
@@ -731,7 +944,13 @@ function CampaignForm({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const sources = ["group_member", "personal_chat", "broadcast_list", "manual_entry", "booking_guest"];
+  const sources = [
+    "group_member",
+    "personal_chat",
+    "broadcast_list",
+    "manual_entry",
+    "booking_guest",
+  ];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -766,7 +985,9 @@ function CampaignForm({
     <MagicCard className="p-4 space-y-3">
       <form onSubmit={handleSubmit} className="space-y-3">
         <div>
-          <label className="text-[10px] font-bold uppercase text-muted-foreground/80">Campaign Name</label>
+          <label className="text-[10px] font-bold uppercase text-muted-foreground/80">
+            Campaign Name
+          </label>
           <input
             type="text"
             value={name}
@@ -777,7 +998,9 @@ function CampaignForm({
         </div>
 
         <div>
-          <label className="text-[10px] font-bold uppercase text-muted-foreground/80">Message Body</label>
+          <label className="text-[10px] font-bold uppercase text-muted-foreground/80">
+            Message Body
+          </label>
           <textarea
             value={messageBody}
             onChange={(e) => setMessageBody(e.target.value)}
@@ -789,7 +1012,9 @@ function CampaignForm({
         </div>
 
         <div>
-          <label className="text-[10px] font-bold uppercase text-muted-foreground/80">Template (optional)</label>
+          <label className="text-[10px] font-bold uppercase text-muted-foreground/80">
+            Template (optional)
+          </label>
           <select
             value={templateId}
             onChange={(e) => {
@@ -804,13 +1029,17 @@ function CampaignForm({
           >
             <option value="">No template</option>
             {templates.map((t) => (
-              <option key={t.id} value={t.id}>{t.name}</option>
+              <option key={t.id} value={t.id}>
+                {t.name}
+              </option>
             ))}
           </select>
         </div>
 
         <div>
-          <label className="text-[10px] font-bold uppercase text-muted-foreground/80">Target Sources</label>
+          <label className="text-[10px] font-bold uppercase text-muted-foreground/80">
+            Target Sources
+          </label>
           <div className="flex flex-wrap gap-1.5 mt-1">
             {sources.map((s) => (
               <button
@@ -818,7 +1047,9 @@ function CampaignForm({
                 type="button"
                 onClick={() => {
                   setTargetSources((prev) =>
-                    prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s],
+                    prev.includes(s)
+                      ? prev.filter((x) => x !== s)
+                      : [...prev, s],
                   );
                 }}
                 className={cn(
@@ -835,11 +1066,20 @@ function CampaignForm({
         </div>
 
         <div>
-          <label className="text-[10px] font-bold uppercase text-muted-foreground/80">Target Tags (comma-separated)</label>
+          <label className="text-[10px] font-bold uppercase text-muted-foreground/80">
+            Target Tags (comma-separated)
+          </label>
           <input
             type="text"
             value={targetTags.join(", ")}
-            onChange={(e) => setTargetTags(e.target.value.split(",").map((t) => t.trim()).filter(Boolean))}
+            onChange={(e) =>
+              setTargetTags(
+                e.target.value
+                  .split(",")
+                  .map((t) => t.trim())
+                  .filter(Boolean),
+              )
+            }
             className="w-full mt-1 px-3 py-2 rounded-xl bg-muted/30 border border-border/30 text-xs font-medium focus:outline-none focus:border-primary/30"
           />
         </div>
@@ -854,7 +1094,9 @@ function CampaignForm({
           Exclude opted-out contacts
         </label>
 
-        {error && <p className="text-[10px] text-rose-600 font-medium">{error}</p>}
+        {error && (
+          <p className="text-[10px] text-rose-600 font-medium">{error}</p>
+        )}
 
         <div className="flex gap-2">
           <button
@@ -903,7 +1145,10 @@ function TemplateForm({
           name,
           body,
           category,
-          variables: variables.split(",").map((v) => v.trim()).filter(Boolean),
+          variables: variables
+            .split(",")
+            .map((v) => v.trim())
+            .filter(Boolean),
         }),
       });
       const data = await res.json();
@@ -922,7 +1167,9 @@ function TemplateForm({
     <MagicCard className="p-4 space-y-3">
       <form onSubmit={handleSubmit} className="space-y-3">
         <div>
-          <label className="text-[10px] font-bold uppercase text-muted-foreground/80">Template Name</label>
+          <label className="text-[10px] font-bold uppercase text-muted-foreground/80">
+            Template Name
+          </label>
           <input
             type="text"
             value={name}
@@ -932,7 +1179,9 @@ function TemplateForm({
           />
         </div>
         <div>
-          <label className="text-[10px] font-bold uppercase text-muted-foreground/80">Message Body</label>
+          <label className="text-[10px] font-bold uppercase text-muted-foreground/80">
+            Message Body
+          </label>
           <textarea
             value={body}
             onChange={(e) => setBody(e.target.value)}
@@ -943,7 +1192,9 @@ function TemplateForm({
           />
         </div>
         <div>
-          <label className="text-[10px] font-bold uppercase text-muted-foreground/80">Category</label>
+          <label className="text-[10px] font-bold uppercase text-muted-foreground/80">
+            Category
+          </label>
           <input
             type="text"
             value={category}
@@ -952,7 +1203,9 @@ function TemplateForm({
           />
         </div>
         <div>
-          <label className="text-[10px] font-bold uppercase text-muted-foreground/80">Variables (comma-separated)</label>
+          <label className="text-[10px] font-bold uppercase text-muted-foreground/80">
+            Variables (comma-separated)
+          </label>
           <input
             type="text"
             value={variables}
@@ -961,7 +1214,9 @@ function TemplateForm({
             className="w-full mt-1 px-3 py-2 rounded-xl bg-muted/30 border border-border/30 text-xs font-medium focus:outline-none focus:border-primary/30"
           />
         </div>
-        {error && <p className="text-[10px] text-rose-600 font-medium">{error}</p>}
+        {error && (
+          <p className="text-[10px] text-rose-600 font-medium">{error}</p>
+        )}
         <div className="flex gap-2">
           <button
             type="submit"

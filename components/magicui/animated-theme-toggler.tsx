@@ -148,6 +148,7 @@ export const AnimatedThemeToggler = ({
   const isControlled = theme !== undefined;
   const [internalIsDark, setInternalIsDark] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   const currentTheme: ThemeMode = theme ?? "system";
   const isSystem = currentTheme === "system";
@@ -161,7 +162,15 @@ export const AnimatedThemeToggler = ({
     return "light";
   }, []);
 
-  const resolvedTheme = isSystem ? getSystemTheme() : currentTheme;
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const resolvedTheme = isSystem
+    ? mounted
+      ? getSystemTheme()
+      : "light"
+    : currentTheme;
   const isDark = isControlled ? resolvedTheme === "dark" : internalIsDark;
   const buttonRef = useRef<HTMLButtonElement>(null);
 

@@ -2,10 +2,11 @@ import { renderAdminDigestHtml, sendEmail, sendRawEmail } from "@/lib/email";
 import { prisma } from "@/lib/prisma";
 import { formatDate } from "@/lib/utils";
 import {
-  generatePdfFromHtml,
-  sendBookingWhatsApp,
-  sendWhatsAppGroupMessage,
-  sendWhatsAppGroupPdf,
+    enrichContactProfile,
+    generatePdfFromHtml,
+    sendBookingWhatsApp,
+    sendWhatsAppGroupMessage,
+    sendWhatsAppGroupPdf,
 } from "@/lib/whatsapp";
 import { format } from "date-fns";
 
@@ -567,4 +568,119 @@ export async function runPreArrivalReminderJob(log: LogFn = defaultLog) {
     log("pre-arrival", `Error: ${err}`);
     throw err;
   }
+}
+
+// ─── Contact Profile Enrichment Cron ───
+//
+// Runs periodically (every 30 min via cron-runner). Picks up leads that have
+// never been enriched OR were last enriched >7 days ago. Processes a small
+// batch (20) each run to avoid rate-limiting. This decouples enrichment from
+// extraction so contact extraction stays fast.
+
+const ENRICH_BATCH_SIZE = 20;
+const ENRICH_REVALIDATE_DAYS = 7;
+const ENRICH_TIMEOUT_MS = 15_000;
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
+export async function runContactEnrichmentJob(log: LogFn = defaultLog) {
+  log("enrichment", "Starting contact profile enrichment batch...");
+
+  // Check WhatsApp connection status before doing anything
+  const { getConnectionStatus } = await import("@/lib/whatsapp");
+  const waStatus = getConnectionStatus();
+  if (waStatus.status !== "open") {
+    log(
+      "enrichment",
+      `WhatsApp not connected (status: ${waStatus.status}). Skipping enrichment batch.`,
+    );
+    return;
+  }
+
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - ENRICH_REVALIDATE_DAYS);
+
+  const leads = await prisma.userLead.findMany({
+    where: {
+      OR: [{ lastEnrichedAt: null }, { lastEnrichedAt: { lt: cutoff } }],
+      status: "active",
+    },
+    take: ENRICH_BATCH_SIZE,
+    orderBy: { lastEnrichedAt: "asc" },
+  });
+
+  if (leads.length === 0) {
+    log("enrichment", "No leads need enrichment. Skipping.");
+    return;
+  }
+
+  log("enrichment", `Enriching ${leads.length} leads...`);
+
+  let enriched = 0;
+  let failed = 0;
+  let skipped = 0;
+
+  for (const lead of leads) {
+    const jid = `${lead.phoneNumber}@s.whatsapp.net`;
+
+    try {
+      const profile = await Promise.race([
+        enrichContactProfile(jid),
+        sleep(ENRICH_TIMEOUT_MS).then(() => null),
+      ]);
+
+      if (profile === null) {
+        // Timed out — don't mark lastEnrichedAt so it gets retried next run
+        log("enrichment", `Timeout for ${jid}, will retry next batch`);
+        skipped++;
+        await sleep(300);
+        continue;
+      }
+
+      const hasData =
+        profile.profilePicUrl !== null || profile.aboutText !== null;
+
+      await prisma.userLead.update({
+        where: { id: lead.id },
+        data: {
+          profilePicUrl: profile.profilePicUrl,
+          aboutText: profile.aboutText,
+          isWhatsAppUser: profile.isWhatsAppUser,
+          lastEnrichedAt: new Date(),
+        },
+      });
+
+      if (hasData) {
+        enriched++;
+      } else {
+        // Profile is private/no data — still mark as attempted
+        log(
+          "enrichment",
+          `No profile data for ${jid} (private/no pic/no about)`,
+        );
+        failed++;
+      }
+    } catch (err) {
+      // Mark as attempted even on failure to avoid retrying the same lead every run
+      log(
+        "enrichment",
+        `Error enriching ${jid}: ${err instanceof Error ? err.message : String(err)}`,
+      );
+      await prisma.userLead.update({
+        where: { id: lead.id },
+        data: { lastEnrichedAt: new Date() },
+      });
+      failed++;
+    }
+
+    // Small delay between contacts to avoid WhatsApp rate-limiting
+    await sleep(500);
+  }
+
+  log(
+    "enrichment",
+    `Batch complete. Enriched: ${enriched}, Failed/no data: ${failed}, Skipped/timeouts: ${skipped}, Total: ${leads.length}`,
+  );
 }

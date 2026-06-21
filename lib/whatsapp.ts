@@ -1,22 +1,22 @@
 import type { Boom } from "@hapi/boom";
 import type { Booking } from "@prisma/client";
 import {
-    Browsers,
-    DisconnectReason,
-    fetchLatestBaileysVersion,
-    makeCacheableSignalKeyStore,
-    makeWASocket,
-    useMultiFileAuthState,
-    type AnyMessageContent,
+  Browsers,
+  DisconnectReason,
+  fetchLatestBaileysVersion,
+  makeCacheableSignalKeyStore,
+  makeWASocket,
+  useMultiFileAuthState,
+  type AnyMessageContent,
 } from "@whiskeysockets/baileys";
 import fs, { existsSync } from "fs";
 import path from "path";
 import pino from "pino";
 import QRCode from "qrcode";
 import {
-    renderBookingPdfHtml,
-    renderSalarySlipPdfHtml,
-    type SalarySlipPdfData,
+  renderBookingPdfHtml,
+  renderSalarySlipPdfHtml,
+  type SalarySlipPdfData,
 } from "./pdf";
 import { prisma } from "./prisma";
 import { formatDate } from "./utils";
@@ -47,6 +47,7 @@ type WAStatus = "connecting" | "qr" | "open" | "close" | "logged_out";
 
 interface WAState {
   sock: WASocket | null;
+  contacts: Map<string, { name?: string; notify?: string }>;
   qrCode: string | null;
   status: WAStatus;
   reconnectAttempts: number;
@@ -72,6 +73,7 @@ function getState(): WAState {
   if (!globalForWA.__waState) {
     globalForWA.__waState = {
       sock: null,
+      contacts: new Map(),
       qrCode: null,
       status: "close",
       reconnectAttempts: 0,
@@ -264,6 +266,29 @@ export async function initWhatsApp(): Promise<WASocket | null> {
     }
 
     sock.ev.on("creds.update", saveCreds);
+
+    // ── Build an in-memory personal contacts map from Baileys events ──
+    // Baileys emits contacts.upsert (bulk sync on connect) and contacts.update
+    // (incremental). We store them so extractPersonalContacts can read them.
+    sock.ev.on("contacts.upsert", (contacts) => {
+      for (const c of contacts) {
+        const existing = state.contacts.get(c.id);
+        state.contacts.set(c.id, {
+          name: c.name ?? existing?.name,
+          notify: c.notify ?? existing?.notify,
+        });
+      }
+    });
+    sock.ev.on("contacts.update", (updates) => {
+      for (const u of updates) {
+        if (!u.id) continue;
+        const existing = state.contacts.get(u.id);
+        state.contacts.set(u.id, {
+          name: u.name ?? existing?.name,
+          notify: u.notify ?? existing?.notify,
+        });
+      }
+    });
 
     sock.ev.on("connection.update", async (update) => {
       const { connection, lastDisconnect, qr } = update;
@@ -990,6 +1015,9 @@ export async function extractGroupContacts(
     const contacts: ExtractedContact[] = [];
     const seenJids = new Set<string>();
 
+    // Collect LIDs that need resolution to phone numbers
+    const lidToResolve: string[] = [];
+
     for (const group of targetGroups) {
       const groupId = group.id as string;
       const groupName = (group.subject as string) || "Unnamed Group";
@@ -1003,15 +1031,87 @@ export async function extractGroupContacts(
       }
 
       const participants = metadata?.participants || [];
+      if (participants.length === 0) {
+        log(
+          `extractGroupContacts: group "${groupName}" (${groupId}) returned 0 participants`,
+        );
+      }
       for (const p of participants) {
-        const jid = p.id as string;
-        if (jid === sock.user?.id) continue; // skip self
-        if (seenJids.has(jid)) continue;
-        seenJids.add(jid);
+        const rawId = (p.id as string) || "";
+        if (!rawId) continue;
+        if (rawId === sock.user?.id) continue; // skip self
 
-        const phoneNumber = jid.split("@")[0];
+        // The participant id may be a LID (e.g. 166631862972658@lid) or a
+        // regular phone JID (e.g. 918383848134@s.whatsapp.net). Some
+        // participants also expose a `phoneNumber` field with the PN JID.
+        const isLid = rawId.endsWith("@lid");
+        const pnJid =
+          p.phoneNumber ||
+          (rawId.endsWith("@s.whatsapp.net") ? rawId : undefined);
+
+        if (isLid && !pnJid) {
+          lidToResolve.push(rawId);
+        }
+      }
+    }
+
+    // Batch-resolve LIDs → phone number JIDs via Baileys' signal repository
+    const lidToPnMap = new Map<string, string>();
+    if (lidToResolve.length > 0) {
+      try {
+        const lidMapping = (sock as any).signalRepository?.lidMapping;
+        if (lidMapping?.getPNsForLIDs) {
+          const mappings = await lidMapping.getPNsForLIDs(lidToResolve);
+          if (mappings) {
+            for (const m of mappings) {
+              if (m.lid && m.pn) {
+                lidToPnMap.set(m.lid, m.pn);
+              }
+            }
+          }
+        }
+      } catch (err) {
+        log(
+          `extractGroupContacts: LID resolution failed for ${lidToResolve.length} contacts: ${err instanceof Error ? err.message : String(err)}`,
+        );
+      }
+    }
+
+    // Now build the final contacts list with resolved phone numbers
+    for (const group of targetGroups) {
+      const groupId = group.id as string;
+      const groupName = (group.subject as string) || "Unnamed Group";
+
+      let metadata: any;
+      try {
+        metadata = await sock.groupMetadata(groupId);
+      } catch {
+        metadata = group;
+      }
+
+      const participants = metadata?.participants || [];
+      for (const p of participants) {
+        const rawId = (p.id as string) || "";
+        if (!rawId) continue;
+        if (rawId === sock.user?.id) continue;
+
+        const isLid = rawId.endsWith("@lid");
+        const pnJid =
+          p.phoneNumber ||
+          (rawId.endsWith("@s.whatsapp.net") ? rawId : undefined) ||
+          (isLid ? lidToPnMap.get(rawId) : undefined);
+
+        if (!pnJid) {
+          // Could not resolve LID to a phone number — skip this contact
+          continue;
+        }
+
+        const phoneNumber = pnJid.split("@")[0];
+        if (seenJids.has(phoneNumber)) continue;
+        seenJids.add(phoneNumber);
+
         contacts.push({
-          jid,
+          jid: pnJid,
           phoneNumber,
           name: null,
           pushName: (p.name as string) || (p.notify as string) || null,
@@ -1035,15 +1135,71 @@ export async function extractGroupContacts(
 }
 
 /**
+ * Extract personal (1:1) contacts from the connected WhatsApp account.
+ * Reads from Baileys' in-memory contact store — these are people you've
+ * chatted with directly (not group-only contacts).
+ */
+export async function extractPersonalContacts(): Promise<{
+  contacts: ExtractedContact[];
+} | null> {
+  const connected = await waitForConnection();
+  if (!connected) return null;
+
+  const state = getState();
+  const sock = state.sock;
+  if (!sock) return null;
+
+  try {
+    const myJid = sock.user?.id;
+    const contacts: ExtractedContact[] = [];
+
+    for (const [jid, info] of state.contacts) {
+      // Only personal chats (s.whatsapp.net), skip groups and self
+      if (!jid.endsWith("@s.whatsapp.net")) continue;
+      if (jid === myJid) continue;
+
+      const phoneNumber = jid.split("@")[0];
+      contacts.push({
+        jid,
+        phoneNumber,
+        name: info?.name ?? null,
+        pushName: info?.notify ?? null,
+        isAdmin: false,
+        source: "personal_chat",
+        sourceGroupId: null,
+        sourceGroupName: null,
+      });
+    }
+
+    return { contacts };
+  } catch (err) {
+    log(
+      `extractPersonalContacts failed: ${err instanceof Error ? err.message : String(err)}`,
+    );
+    return null;
+  }
+}
+
+/**
  * Enrich a contact's profile by fetching their profile picture URL and
  * about/status text. Non-fatal: returns nulls if the profile is private.
  */
 export async function enrichContactProfile(
   jid: string,
 ): Promise<EnrichedProfile> {
+  // Ensure WhatsApp is connected before attempting enrichment
+  const connected = await waitForConnection();
+  if (!connected) {
+    log(`enrichContactProfile: WhatsApp not connected, skipping ${jid}`);
+    return { profilePicUrl: null, aboutText: null, isWhatsAppUser: true };
+  }
+
   const state = getState();
   const sock = state.sock;
   if (!sock) {
+    log(
+      `enrichContactProfile: sock is null after waitForConnection, skipping ${jid}`,
+    );
     return { profilePicUrl: null, aboutText: null, isWhatsAppUser: true };
   }
 
@@ -1054,16 +1210,29 @@ export async function enrichContactProfile(
   try {
     const picUrl = await sock.profilePictureUrl(jid, "preview");
     profilePicUrl = picUrl || null;
-  } catch {
-    // Profile picture is private or unavailable
+  } catch (err) {
+    log(
+      `enrichContactProfile: profilePictureUrl failed for ${jid}: ${err instanceof Error ? err.message : String(err)}`,
+    );
   }
 
   try {
     const statusResult = await sock.fetchStatus(jid);
-    const statusEntry = (statusResult as any[])?.[0];
-    aboutText = (statusEntry?.status as string) || null;
-  } catch {
-    // Status is private or unavailable
+    // fetchStatus returns an array of { id, status: { status, setAt } } objects.
+    // The protocol name "status" wraps the parsed result, so we need .status.status
+    // to get the actual about text string.
+    const statusList = (statusResult as any[]) ?? [];
+    const statusEntry = statusList.find((s) => s?.id === jid) ?? statusList[0];
+    // statusEntry.status is { status: string, setAt: Date } — extract the inner status
+    const aboutRaw = statusEntry?.status;
+    aboutText =
+      (typeof aboutRaw === "object" && aboutRaw !== null
+        ? (aboutRaw.status as string)
+        : (aboutRaw as string)) || null;
+  } catch (err) {
+    log(
+      `enrichContactProfile: fetchStatus failed for ${jid}: ${err instanceof Error ? err.message : String(err)}`,
+    );
   }
 
   try {

@@ -202,7 +202,7 @@ export default function CronsPage() {
         <h2 className="text-sm font-semibold">Jobs</h2>
         {loadingJobs ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {Array.from({ length: 3 }).map((_, i) => (
+            {Array.from({ length: 4 }).map((_, i) => (
               <div
                 key={i}
                 className="rounded-xl border border-border p-4 space-y-3 animate-pulse"
@@ -305,7 +305,11 @@ export default function CronsPage() {
                 className="pl-10 pr-3 py-1.5 text-xs rounded-md border border-border bg-card text-foreground appearance-none cursor-pointer"
               >
                 {jobOptions.map((o) => (
-                  <option key={o.value} value={o.value} className="bg-card text-foreground">
+                  <option
+                    key={o.value}
+                    value={o.value}
+                    className="bg-card text-foreground"
+                  >
                     {o.label}
                   </option>
                 ))}
@@ -320,7 +324,11 @@ export default function CronsPage() {
               className="px-3 py-1.5 text-xs rounded-md border border-border bg-card text-foreground appearance-none cursor-pointer"
             >
               {statusOptions.map((o) => (
-                <option key={o.value} value={o.value} className="bg-card text-foreground">
+                <option
+                  key={o.value}
+                  value={o.value}
+                  className="bg-card text-foreground"
+                >
                   {o.label}
                 </option>
               ))}
@@ -378,9 +386,7 @@ export default function CronsPage() {
                           {jobs.find((j) => j.name === run.jobName)?.label ||
                             run.jobName}
                         </td>
-                        <td>
-                          {statusBadge(run.status)}
-                        </td>
+                        <td>{statusBadge(run.status)}</td>
                         <td className="text-muted-foreground text-xs">
                           {new Date(run.startedAt).toLocaleString()}
                         </td>

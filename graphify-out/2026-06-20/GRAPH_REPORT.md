@@ -1,18 +1,13 @@
-# Graph Report - Ekantah Email templates  (2026-06-21)
+# Graph Report - .  (2026-06-19)
 
 ## Corpus Check
-- 202 files · ~284,016 words
+- 146 files · ~281,314 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1037 nodes · 1989 edges · 74 communities (39 shown, 35 thin omitted)
-- Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 22 edges (avg confidence: 0.81)
+- 956 nodes · 1733 edges · 65 communities (35 shown, 30 thin omitted)
+- Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 21 edges (avg confidence: 0.81)
 - Token cost: 0 input · 0 output
-
-## Graph Freshness
-- Built from commit: `9d29dc3c`
-- Run `git rev-parse HEAD` and compare to check if the graph is stale.
-- Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
 - [[_COMMUNITY_WhatsApp Integration and PDF|WhatsApp Integration and PDF]]
@@ -70,143 +65,133 @@
 - [[_COMMUNITY_Screenshots Readme Pwa|Screenshots Readme Pwa]]
 - [[_COMMUNITY_Types Virtual Keyboard|Types Virtual Keyboard]]
 - [[_COMMUNITY_Graphify Workflows Workflow|Graphify Workflows Workflow]]
-- [[_COMMUNITY_Next Config|Next Config]]
 - [[_COMMUNITY_Public Apple Touch|Public Apple Touch]]
 - [[_COMMUNITY_Public Favicon|Public Favicon]]
-- [[_COMMUNITY_Community 65|Community 65]]
-- [[_COMMUNITY_Community 66|Community 66]]
-- [[_COMMUNITY_Community 67|Community 67]]
-- [[_COMMUNITY_Community 68|Community 68]]
-- [[_COMMUNITY_Community 69|Community 69]]
-- [[_COMMUNITY_Community 71|Community 71]]
-- [[_COMMUNITY_Community 72|Community 72]]
-- [[_COMMUNITY_Community 73|Community 73]]
-- [[_COMMUNITY_Community 74|Community 74]]
 
 ## God Nodes (most connected - your core abstractions)
-1. `cn()` - 65 edges
-2. `useHaptic()` - 32 edges
-3. `EmailTheme` - 24 edges
+1. `cn()` - 51 edges
+2. `useHaptic()` - 28 edges
+3. `EmailTheme` - 23 edges
 4. `Ekantah Feature Roadmap` - 21 edges
 5. `getUserFromToken()` - 20 edges
-6. `getState()` - 20 edges
-7. `scripts` - 19 edges
-8. `waitForConnection()` - 16 edges
-9. `compilerOptions` - 16 edges
-10. `useToast()` - 15 edges
+6. `scripts` - 19 edges
+7. `getState()` - 18 edges
+8. `compilerOptions` - 16 edges
+9. `formatDate()` - 14 edges
+10. `sendBookingWhatsApp()` - 14 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `POST()` --calls--> `sendBroadcastMessage()`  [INFERRED]
   app/api/marketing/campaigns/[id]/send/route.ts → lib/whatsapp.ts
-- `PUT()` --calls--> `enrichContactProfile()`  [INFERRED]
-  app/api/whatsapp/contacts/[id]/route.ts → lib/whatsapp.ts
 - `POST()` --calls--> `sendBookingWhatsApp()`  [INFERRED]
   app/api/whatsapp/send/route.ts → lib/whatsapp.ts
 - `POST()` --calls--> `getUserFromToken()`  [INFERRED]
   app/api/push/send/route.ts → lib/auth.ts
-- `POST()` --calls--> `sendEmail()`  [EXTRACTED]
-  app/api/send-email/route.ts → lib/email.ts
+- `PUT()` --calls--> `enrichContactProfile()`  [INFERRED]
+  app/api/whatsapp/contacts/[id]/route.ts → lib/whatsapp.ts
+- `BookingDetailPage()` --calls--> `useHaptic()`  [INFERRED]
+  app/dashboard/booking/[id]/page.tsx → lib/pwa-hooks.ts
 
 ## Import Cycles
 - 1-file cycle: `send_booking_confirmation.py -> send_booking_confirmation.py`
 
-## Communities (74 total, 35 thin omitted)
+## Communities (65 total, 30 thin omitted)
 
 ### Community 0 - "WhatsApp Integration and PDF"
-Cohesion: 0.05
-Nodes (84): PATCH(), POST(), CRON_JOBS, getJobFn(), POST(), POST(), GET(), adminDigestJob (+76 more)
+Cohesion: 0.07
+Nodes (54): POST(), POST(), GET(), PUT(), renderBookingPdfHtml(), renderSalarySlipPdfHtml(), SalarySlipPdfData, extractContactsSchema (+46 more)
 
 ### Community 1 - "Bookings and Cron"
-Cohesion: 0.22
-Nodes (8): formatLog(), log(), LogEntry, logger, LogLevel, bookingCreateSchema, bookingStatusSchema, bookingUpdateSchema
+Cohesion: 0.05
+Nodes (44): BookingActionsProps, generateBookingId(), PATCH(), POST(), CRON_JOBS, getJobFn(), POST(), adminDigestJob (+36 more)
 
 ### Community 2 - "Email Template Components"
 Cohesion: 0.09
-Nodes (49): AmountRow(), AmountRowProps, ContactBlock(), ContactBlockProps, CTAButton(), CTAButtonProps, DataRow(), DataRowProps (+41 more)
+Nodes (39): AmountRow(), AmountRowProps, ContactBlockProps, CTAButton(), CTAButtonProps, DataRow(), DataRowProps, EmailFooter() (+31 more)
 
 ### Community 3 - "Authentication and Push APIs"
 Cohesion: 0.07
 Nodes (49): DELETE(), GET(), PATCH(), POST(), clearAuthCookies(), POST(), prisma, setAuthCookies() (+41 more)
 
 ### Community 4 - "Dashboard UI and Stats"
-Cohesion: 0.19
-Nodes (10): CronJobDef, CronRunItem, CronsPage(), formatDuration(), HistoryResponse, statusBadge(), GuestDetail, STATUS_STYLES (+2 more)
+Cohesion: 0.05
+Nodes (24): KpiCard(), AnalyticsData, BookingStats, DashboardPage(), StatCard(), Guest, GuestDetail, StatCard() (+16 more)
 
 ### Community 5 - "NPM Packages and Dependencies"
 Cohesion: 0.04
 Nodes (46): dependencies, bcryptjs, class-variance-authority, clsx, date-fns, eslint, eslint-config-next, file-saver (+38 more)
 
 ### Community 6 - "Additional Sales UI"
-Cohesion: 0.16
-Nodes (15): EmployeeForm(), Employee, fmtCurrency(), fmtDate(), METHOD_LABELS, MONTH_NAMES, SalaryPage(), SalarySlip (+7 more)
+Cohesion: 0.06
+Nodes (28): AdditionalSale, AdditionalSalesPage(), fmtCurrency(), GUEST_TYPE_OPTIONS, PAYMENT_OPTIONS, SALE_TYPE_OPTIONS, CATEGORY_LABELS, CATEGORY_OPTIONS (+20 more)
 
 ### Community 7 - "Configuration and Dev Tooling"
 Cohesion: 0.05
 Nodes (37): author, description, devDependencies, concurrently, dependency-cruiser, dotenv-cli, esbuild, madge (+29 more)
 
 ### Community 8 - "Design System and Utilities"
-Cohesion: 0.09
-Nodes (25): cn(), AnimatedGradientText(), AnimatedGradientTextProps, AnimatedShinyText(), DotPattern(), DotPatternProps, Meteors(), MeteorsProps (+17 more)
+Cohesion: 0.12
+Nodes (23): cn(), AnimatedGradientTextProps, AnimatedShinyText(), BorderBeam(), BorderBeamProps, DotPattern(), DotPatternProps, OrbitingCirclesProps (+15 more)
 
 ### Community 9 - "Product Roadmap and GST"
 Cohesion: 0.06
 Nodes (33): 1.1 Room & Inventory Model, 1.2 Booking Lifecycle, 1.3 Guest Master Record, 1.4 Payment Ledger, 1.5 GST & Tax Compliance (India), 2.1 Housekeeping & Maintenance, 2.2 Staff & Access Control, 2.3 Digital Check-In / Check-Out (+25 more)
 
 ### Community 10 - "Auth Pages and Passkeys"
-Cohesion: 0.16
-Nodes (14): Ripple(), RippleItem, RippleProps, GuestStep(), Props, PaymentStep(), Props, Props (+6 more)
+Cohesion: 0.08
+Nodes (12): bufferToBase64Url(), credentialToJSON(), usePasskeys(), LoginPage(), FlipText(), FlipTextProps, Meteors(), MeteorsProps (+4 more)
 
 ### Community 11 - "Calendar and Booking Analytics"
-Cohesion: 0.11
-Nodes (26): CalendarGrid(), CalendarGridProps, CalendarLegend(), WEEKDAYS, BookingInfo, BookingMiniCard(), DayCell(), DayCellProps (+18 more)
+Cohesion: 0.12
+Nodes (18): CalendarLegend(), WEEKDAYS, BookingInfo, BookingMiniCard(), DayCell(), DayCellProps, DayData, formatCurrency() (+10 more)
 
 ### Community 12 - "Campaigns and Validation"
 Cohesion: 0.08
-Nodes (22): POST(), POST(), AdditionalSaleCreateInput, AdditionalSaleUpdateInput, authSchema, availabilityQuerySchema, BookingCreateInput, BookingUpdateInput (+14 more)
+Nodes (21): POST(), AdditionalSaleCreateInput, AdditionalSaleUpdateInput, authSchema, availabilityQuerySchema, BookingCreateInput, BookingUpdateInput, CampaignCreateInput (+13 more)
 
 ### Community 13 - "Development Features Roadmap"
 Cohesion: 0.09
 Nodes (26): Booking Lifecycle Management, Advanced Business Intelligence, Date Type Migration (String to DateTime), Digital Check-In / Check-Out, Dynamic Pricing / Yield Management, Ekantah Feature Roadmap, Environment Variable Validation, GST & Tax Compliance (India) (+18 more)
 
 ### Community 14 - "Layout and Theme Config"
-Cohesion: 0.10
-Nodes (24): metadata, outfit, plusJakartaSans, RootLayout(), spaceMono, viewport, getThemeCssVariablesString(), ThemeColors (+16 more)
+Cohesion: 0.12
+Nodes (18): metadata, outfit, plusJakartaSans, RootLayout(), spaceMono, viewport, getThemeCssVariablesString(), ThemeColors (+10 more)
 
 ### Community 15 - "Drawer Crons Booking"
-Cohesion: 0.10
-Nodes (16): navItems, Booking, EmailSent, WhatsAppMessage, PullToRefresh(), PullToRefreshProps, Drawer(), DrawerContent() (+8 more)
+Cohesion: 0.15
+Nodes (12): CronJobDef, CronRunItem, CronsPage(), formatDuration(), HistoryResponse, Booking, EmailSent, WhatsAppMessage (+4 more)
 
 ### Community 16 - "Send Booking Confirmation"
-Cohesion: 0.17
-Nodes (22): generateBookingId(), date, Decimal, path, EmailMessage, formatAmount(), Path, build_message() (+14 more)
+Cohesion: 0.20
+Nodes (19): date, Decimal, path, EmailMessage, formatAmount(), Path, build_message(), calculate_nights() (+11 more)
 
 ### Community 18 - "Tsconfig Compileroptions Paths"
 Cohesion: 0.10
 Nodes (19): compilerOptions, allowJs, esModuleInterop, incremental, isolatedModules, jsx, lib, module (+11 more)
 
 ### Community 19 - "Toast Bookings Smart"
-Cohesion: 0.24
-Nodes (8): Booking, BookingCard(), Stats, useLongPress(), NumberTicker(), NumberTickerProps, SmartLink(), SmartLinkProps
+Cohesion: 0.12
+Nodes (15): SaleForm(), Booking, BookingCard(), BookingsPage(), Stats, ExpenseForm(), BookingDetailPage(), useLongPress() (+7 more)
 
 ### Community 20 - "Dashboard Layout Mobile"
-Cohesion: 0.14
-Nodes (21): GET(), POST(), register(), DELETE(), GET(), activeJobs, cancelJob(), getJobFromDB() (+13 more)
+Cohesion: 0.15
+Nodes (10): DashboardLayout(), navItems, useScrollDirection(), PullToRefreshProps, quickActions, QuickAddFAB(), DrawerTrigger(), MobileBottomNavProps (+2 more)
 
 ### Community 21 - "Offline Queue Hooks"
-Cohesion: 0.13
-Nodes (20): DeviceType, InstallPage(), useOfflineMutation(), useOfflineQueue(), clearFailedMutations(), enqueueMutation(), getAllMutations(), getPendingMutations() (+12 more)
+Cohesion: 0.30
+Nodes (12): useOfflineMutation(), useOfflineQueue(), clearFailedMutations(), enqueueMutation(), getAllMutations(), getPendingMutations(), openDB(), processQueue() (+4 more)
 
 ### Community 22 - "Steps Stay Step"
-Cohesion: 0.14
-Nodes (18): DashboardLayout(), BeforeInstallPromptEvent, HapticPattern, useHaptic(), useScrollDirection(), MEAL_OPTIONS, Props, ROOM_TYPES (+10 more)
+Cohesion: 0.21
+Nodes (13): useHaptic(), MEAL_OPTIONS, Props, ROOM_TYPES, RoomAllocation, StayStep(), TIME_OPTIONS, CalendarPopover() (+5 more)
 
 ### Community 23 - "Pwa Hooks Install"
-Cohesion: 0.14
-Nodes (10): AdditionalSale, AdditionalSalesPage(), fmtCurrency(), GUEST_TYPE_OPTIONS, PAYMENT_OPTIONS, SALE_TYPE_OPTIONS, SaleForm(), Guest (+2 more)
+Cohesion: 0.23
+Nodes (8): DeviceType, InstallPage(), BeforeInstallPromptEvent, HapticPattern, useInstallPrompt(), useNetworkState(), useTouchFeedback(), PWAStatus()
 
 ### Community 24 - "Bookings Booking Wizard"
-Cohesion: 0.19
-Nodes (8): BookingWizard(), RoomAllocation, Step, stepMeta, useTouchFeedback(), BorderBeam(), BorderBeamProps, ReviewStep()
+Cohesion: 0.22
+Nodes (5): RoomAllocation, Step, stepMeta, TextReveal(), TextRevealProps
 
 ### Community 25 - "Memory Scripts Temporal"
 Cohesion: 0.33
@@ -217,48 +202,28 @@ Cohesion: 0.22
 Nodes (4): employeeCreateSchema, employeeUpdateSchema, salarySlipCreateSchema, salarySlipUpdateSchema
 
 ### Community 27 - "Quick Add Drawer"
-Cohesion: 0.15
-Nodes (13): BookingsPage(), BookingDetailPage(), quickActions, QuickAddFAB(), BookingStep, bookingStepMeta, CATEGORIES, QuickAddDrawer() (+5 more)
-
-### Community 32 - "Push Client Pwa"
-Cohesion: 0.31
-Nodes (8): KpiCard(), ModuleCard(), AnalyticsData, BookingStats, DashboardPage(), StatCard(), StatCard(), MagicCard()
-
-### Community 43 - "Send Whatsapp Post"
-Cohesion: 0.16
-Nodes (10): CATEGORY_LABELS, CATEGORY_OPTIONS, Expense, ExpenseForm(), ExpensesPage(), fmtCurrency(), PAYMENT_OPTIONS, sizes (+2 more)
-
-### Community 65 - "Community 65"
-Cohesion: 0.12
-Nodes (9): bufferToBase64Url(), credentialToJSON(), usePasskeys(), LoginPage(), FlipText(), FlipTextProps, ShineBorder(), ShineBorderProps (+1 more)
-
-### Community 66 - "Community 66"
-Cohesion: 0.18
-Nodes (7): Campaign, CampaignStatusBadge(), ExtractionJobStatus, Lead, LeadStats, Tab, Template
-
-### Community 73 - "Community 73"
-Cohesion: 0.40
-Nodes (4): Notes, Required placeholders, Send an email, The Stream by Ekantah Email Templates
+Cohesion: 0.25
+Nodes (7): BookingStep, bookingStepMeta, CATEGORIES, QuickAddDrawerProps, RoomAllocation, Dialog(), DialogProps
 
 ## Knowledge Gaps
-- **332 isolated node(s):** `prisma`, `prisma`, `prisma`, `CRON_JOBS`, `DEMO_BOOKING` (+327 more)
+- **324 isolated node(s):** `prisma`, `prisma`, `prisma`, `CRON_JOBS`, `DEMO_BOOKING` (+319 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **35 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **30 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `cn()` connect `Design System and Utilities` to `Push Client Pwa`, `Community 65`, `Community 66`, `Community 69`, `Auth Pages and Passkeys`, `Layout and Theme Config`, `Drawer Crons Booking`, `Steps Stay Step`, `Bookings Booking Wizard`, `Quick Add Drawer`?**
-  _High betweenness centrality (0.063) - this node is a cross-community bridge._
-- **Why does `formatDate()` connect `Community 68` to `Push Client Pwa`, `WhatsApp Integration and PDF`, `Email Template Components`, `Dashboard UI and Stats`, `Design System and Utilities`, `Drawer Crons Booking`, `Toast Bookings Smart`?**
-  _High betweenness centrality (0.053) - this node is a cross-community bridge._
-- **Why does `Pagination()` connect `Pwa Hooks Install` to `Send Whatsapp Post`, `Toast Bookings Smart`, `Additional Sales UI`?**
-  _High betweenness centrality (0.022) - this node is a cross-community bridge._
+- **Why does `formatDate()` connect `Bookings and Cron` to `WhatsApp Integration and PDF`, `Email Template Components`, `Dashboard UI and Stats`, `Design System and Utilities`, `Drawer Crons Booking`, `Toast Bookings Smart`?**
+  _High betweenness centrality (0.046) - this node is a cross-community bridge._
+- **Why does `cn()` connect `Design System and Utilities` to `Dashboard UI and Stats`, `Auth Pages and Passkeys`, `Layout and Theme Config`, `Drawer Crons Booking`, `Dashboard Layout Mobile`, `Steps Stay Step`, `Bookings Booking Wizard`, `Quick Add Drawer`?**
+  _High betweenness centrality (0.034) - this node is a cross-community bridge._
+- **Why does `useHaptic()` connect `Steps Stay Step` to `Design System and Utilities`, `Drawer Crons Booking`, `Toast Bookings Smart`, `Dashboard Layout Mobile`, `Pwa Hooks Install`, `Bookings Booking Wizard`, `Quick Add Drawer`?**
+  _High betweenness centrality (0.017) - this node is a cross-community bridge._
 - **What connects `prisma`, `prisma`, `prisma` to the rest of the system?**
-  _341 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _333 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `WhatsApp Integration and PDF` be split into smaller, more focused modules?**
-  _Cohesion score 0.05089108910891089 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.07199297629499561 - nodes in this community are weakly interconnected._
+- **Should `Bookings and Cron` be split into smaller, more focused modules?**
+  _Cohesion score 0.05144230769230769 - nodes in this community are weakly interconnected._
 - **Should `Email Template Components` be split into smaller, more focused modules?**
-  _Cohesion score 0.091324200913242 - nodes in this community are weakly interconnected._
-- **Should `Authentication and Push APIs` be split into smaller, more focused modules?**
-  _Cohesion score 0.07103825136612021 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.09370199692780339 - nodes in this community are weakly interconnected._

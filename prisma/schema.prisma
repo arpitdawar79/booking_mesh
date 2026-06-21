@@ -515,3 +515,40 @@ model CampaignTemplate {
 
   @@map("campaign_templates")
 }
+
+// ─── Async Extraction Jobs ───
+
+enum ExtractionJobStatus {
+  pending
+  running
+  completed
+  failed
+  cancelled
+}
+
+enum ExtractionJobType {
+  contacts
+  enrich
+}
+
+model ExtractionJob {
+  id              String              @id @default(cuid())
+  type            ExtractionJobType   @default(contacts)
+  status          ExtractionJobStatus @default(pending)
+  progress        Int                 @default(0)   // 0–100
+  totalItems      Int                 @default(0)   @map("total_items")
+  processedItems  Int                 @default(0)   @map("processed_items")
+  enrichProfiles  Boolean             @default(false) @map("enrich_profiles")
+  groupIds        String[]            @default([])  @map("group_ids")
+  result          Json?
+  error           String?
+  startedAt       DateTime?           @map("started_at")
+  completedAt     DateTime?           @map("completed_at")
+  createdAt       DateTime            @default(now()) @map("created_at")
+  updatedAt       DateTime            @updatedAt      @map("updated_at")
+
+  @@index([status])
+  @@index([type, status])
+  @@index([createdAt(sort: Desc)])
+  @@map("extraction_jobs")
+}
