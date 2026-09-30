@@ -1,8 +1,13 @@
 "use client";
 
+import { DateRangeFilter } from "@/components/ui/date-range-filter";
 import { MagicCard } from "@/components/ui/magic-card";
 import { Pagination } from "@/components/ui/pagination";
 import { StatusBadge } from "@/components/ui/status-badge";
+import {
+    applyDateRangeParams,
+    DateRangeSelection,
+} from "@/lib/date-range";
 import { PlusCircle, Search, User, Users, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -23,6 +28,9 @@ interface Guest {
 export default function GuestsPage() {
   const [guests, setGuests] = useState<Guest[]>([]);
   const [search, setSearch] = useState("");
+  const [dateRange, setDateRange] = useState<DateRangeSelection>({
+    preset: "this_month",
+  });
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -42,7 +50,7 @@ export default function GuestsPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [search]);
+  }, [search, dateRange]);
 
   useEffect(() => {
     setLoading(true);
@@ -50,6 +58,7 @@ export default function GuestsPage() {
     params.set("page", String(page));
     params.set("pageSize", String(pageSize));
     if (search.trim()) params.set("search", search.trim());
+    applyDateRangeParams(params, dateRange);
 
     fetch(`/api/guests?${params}`)
       .then((r) => r.json())
@@ -59,7 +68,7 @@ export default function GuestsPage() {
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, [page, pageSize, search]);
+  }, [page, pageSize, search, dateRange]);
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
@@ -83,6 +92,7 @@ export default function GuestsPage() {
               className="pl-10 pr-3 py-1.5 rounded-lg border border-border bg-background text-xs focus:outline-none focus:ring-2 focus:ring-ring w-40 sm:w-56"
             />
           </div>
+          <DateRangeFilter value={dateRange} onChange={setDateRange} />
           <button
             onClick={() => {
               setFormData({
@@ -143,6 +153,7 @@ export default function GuestsPage() {
                   params.set("page", String(1));
                   params.set("pageSize", String(pageSize));
                   if (search.trim()) params.set("search", search.trim());
+                  applyDateRangeParams(params, dateRange);
                   fetch(`/api/guests?${params}`)
                     .then((r) => r.json())
                     .then((data) => {

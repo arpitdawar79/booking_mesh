@@ -1,6 +1,11 @@
 "use client";
 
+import { DateRangeFilter } from "@/components/ui/date-range-filter";
 import { MagicCard } from "@/components/ui/magic-card";
+import {
+    applyDateRangeParams,
+    DateRangeSelection,
+} from "@/lib/date-range";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import {
@@ -101,6 +106,11 @@ export default function MarketingPage() {
   const [leadsPage, setLeadsPage] = useState(1);
   const [leadSearch, setLeadSearch] = useState("");
   const [leadSource, setLeadSource] = useState("");
+  const [leadDateRange, setLeadDateRange] = useState<DateRangeSelection>({
+    preset: "this_month",
+  });
+  const [campaignDateRange, setCampaignDateRange] =
+    useState<DateRangeSelection>({ preset: "this_month" });
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [templates, setTemplates] = useState<Template[]>([]);
   const [extracting, setExtracting] = useState(false);
@@ -121,6 +131,7 @@ export default function MarketingPage() {
     const params = new URLSearchParams();
     if (leadSearch) params.set("search", leadSearch);
     if (leadSource) params.set("source", leadSource);
+    applyDateRangeParams(params, leadDateRange);
     params.set("page", String(leadsPage));
     params.set("limit", "50");
     const res = await fetch(`/api/whatsapp/contacts?${params}`);
@@ -129,15 +140,18 @@ export default function MarketingPage() {
       setLeads(data.leads);
       setLeadsTotal(data.pagination.total);
     }
-  }, [leadSearch, leadSource, leadsPage]);
+  }, [leadSearch, leadSource, leadsPage, leadDateRange]);
 
   const fetchCampaigns = useCallback(async () => {
-    const res = await fetch("/api/marketing/campaigns?limit=50");
+    const params = new URLSearchParams();
+    params.set("limit", "50");
+    applyDateRangeParams(params, campaignDateRange);
+    const res = await fetch(`/api/marketing/campaigns?${params}`);
     if (res.ok) {
       const data = await res.json();
       setCampaigns(data.campaigns);
     }
-  }, []);
+  }, [campaignDateRange]);
 
   const fetchTemplates = useCallback(async () => {
     const res = await fetch("/api/marketing/templates");
@@ -618,6 +632,13 @@ export default function MarketingPage() {
               <option value="manual_entry">Manual Entry</option>
               <option value="booking_guest">Booking Guest</option>
             </select>
+            <DateRangeFilter
+              value={leadDateRange}
+              onChange={(v) => {
+                setLeadDateRange(v);
+                setLeadsPage(1);
+              }}
+            />
           </div>
 
           <div className="text-[10px] text-muted-foreground font-medium">
@@ -723,17 +744,23 @@ export default function MarketingPage() {
           animate={{ opacity: 1 }}
           className="space-y-3"
         >
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-2 flex-wrap">
             <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground/80">
               Campaigns
             </h2>
-            <button
-              onClick={() => setShowCampaignForm(!showCampaignForm)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/20 text-primary text-xs font-bold hover:bg-primary/20 transition"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              New Campaign
-            </button>
+            <div className="flex items-center gap-2 flex-wrap">
+              <DateRangeFilter
+                value={campaignDateRange}
+                onChange={setCampaignDateRange}
+              />
+              <button
+                onClick={() => setShowCampaignForm(!showCampaignForm)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/20 text-primary text-xs font-bold hover:bg-primary/20 transition"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                New Campaign
+              </button>
+            </div>
           </div>
 
           {showCampaignForm && (

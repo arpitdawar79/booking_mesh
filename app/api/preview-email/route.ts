@@ -39,6 +39,7 @@ const DEMO_BOOKING: Booking = {
   specialRequests: "Early check-in preferred.",
   status: "confirmed" as any,
   guestId: null,
+  isBackdated: false,
   gstRate: null,
   cgstAmount: null,
   sgstAmount: null,

@@ -1,3 +1,4 @@
+import { dateRangeWhere, parseDateRangeParams } from "@/lib/date-range";
 import { prisma } from "@/lib/prisma";
 import { leadTagSchema } from "@/lib/validation";
 import { NextResponse } from "next/server";
@@ -16,6 +17,8 @@ export async function GET(request: Request) {
   if (source) where.source = source;
   if (status) where.status = status;
   if (tag) where.tags = { has: tag };
+  const range = dateRangeWhere(parseDateRangeParams(searchParams));
+  if (range) where.createdAt = range;
   if (search) {
     where.OR = [
       { name: { contains: search, mode: "insensitive" } },

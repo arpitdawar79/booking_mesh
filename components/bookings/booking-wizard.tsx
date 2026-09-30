@@ -39,9 +39,16 @@ const stepMeta = [
   { num: 4 as Step, label: "Review", icon: ClipboardList },
 ];
 
+export const PAYMENT_METHOD_MAP: Record<string, string> = {
+  Cash: "cash",
+  UPI: "upi",
+  Card: "card",
+  "Bank Transfer": "bank_transfer",
+};
+
 export function BookingWizard() {
   const router = useRouter();
-  const { success, error } = useToast();
+  const { success, error, toast } = useToast();
   const haptic = useHaptic();
   const touch = useTouchFeedback();
   const [step, setStep] = useState<Step>(1);
@@ -76,6 +83,12 @@ export function BookingWizard() {
   const [mealPlan, setMealPlan] = useState<string[]>(["Breakfast"]);
   const [specialRequests, setSpecialRequests] = useState("");
 
+  // Backdated entry state
+  const [bookedOn, setBookedOn] = useState<Date | null>(null);
+  const [pastPaymentAmount, setPastPaymentAmount] = useState("");
+  const [pastPaymentMethod, setPastPaymentMethod] = useState("Cash");
+  const [pastPaymentReference, setPastPaymentReference] = useState("");
+
   // Payment state
   const [totalAmount, setTotalAmount] = useState("");
   const [amountPaidOnline, setAmountPaidOnline] = useState("0");
@@ -86,6 +99,13 @@ export function BookingWizard() {
     const ms = checkOutDate.getTime() - checkInDate.getTime();
     return Math.max(0, Math.round(ms / (1000 * 60 * 60 * 24)));
   }, [checkInDate, checkOutDate]);
+
+  const todayStart = useMemo(() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }, []);
+  const isPastStay = checkOutDate !== null && checkOutDate < todayStart;
 
   // Auto-compute adults/children and room allocations when rooms change
   useEffect(() => {
@@ -179,6 +199,7 @@ export function BookingWizard() {
       childCount,
       checkInDate: checkInDate ? formatDate(checkInDate) : null,
       checkOutDate: checkOutDate ? formatDate(checkOutDate) : null,
+      bookingDate: bookedOn ? formatDate(bookedOn) : undefined,
       checkInTime,
       checkOutTime,
       roomCount,
@@ -201,6 +222,17 @@ export function BookingWizard() {
       cancellationPolicy:
         "As per the booking terms shared at the time of reservation.",
       specialRequests: specialRequests.trim() || "None shared.",
+      payments:
+        Number(pastPaymentAmount) > 0
+          ? [
+              {
+                amount: Number(pastPaymentAmount),
+                method:
+                  PAYMENT_METHOD_MAP[pastPaymentMethod] ?? "cash",
+                referenceNumber: pastPaymentReference.trim() || undefined,
+              },
+            ]
+          : undefined,
     };
 
     const res = await fetch("/api/bookings", {
@@ -214,7 +246,10 @@ export function BookingWizard() {
 
     if (json.booking) {
       haptic("success");
-      success("Booking created successfully!");
+      success(
+        isPastStay ? "Past stay recorded" : "Booking created successfully!",
+      );
+      if (json.warning) toast(json.warning, "warning");
       router.push(`/dashboard/booking/${json.booking.id}`);
     } else {
       haptic("error");
@@ -452,6 +487,8 @@ export function BookingWizard() {
                 nightCount={nightCount}
                 specialRequests={specialRequests}
                 setSpecialRequests={setSpecialRequests}
+                bookedOn={bookedOn}
+                setBookedOn={setBookedOn}
               />
             )}
             {step === 3 && (
@@ -463,6 +500,13 @@ export function BookingWizard() {
                 currency={currency}
                 setCurrency={setCurrency}
                 onEnter={canProceed() ? nextStep : undefined}
+                isPastStay={isPastStay}
+                pastPaymentAmount={pastPaymentAmount}
+                setPastPaymentAmount={setPastPaymentAmount}
+                pastPaymentMethod={pastPaymentMethod}
+                setPastPaymentMethod={setPastPaymentMethod}
+                pastPaymentReference={pastPaymentReference}
+                setPastPaymentReference={setPastPaymentReference}
               />
             )}
             {step === 4 && (
@@ -485,6 +529,10 @@ export function BookingWizard() {
                 currency={currency}
                 nightCount={nightCount}
                 specialRequests={specialRequests}
+                isPastStay={isPastStay}
+                bookedOn={bookedOn}
+                pastPaymentAmount={pastPaymentAmount}
+                pastPaymentMethod={pastPaymentMethod}
               />
             )}
           </motion.div>
@@ -597,7 +645,7 @@ export function BookingWizard() {
               </>
             ) : (
               <>
-                <span>Create Booking</span>
+                <span>{isPastStay ? "Record Past Stay" : "Create Booking"}</span>
                 <Check className="w-3.5 h-3.5" />
               </>
             )}

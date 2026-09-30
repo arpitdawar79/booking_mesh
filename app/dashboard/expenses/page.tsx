@@ -1,9 +1,15 @@
 "use client";
 
+import { DateRangeFilter } from "@/components/ui/date-range-filter";
 import { Pagination } from "@/components/ui/pagination";
 import { SlideOver } from "@/components/ui/slide-over";
 import { useToast } from "@/components/ui/toast";
 import { MagicCard } from "@/components/ui/magic-card";
+import {
+    applyDateRangeParams,
+    dateRangeLabel,
+    DateRangeSelection,
+} from "@/lib/date-range";
 import {
     CalendarDays,
     ClipboardList,
@@ -63,7 +69,9 @@ export default function ExpensesPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("");
-  const [month, setMonth] = useState("");
+  const [dateRange, setDateRange] = useState<DateRangeSelection>({
+    preset: "this_month",
+  });
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [totalAmount, setTotalAmount] = useState(0);
@@ -83,7 +91,7 @@ export default function ExpensesPage() {
     params.set("pageSize", String(pageSize));
     if (search.trim()) params.set("search", search.trim());
     if (category) params.set("category", category);
-    if (month) params.set("month", month);
+    applyDateRangeParams(params, dateRange);
 
     fetch(`/api/expenses?${params}`)
       .then((r) => r.json())
@@ -94,11 +102,11 @@ export default function ExpensesPage() {
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, [page, search, category, month]);
+  }, [page, search, category, dateRange]);
 
   useEffect(() => {
     setPage(1);
-  }, [search, category, month]);
+  }, [search, category, dateRange]);
 
   useEffect(() => {
     loadData();
@@ -193,18 +201,13 @@ export default function ExpensesPage() {
             </option>
           ))}
         </select>
-        <input
-          type="month"
-          value={month}
-          onChange={(e) => setMonth(e.target.value)}
-          className="rounded-lg border border-border bg-background px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-ring"
-        />
-        {(search || category || month) && (
+        <DateRangeFilter value={dateRange} onChange={setDateRange} />
+        {(search || category || dateRange.preset !== "this_month") && (
           <button
             onClick={() => {
               setSearch("");
               setCategory("");
-              setMonth("");
+              setDateRange({ preset: "this_month" });
             }}
             className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
           >
@@ -227,7 +230,7 @@ export default function ExpensesPage() {
         <SummaryCard
           icon={<CalendarDays className="w-5 h-5 text-blue-600 dark:text-blue-400" />}
           label="Period"
-          value={month || "All time"}
+          value={dateRangeLabel(dateRange)}
         />
       </div>
 

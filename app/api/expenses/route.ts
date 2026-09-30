@@ -1,3 +1,4 @@
+import { dateRangeWhere, parseDateRangeParams } from "@/lib/date-range";
 import { prisma } from "@/lib/prisma";
 import { expenseCreateSchema, expenseUpdateSchema } from "@/lib/validation";
 import { NextResponse } from "next/server";
@@ -27,6 +28,8 @@ export async function GET(request: Request) {
     const end = new Date(Number(year), Number(m), 1);
     where.date = { gte: start, lt: end };
   }
+  const range = dateRangeWhere(parseDateRangeParams(searchParams));
+  if (range) where.date = range;
   if (search.trim()) {
     const q = search.trim();
     where.OR = [

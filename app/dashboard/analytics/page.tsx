@@ -1,5 +1,10 @@
 "use client";
 
+import { DateRangeFilter } from "@/components/ui/date-range-filter";
+import {
+    applyDateRangeParams,
+    DateRangeSelection,
+} from "@/lib/date-range";
 import { motion } from "framer-motion";
 import { Minus, TrendingDown, TrendingUp } from "lucide-react";
 import Link from "next/link";
@@ -87,18 +92,24 @@ interface AnalyticsData {
 export default function AnalyticsPage() {
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [dateRange, setDateRange] = useState<DateRangeSelection>({
+    preset: "this_month",
+  });
 
   useEffect(() => {
-    fetch("/api/analytics")
+    const params = new URLSearchParams();
+    applyDateRangeParams(params, dateRange);
+    const qs = params.toString();
+    fetch(`/api/analytics${qs ? `?${qs}` : ""}`)
       .then((r) => r.json())
       .then((d) => {
         setData(d);
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, []);
+  }, [dateRange]);
 
-  if (loading) {
+  if (loading && !data) {
     return (
       <div className="space-y-8">
         <div className="space-y-2">
@@ -216,7 +227,8 @@ export default function AnalyticsPage() {
             Insights into bookings, revenue, and occupancy.
           </p>
         </div>
-        <div className="flex gap-2 flex-wrap">
+        <div className="flex gap-2 flex-wrap items-center">
+          <DateRangeFilter value={dateRange} onChange={setDateRange} />
           <Link
             href="/dashboard/analytics/revenue"
             className="rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-bold hover:bg-secondary hover:border-primary/20 transition-all shadow-sm"

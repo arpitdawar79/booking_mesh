@@ -3,7 +3,7 @@
 import { Input, Select, StepCard } from "@/components/ui/form-primitives";
 import { cn } from "@/lib/utils";
 import NumberFlow from "@number-flow/react";
-import { CircleDollarSign, Coins, CreditCard, Landmark, ShieldCheck } from "lucide-react";
+import { CircleDollarSign, Coins, CreditCard, History, Landmark, ShieldCheck } from "lucide-react";
 
 interface Props {
   totalAmount: string;
@@ -13,6 +13,13 @@ interface Props {
   currency: string;
   setCurrency: (v: string) => void;
   onEnter: (() => void) | undefined;
+  isPastStay: boolean;
+  pastPaymentAmount: string;
+  setPastPaymentAmount: (v: string) => void;
+  pastPaymentMethod: string;
+  setPastPaymentMethod: (v: string) => void;
+  pastPaymentReference: string;
+  setPastPaymentReference: (v: string) => void;
 }
 
 export function PaymentStep({
@@ -23,10 +30,18 @@ export function PaymentStep({
   currency,
   setCurrency,
   onEnter,
+  isPastStay,
+  pastPaymentAmount,
+  setPastPaymentAmount,
+  pastPaymentMethod,
+  setPastPaymentMethod,
+  pastPaymentReference,
+  setPastPaymentReference,
 }: Props) {
   const total = Number(totalAmount || 0);
   const paid = Number(amountPaidOnline || 0);
-  const balance = Math.max(0, total - paid);
+  const collected = isPastStay ? Number(pastPaymentAmount || 0) : 0;
+  const balance = Math.max(0, total - paid - collected);
   const isFullyPaid = paid >= total && total > 0;
 
   return (
@@ -100,6 +115,19 @@ export function PaymentStep({
                 <NumberFlow value={paid} />
               </span>
             </div>
+            {collected > 0 && (
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-muted-foreground/60 font-semibold">
+                  Collected at Stay
+                </span>
+                <span className="font-extrabold text-primary flex items-center gap-1">
+                  <span className="text-xs text-primary/40 font-bold">
+                    {currency}
+                  </span>
+                  <NumberFlow value={collected} />
+                </span>
+              </div>
+            )}
 
             <div className="border-t border-border pt-3.5 flex justify-between items-center">
               <span className="text-xs font-black uppercase tracking-wider text-muted-foreground/70">
@@ -117,6 +145,42 @@ export function PaymentStep({
             </div>
           </div>
         </div>
+
+        {/* Collected payment — past stays only */}
+        {isPastStay && (
+          <div className="rounded-3xl border border-amber-500/20 bg-amber-500/5 p-4 sm:p-5 space-y-3.5">
+            <h3 className="text-xs font-black uppercase tracking-wider text-amber-600 dark:text-amber-400 flex items-center gap-2">
+              <History className="w-3.5 h-3.5" />
+              Payment Collected (optional)
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <Input
+                label="Amount"
+                value={pastPaymentAmount}
+                onChange={setPastPaymentAmount}
+                placeholder="0"
+                type="number"
+                icon={Coins}
+              />
+              <Select
+                label="Method"
+                value={pastPaymentMethod}
+                onChange={setPastPaymentMethod}
+                options={["Cash", "UPI", "Card", "Bank Transfer"]}
+              />
+              <Input
+                label="Reference No."
+                value={pastPaymentReference}
+                onChange={setPastPaymentReference}
+                placeholder="Optional"
+              />
+            </div>
+            <p className="text-[10px] text-muted-foreground/50 font-medium">
+              Recorded as a payment entry on the booking, separate from Paid
+              Online above.
+            </p>
+          </div>
+        )}
 
         <Select
           label="Currency"

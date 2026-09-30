@@ -1,7 +1,18 @@
+import { parseDateRangeParams } from "@/lib/date-range";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
-export async function GET() {
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const range = parseDateRangeParams(searchParams);
+  // Stays overlapping the selected range
+  const rangeWhere: Record<string, unknown> = range
+    ? {
+        checkInDate: { lt: range.endExclusive },
+        checkOutDate: { gt: range.start },
+      }
+    : {};
+
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const startOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
@@ -17,9 +28,13 @@ export async function GET() {
     totalRevenueAgg,
     outstandingBalanceAgg,
   ] = await Promise.all([
-    prisma.booking.count(),
-    prisma.booking.count({ where: { status: "confirmed" } }),
-    prisma.booking.count({ where: { status: "cancelled" } }),
+    prisma.booking.count({ where: rangeWhere }),
+    prisma.booking.count({
+      where: { ...rangeWhere, status: "confirmed" },
+    }),
+    prisma.booking.count({
+      where: { ...rangeWhere, status: "cancelled" },
+    }),
     prisma.booking.count({
       where: {
         bookingDate: { gte: startOfMonth, lt: startOfNextMonth },
@@ -40,11 +55,15 @@ export async function GET() {
     }),
     prisma.booking.aggregate({
       _sum: { totalAmount: true },
-      where: { status: { not: "cancelled" } },
+      where: { ...rangeWhere, status: { not: "cancelled" } },
     }),
     prisma.booking.aggregate({
       _sum: { balanceAmount: true },
-      where: { status: "confirmed", balanceAmount: { gt: 0 } },
+      where: {
+        ...rangeWhere,
+        status: "confirmed",
+        balanceAmount: { gt: 0 },
+      },
     }),
   ]);
 
@@ -59,7 +78,7 @@ export async function GET() {
     confirmedBookings > 0
       ? await prisma.booking.aggregate({
           _sum: { nightCount: true },
-          where: { status: "confirmed" },
+          where: { ...rangeWhere, status: "confirmed" },
         })
       : { _sum: { nightCount: 0 } };
 

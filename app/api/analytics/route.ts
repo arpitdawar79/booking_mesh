@@ -1,11 +1,31 @@
+import { parseDateRangeParams, yearMonthRangeWhere } from "@/lib/date-range";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 
-export async function GET() {
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const range = parseDateRangeParams(searchParams);
+
   const now = new Date();
   const currentYear = now.getFullYear();
-  const startOfYear = new Date(currentYear, 0, 1);
-  const endOfYear = new Date(currentYear + 1, 0, 1);
+  // Default: current year. When a range is selected, use its bounds instead.
+  const startOfYear = range?.start ?? new Date(currentYear, 0, 1);
+  const endOfYear = range?.endExclusive ?? new Date(currentYear + 1, 0, 1);
+
+  // (year * 12 + month) index bounds for salary_slips
+  const fromYM = startOfYear.getFullYear() * 12 + startOfYear.getMonth() + 1;
+  const lastIncluded = new Date(endOfYear.getTime() - 1);
+  const toYM = lastIncluded.getFullYear() * 12 + lastIncluded.getMonth() + 1;
+
+  // When an explicit range is provided, scope booking aggregates to it too
+  const bookingRangeWhere: Prisma.BookingWhereInput = range
+    ? { bookingDate: { gte: range.start, lt: range.endExclusive } }
+    : {};
+  const bookingWhereNotCancelled: Prisma.BookingWhereInput = {
+    ...bookingRangeWhere,
+    status: { not: "cancelled" },
+  };
 
   // Monthly revenue breakdown
   const monthlyData = await prisma.$queryRaw<
@@ -34,7 +54,7 @@ export async function GET() {
     by: ["paymentStatus"],
     _count: { id: true },
     _sum: { totalAmount: true, balanceAmount: true },
-    where: { status: { not: "cancelled" } },
+    where: bookingWhereNotCancelled,
   });
 
   // Room type distribution
@@ -42,7 +62,7 @@ export async function GET() {
     by: ["roomType"],
     _count: { id: true },
     _sum: { totalAmount: true, nightCount: true },
-    where: { status: { not: "cancelled" } },
+    where: bookingWhereNotCancelled,
   });
 
   // Status distribution
@@ -50,9 +70,12 @@ export async function GET() {
     by: ["status"],
     _count: { id: true },
     _sum: { totalAmount: true },
+    where: bookingRangeWhere,
   });
 
-  // Weekly booking trend (last 12 weeks)
+  // Weekly booking trend (selected range, or last 12 weeks by default)
+  const weeklyStart =
+    range?.start ?? new Date(now.getTime() - 84 * 24 * 60 * 60 * 1000);
   const weeklyData = await prisma.$queryRaw<
     Array<{
       week: string;
@@ -65,7 +88,8 @@ export async function GET() {
       COUNT(*) as bookings,
       COALESCE(SUM(total_amount), 0) as revenue
     FROM bookings
-    WHERE booking_date >= ${new Date(now.getTime() - 84 * 24 * 60 * 60 * 1000)}
+    WHERE booking_date >= ${weeklyStart}
+      AND booking_date < ${endOfYear}
     GROUP BY TO_CHAR(booking_date, 'IYYY-IW')
     ORDER BY week ASC
   `;
@@ -89,6 +113,8 @@ export async function GET() {
         END as bucket
       FROM bookings
       WHERE status NOT IN ('cancelled', 'archived')
+        AND booking_date >= ${startOfYear}
+        AND booking_date < ${endOfYear}
     ) sub
     GROUP BY bucket
     ORDER BY 
@@ -126,7 +152,7 @@ export async function GET() {
     by: ["guestFullName", "guestEmail"],
     _count: { id: true },
     _sum: { totalAmount: true, nightCount: true },
-    where: { status: { not: "cancelled" } },
+    where: bookingWhereNotCancelled,
     orderBy: { _sum: { totalAmount: "desc" } },
     take: 10,
   });
@@ -191,7 +217,8 @@ export async function GET() {
       CONCAT(year, '-', LPAD(month::text, 2, '0')) as month,
       COALESCE(SUM(net_salary), 0) as total
     FROM salary_slips
-    WHERE year = ${currentYear}
+    WHERE (year * 12 + month) >= ${fromYM}
+      AND (year * 12 + month) <= ${toYM}
     GROUP BY year, month
     ORDER BY year ASC, month ASC
   `;
@@ -237,7 +264,9 @@ export async function GET() {
 
   const totalSalariesAgg = await prisma.salarySlip.aggregate({
     _sum: { netSalary: true },
-    where: { year: currentYear },
+    where: range
+      ? { AND: yearMonthRangeWhere(range) ?? [] }
+      : { year: currentYear },
   });
 
   return NextResponse.json({

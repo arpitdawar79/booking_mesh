@@ -15,6 +15,10 @@ export const bookingCreateSchema = z.object({
   checkOutDate: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format (yyyy-MM-dd)"),
+  bookingDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format (yyyy-MM-dd)")
+    .optional(),
   checkInTime: z.string().default("1:00 PM"),
   checkOutTime: z.string().default("10:00 AM"),
   roomCount: z.coerce.number().int().min(1).default(1),
@@ -32,6 +36,16 @@ export const bookingCreateSchema = z.object({
   mapLink: z.string().optional(),
   cancellationPolicy: z.string().optional(),
   specialRequests: z.string().optional(),
+  payments: z
+    .array(
+      z.object({
+        amount: z.coerce.number().min(0),
+        method: z.enum(["upi", "card", "cash", "bank_transfer"]),
+        referenceNumber: z.string().optional(),
+        recordedBy: z.string().optional(),
+      }),
+    )
+    .optional(),
 });
 
 export const bookingUpdateSchema = z.object({

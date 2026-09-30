@@ -1,9 +1,15 @@
 "use client";
 
+import { DateRangeFilter } from "@/components/ui/date-range-filter";
 import { Pagination } from "@/components/ui/pagination";
 import { SlideOver } from "@/components/ui/slide-over";
 import { MagicCard } from "@/components/ui/magic-card";
 import { useToast } from "@/components/ui/toast";
+import {
+    applyDateRangeParams,
+    dateRangeLabel,
+    DateRangeSelection,
+} from "@/lib/date-range";
 import {
     CalendarDays,
     ClipboardList,
@@ -62,7 +68,9 @@ export default function AdditionalSalesPage() {
   const [sales, setSales] = useState<AdditionalSale[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [month, setMonth] = useState("");
+  const [dateRange, setDateRange] = useState<DateRangeSelection>({
+    preset: "this_month",
+  });
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [totalAmount, setTotalAmount] = useState(0);
@@ -81,7 +89,7 @@ export default function AdditionalSalesPage() {
     params.set("page", String(page));
     params.set("pageSize", String(pageSize));
     if (search.trim()) params.set("search", search.trim());
-    if (month) params.set("month", month);
+    applyDateRangeParams(params, dateRange);
 
     fetch(`/api/additional-sales?${params}`)
       .then((r) => r.json())
@@ -92,11 +100,11 @@ export default function AdditionalSalesPage() {
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, [page, search, month]);
+  }, [page, search, dateRange]);
 
   useEffect(() => {
     setPage(1);
-  }, [search, month]);
+  }, [search, dateRange]);
 
   useEffect(() => {
     loadData();
@@ -181,17 +189,12 @@ export default function AdditionalSalesPage() {
             className="pl-10 pr-3 py-1.5 rounded-lg border border-border bg-background text-xs focus:outline-none focus:ring-2 focus:ring-ring w-40 sm:w-56"
           />
         </div>
-        <input
-          type="month"
-          value={month}
-          onChange={(e) => setMonth(e.target.value)}
-          className="rounded-lg border border-border bg-background px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-ring"
-        />
-        {(search || month) && (
+        <DateRangeFilter value={dateRange} onChange={setDateRange} />
+        {(search || dateRange.preset !== "this_month") && (
           <button
             onClick={() => {
               setSearch("");
-              setMonth("");
+              setDateRange({ preset: "this_month" });
             }}
             className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
           >
@@ -214,7 +217,7 @@ export default function AdditionalSalesPage() {
         <SummaryCard
           icon={<CalendarDays className="w-5 h-5 text-blue-600 dark:text-blue-400" />}
           label="Period"
-          value={month || "All time"}
+          value={dateRangeLabel(dateRange)}
         />
       </div>
 

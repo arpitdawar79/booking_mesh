@@ -5,7 +5,12 @@ import { ModuleCard } from "@/components/dashboard/module-card";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { NumberTicker } from "@/components/magicui/number-ticker";
 import { DashboardSkeleton } from "@/components/pwa/skeleton";
+import { DateRangeFilter } from "@/components/ui/date-range-filter";
 import { MagicCard } from "@/components/ui/magic-card";
+import {
+    applyDateRangeParams,
+    DateRangeSelection,
+} from "@/lib/date-range";
 import { cn, formatDate } from "@/lib/utils";
 import { motion } from "framer-motion";
 import {
@@ -70,11 +75,17 @@ export default function DashboardPage() {
   const [bookingStats, setBookingStats] = useState<BookingStats | null>(null);
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [dateRange, setDateRange] = useState<DateRangeSelection>({
+    preset: "this_month",
+  });
 
   useEffect(() => {
+    const params = new URLSearchParams();
+    applyDateRangeParams(params, dateRange);
+    const qs = params.toString();
     Promise.all([
-      fetch("/api/bookings/stats").then((r) => r.json()),
-      fetch("/api/analytics").then((r) => r.json()),
+      fetch(`/api/bookings/stats${qs ? `?${qs}` : ""}`).then((r) => r.json()),
+      fetch(`/api/analytics${qs ? `?${qs}` : ""}`).then((r) => r.json()),
     ])
       .then(([statsData, analyticsData]) => {
         setBookingStats(statsData);
@@ -84,9 +95,9 @@ export default function DashboardPage() {
         console.error("Failed to load dashboard data:", err);
       })
       .finally(() => setLoading(false));
-  }, []);
+  }, [dateRange]);
 
-  if (loading) {
+  if (loading && !bookingStats && !analytics) {
     return <DashboardSkeleton />;
   }
 
@@ -108,13 +119,17 @@ export default function DashboardPage() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
+        className="flex flex-col sm:flex-row sm:items-center justify-between gap-3"
       >
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-          Dashboard Overview
-        </h1>
-        <p className="text-sm text-muted-foreground/80 mt-1.5 font-medium">
-          Quick summary across bookings, revenue, expenses, and payroll.
-        </p>
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+            Dashboard Overview
+          </h1>
+          <p className="text-sm text-muted-foreground/80 mt-1.5 font-medium">
+            Quick summary across bookings, revenue, expenses, and payroll.
+          </p>
+        </div>
+        <DateRangeFilter value={dateRange} onChange={setDateRange} />
       </motion.div>
 
       {/* KPI Row with NumberTicker */}

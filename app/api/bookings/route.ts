@@ -1,3 +1,4 @@
+import { parseDateRangeParams } from "@/lib/date-range";
 import { sendEmail, type EmailType } from "@/lib/email";
 import { logger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
@@ -29,6 +30,7 @@ export async function GET(request: Request) {
   );
   const search = searchParams.get("search") || "";
   const statusFilter = searchParams.get("status") || undefined;
+  const range = parseDateRangeParams(searchParams);
 
   if (id) {
     const bookings = await prisma.booking.findMany({
@@ -56,6 +58,11 @@ export async function GET(request: Request) {
       { guestEmail: { contains: q, mode: "insensitive" } },
       { bookingId: { contains: q, mode: "insensitive" } },
     ];
+  }
+  // Stays overlapping the selected date range
+  if (range) {
+    where.checkInDate = { lt: range.endExclusive };
+    where.checkOutDate = { gt: range.start };
   }
 
   const [bookings, total] = await Promise.all([
@@ -101,6 +108,13 @@ export async function POST(request: Request) {
     Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)),
   );
 
+  // Backdated entries: stay already started (or fully over) when recorded
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const isBackdated = checkIn < todayStart;
+  const stayFullyPast = checkOut < todayStart;
+  const status = stayFullyPast ? "completed" : "confirmed";
+
   // Duplicate detection: same name + phone + check-in date within 24h
   if (data.guestPhone) {
     const recentDuplicate = await prisma.booking.findFirst({
@@ -122,7 +136,8 @@ export async function POST(request: Request) {
     }
   }
 
-  // Overbooking guard
+  // Overbooking guard — warn instead of blocking when the stay already happened
+  let warning: string | null = null;
   const config = await prisma.propertyConfig.findUnique({
     where: { roomType: data.roomType },
   });
@@ -138,19 +153,24 @@ export async function POST(request: Request) {
     });
     const bookedRooms = Number(overlapping._sum.roomCount || 0);
     if (bookedRooms + data.roomCount > config.totalRooms) {
-      return NextResponse.json(
-        {
-          error:
-            "Overbooking guard: not enough rooms available for the selected dates",
-        },
-        { status: 409 },
-      );
+      if (stayFullyPast) {
+        warning = `Over capacity: ${bookedRooms + data.roomCount} rooms recorded against ${config.totalRooms} available for those dates — saved anyway since the stay is in the past.`;
+      } else {
+        return NextResponse.json(
+          {
+            error:
+              "Overbooking guard: not enough rooms available for the selected dates",
+          },
+          { status: 409 },
+        );
+      }
     }
   }
 
   const totalAmount = Number(data.totalAmount || 0);
   const amountPaidOnline = Number(data.amountPaidOnline || 0);
-  const balanceAmount = totalAmount - amountPaidOnline;
+  const paymentsSum = (data.payments ?? []).reduce((s, p) => s + p.amount, 0);
+  const balanceAmount = totalAmount - amountPaidOnline - paymentsSum;
   const paymentStatus = balanceAmount > 0 ? "partially_paid" : "paid_in_full";
 
   // GST calculation (default 18% for accommodation)
@@ -225,17 +245,32 @@ export async function POST(request: Request) {
         data.cancellationPolicy ||
         "As per the booking terms shared at the time of reservation.",
       specialRequests: data.specialRequests || "None shared.",
-      status: "confirmed",
+      status,
+      isBackdated,
+      bookingDate: data.bookingDate ? new Date(data.bookingDate) : undefined,
       guestId,
     },
   });
+
+  // Record any payments collected at the time of the stay
+  if (data.payments?.length) {
+    await prisma.payment.createMany({
+      data: data.payments.map((p) => ({
+        bookingId: booking.id,
+        amount: p.amount,
+        method: p.method,
+        referenceNumber: p.referenceNumber || null,
+        recordedBy: p.recordedBy || null,
+      })),
+    });
+  }
 
   logger.info("booking", `Created booking ${booking.bookingId}`, {
     bookingId: booking.id,
   });
 
-  // Fire-and-forget WhatsApp + email on creation
-  if (booking.guestPhone) {
+  // Fire-and-forget WhatsApp + email on creation — never for completed past stays
+  if (booking.status === "confirmed" && booking.guestPhone) {
     sendBookingWhatsApp("booking_confirmation", booking, {
       sendPdf: true,
     }).catch((err) => {
@@ -246,7 +281,7 @@ export async function POST(request: Request) {
       );
     });
   }
-  if (booking.guestEmail) {
+  if (booking.status === "confirmed" && booking.guestEmail) {
     const guestEmail = booking.guestEmail;
     sendEmail("booking_confirmation", booking, { to: [guestEmail] })
       .then(async (result) => {
@@ -270,7 +305,7 @@ export async function POST(request: Request) {
       });
   }
 
-  return NextResponse.json({ booking });
+  return NextResponse.json({ booking, warning });
 }
 
 export async function PATCH(request: Request) {

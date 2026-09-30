@@ -1,3 +1,4 @@
+import { dateRangeWhere, parseDateRangeParams } from "@/lib/date-range";
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -11,6 +12,8 @@ export async function GET(req: NextRequest) {
   const where: any = {};
   if (jobName) where.jobName = jobName;
   if (status) where.status = status;
+  const range = dateRangeWhere(parseDateRangeParams(searchParams));
+  if (range) where.startedAt = range;
 
   const [runs, total] = await Promise.all([
     prisma.cronRun.findMany({

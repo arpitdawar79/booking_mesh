@@ -35,6 +35,7 @@ import {
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useMediaQuery } from "usehooks-ts";
+import { PAYMENT_METHOD_MAP } from "../bookings/booking-wizard";
 import { GuestStep } from "../bookings/steps/guest-step";
 import { PaymentStep } from "../bookings/steps/payment-step";
 import { ReviewStep } from "../bookings/steps/review-step";
@@ -133,7 +134,7 @@ export function QuickAddDrawer({
   initialTab = "booking",
 }: QuickAddDrawerProps) {
   const router = useRouter();
-  const { success, error } = useToast();
+  const { success, error, toast } = useToast();
   const haptic = useHaptic();
   const [activeTab, setActiveTab] = useState<"booking" | "expense" | "sale">(
     initialTab,
@@ -258,6 +259,12 @@ export function QuickAddDrawer({
   const [mealPlan, setMealPlan] = useState<string[]>(["Breakfast"]);
   const [specialRequests, setSpecialRequests] = useState("");
 
+  // Backdated entry state
+  const [bookedOn, setBookedOn] = useState<Date | null>(null);
+  const [pastPaymentAmount, setPastPaymentAmount] = useState("");
+  const [pastPaymentMethod, setPastPaymentMethod] = useState("Cash");
+  const [pastPaymentReference, setPastPaymentReference] = useState("");
+
   // Payment state
   const [totalAmount, setTotalAmount] = useState("");
   const [amountPaidOnline, setAmountPaidOnline] = useState("0");
@@ -268,6 +275,13 @@ export function QuickAddDrawer({
     const ms = checkOutDate.getTime() - checkInDate.getTime();
     return Math.max(0, Math.round(ms / (1000 * 60 * 60 * 24)));
   }, [checkInDate, checkOutDate]);
+
+  const isPastStay = useMemo(() => {
+    if (!checkOutDate) return false;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return checkOutDate < today;
+  }, [checkOutDate]);
 
   // Auto-compute adults/children and room allocations when rooms change
   useEffect(() => {
@@ -464,6 +478,7 @@ export function QuickAddDrawer({
           childCount,
           checkInDate: formatDate(checkInDate),
           checkOutDate: formatDate(checkOutDate),
+          bookingDate: bookedOn ? formatDate(bookedOn) : undefined,
           checkInTime,
           checkOutTime,
           roomCount,
@@ -485,6 +500,18 @@ export function QuickAddDrawer({
           cancellationPolicy:
             "As per the booking terms shared at the time of reservation.",
           specialRequests: specialRequests.trim() || "None shared.",
+          payments:
+            Number(pastPaymentAmount) > 0
+              ? [
+                  {
+                    amount: Number(pastPaymentAmount),
+                    method:
+                      PAYMENT_METHOD_MAP[pastPaymentMethod] ?? "cash",
+                    referenceNumber:
+                      pastPaymentReference.trim() || undefined,
+                  },
+                ]
+              : undefined,
         }),
       });
 
@@ -513,6 +540,11 @@ export function QuickAddDrawer({
         setTotalAmount("");
         setAmountPaidOnline("0");
         setCurrency("INR");
+        setBookedOn(null);
+        setPastPaymentAmount("");
+        setPastPaymentMethod("Cash");
+        setPastPaymentReference("");
+        if (json.warning) toast(json.warning, "warning");
         setTimeout(() => {
           onOpenChange(false);
           router.push(`/dashboard/booking/${json.booking.id}`);
@@ -1188,6 +1220,8 @@ export function QuickAddDrawer({
                           nightCount={nightCount}
                           specialRequests={specialRequests}
                           setSpecialRequests={setSpecialRequests}
+                          bookedOn={bookedOn}
+                          setBookedOn={setBookedOn}
                         />
                       )}
                       {bookingStep === 3 && (
@@ -1199,6 +1233,13 @@ export function QuickAddDrawer({
                           currency={currency}
                           setCurrency={setCurrency}
                           onEnter={canProceed() ? nextBookingStep : undefined}
+                          isPastStay={isPastStay}
+                          pastPaymentAmount={pastPaymentAmount}
+                          setPastPaymentAmount={setPastPaymentAmount}
+                          pastPaymentMethod={pastPaymentMethod}
+                          setPastPaymentMethod={setPastPaymentMethod}
+                          pastPaymentReference={pastPaymentReference}
+                          setPastPaymentReference={setPastPaymentReference}
                         />
                       )}
                       {bookingStep === 4 && (
@@ -1221,6 +1262,10 @@ export function QuickAddDrawer({
                           currency={currency}
                           nightCount={nightCount}
                           specialRequests={specialRequests}
+                          isPastStay={isPastStay}
+                          bookedOn={bookedOn}
+                          pastPaymentAmount={pastPaymentAmount}
+                          pastPaymentMethod={pastPaymentMethod}
                         />
                       )}
                     </motion.div>

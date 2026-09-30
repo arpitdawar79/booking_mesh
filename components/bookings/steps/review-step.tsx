@@ -12,6 +12,7 @@ import {
     Check,
     CircleDollarSign,
     HeartHandshake,
+    History,
     MapPin,
     Users,
 } from "lucide-react";
@@ -41,6 +42,10 @@ interface Props {
   currency: string;
   nightCount: number;
   specialRequests?: string;
+  isPastStay: boolean;
+  bookedOn: Date | null;
+  pastPaymentAmount: string;
+  pastPaymentMethod: string;
 }
 
 export function ReviewStep({
@@ -62,10 +67,15 @@ export function ReviewStep({
   currency,
   nightCount,
   specialRequests,
+  isPastStay,
+  bookedOn,
+  pastPaymentAmount,
+  pastPaymentMethod,
 }: Props) {
   const total = Number(totalAmount || 0);
   const paid = Number(amountPaidOnline || 0);
-  const balance = Math.max(0, total - paid);
+  const collected = isPastStay ? Number(pastPaymentAmount || 0) : 0;
+  const balance = Math.max(0, total - paid - collected);
 
   const formattedDate = (d: Date | null) => {
     if (!d) return "—";
@@ -125,6 +135,9 @@ export function ReviewStep({
             label="Timings"
             value={`In: ${checkInTime} | Out: ${checkOutTime}`}
           />
+          {bookedOn && (
+            <ReviewRow label="Booked On" value={formattedDate(bookedOn)} />
+          )}
           <ReviewRow
             label="Room Allocations"
             value={
@@ -197,6 +210,17 @@ export function ReviewStep({
               </span>
             }
           />
+          {collected > 0 && (
+            <ReviewRow
+              label="Collected at Stay"
+              value={
+                <span className="text-primary font-extrabold">
+                  {currency} {collected.toLocaleString("en-IN")} (
+                  {pastPaymentMethod})
+                </span>
+              }
+            />
+          )}
           <ReviewRow
             label="Remaining Balance"
             value={
@@ -226,22 +250,39 @@ export function ReviewStep({
           <ReviewRow label="Concierge Hotline" value="+91 93193 47443" />
         </ReviewSection>
 
-        <div className="rounded-2xl border border-primary/20 bg-primary/5 p-5 flex items-start gap-3.5 relative overflow-hidden">
-          <div className="absolute inset-0 bg-linear-to-br from-primary/8 via-transparent to-transparent pointer-events-none rounded-2xl" />
-          <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 mt-0.5">
-            <HeartHandshake className="w-4.5 h-4.5 text-primary" />
+        {isPastStay ? (
+          <div className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-5 flex items-start gap-3.5 relative overflow-hidden">
+            <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0 mt-0.5">
+              <History className="w-4.5 h-4.5 text-amber-600 dark:text-amber-400" />
+            </div>
+            <div className="space-y-1 relative z-10">
+              <h4 className="text-xs font-extrabold uppercase tracking-wider text-amber-600 dark:text-amber-400">
+                Historical Entry
+              </h4>
+              <p className="text-[11px] text-muted-foreground/60 font-medium leading-relaxed">
+                This stay is in the past — it will be recorded as completed.
+                No WhatsApp or email confirmation will be sent to the guest.
+              </p>
+            </div>
           </div>
-          <div className="space-y-1 relative z-10">
-            <h4 className="text-xs font-extrabold uppercase tracking-wider text-primary">
-              Ekantah Hospitality Guarantee
-            </h4>
-            <p className="text-[11px] text-muted-foreground/60 font-medium leading-relaxed">
-              Once created, a booking confirmation will be generated, sending
-              instant digital receipts, map links, check-in instructions, and
-              dynamic templates to the guest.
-            </p>
+        ) : (
+          <div className="rounded-2xl border border-primary/20 bg-primary/5 p-5 flex items-start gap-3.5 relative overflow-hidden">
+            <div className="absolute inset-0 bg-linear-to-br from-primary/8 via-transparent to-transparent pointer-events-none rounded-2xl" />
+            <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 mt-0.5">
+              <HeartHandshake className="w-4.5 h-4.5 text-primary" />
+            </div>
+            <div className="space-y-1 relative z-10">
+              <h4 className="text-xs font-extrabold uppercase tracking-wider text-primary">
+                Ekantah Hospitality Guarantee
+              </h4>
+              <p className="text-[11px] text-muted-foreground/60 font-medium leading-relaxed">
+                Once created, a booking confirmation will be generated, sending
+                instant digital receipts, map links, check-in instructions, and
+                dynamic templates to the guest.
+              </p>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </StepCard>
   );

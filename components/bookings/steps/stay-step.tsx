@@ -16,6 +16,7 @@ import {
     CalendarDays,
     Clock,
     FileText,
+    History,
     Minus,
     Moon,
     Plus,
@@ -58,6 +59,8 @@ interface Props {
   nightCount: number;
   specialRequests?: string;
   setSpecialRequests?: (v: string) => void;
+  bookedOn: Date | null;
+  setBookedOn: (d: Date | null) => void;
 }
 
 export function StayStep({
@@ -80,8 +83,15 @@ export function StayStep({
   nightCount,
   specialRequests,
   setSpecialRequests,
+  bookedOn,
+  setBookedOn,
 }: Props) {
   const haptic = useHaptic();
+
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const stayStarted = checkInDate !== null && checkInDate < todayStart;
+  const stayOver = checkOutDate !== null && checkOutDate < todayStart;
 
   function toggleMeal(option: string) {
     setMealPlan((prev: string[]) =>
@@ -147,7 +157,6 @@ export function StayStep({
             }}
             rangeStart={checkInDate}
             rangeEnd={checkOutDate}
-            minDate={new Date()}
             placeholder="Pick check-in"
           />
 
@@ -163,11 +172,65 @@ export function StayStep({
             minDate={
               checkInDate
                 ? new Date(checkInDate.getTime() + 86400000)
-                : new Date()
+                : undefined
             }
             placeholder="Pick check-out"
           />
+
+          {stayStarted && (
+            <DatePicker
+              label="Booked On (optional)"
+              value={bookedOn}
+              onChange={setBookedOn}
+              maxDate={new Date()}
+              placeholder="Defaults to today"
+              icon={History}
+            />
+          )}
         </div>
+
+        {/* Backdated stay banner */}
+        <AnimatePresence>
+          {stayStarted && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.92, y: -4 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.92, y: -4 }}
+              className={cn(
+                "flex items-start gap-2.5 rounded-2xl border px-4 py-3",
+                stayOver
+                  ? "bg-amber-500/5 border-amber-500/20"
+                  : "bg-blue-500/5 border-blue-500/20",
+              )}
+            >
+              <History
+                className={cn(
+                  "w-4 h-4 shrink-0 mt-0.5",
+                  stayOver
+                    ? "text-amber-600 dark:text-amber-400"
+                    : "text-blue-600 dark:text-blue-400",
+                )}
+              />
+              <div className="space-y-0.5">
+                <p
+                  className={cn(
+                    "text-xs font-extrabold uppercase tracking-wider",
+                    stayOver
+                      ? "text-amber-600 dark:text-amber-400"
+                      : "text-blue-600 dark:text-blue-400",
+                  )}
+                >
+                  {stayOver ? "Recording a past stay" : "Backdated entry — stay in progress"}
+                </p>
+                <p className="text-[11px] text-muted-foreground/60 font-medium leading-relaxed">
+                  {stayOver
+                    ? "Marked completed on save. No WhatsApp or email will be sent to the guest."
+                    : "Guest is mid-stay. Booking will be confirmed and guest messages sent as usual."}
+                </p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Night Count Indicator */}
         <AnimatePresence>

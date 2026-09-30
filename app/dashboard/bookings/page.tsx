@@ -2,12 +2,17 @@
 
 import { StatCard } from "@/components/dashboard/stat-card";
 import { NumberTicker } from "@/components/magicui/number-ticker";
+import { DateRangeFilter } from "@/components/ui/date-range-filter";
 import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
 import { MagicCard } from "@/components/ui/magic-card";
 import { Pagination } from "@/components/ui/pagination";
 import { SmartLink } from "@/components/ui/smart-link";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { useToast } from "@/components/ui/toast";
+import {
+    applyDateRangeParams,
+    DateRangeSelection,
+} from "@/lib/date-range";
 import { useHaptic, useLongPress } from "@/lib/pwa-hooks";
 import { formatDate } from "@/lib/utils";
 import { motion } from "framer-motion";
@@ -255,6 +260,9 @@ export default function BookingsPage() {
   const [filter, setFilter] = useState<
     "all" | "confirmed" | "cancelled" | "archived"
   >("all");
+  const [dateRange, setDateRange] = useState<DateRangeSelection>({
+    preset: "this_month",
+  });
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize] = useState(20);
@@ -325,7 +333,7 @@ export default function BookingsPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [filter, search]);
+  }, [filter, search, dateRange]);
 
   useEffect(() => {
     setLoading(true);
@@ -334,6 +342,7 @@ export default function BookingsPage() {
     params.set("pageSize", String(pageSize));
     if (search.trim()) params.set("search", search.trim());
     if (filter !== "all") params.set("status", filter);
+    applyDateRangeParams(params, dateRange);
 
     fetch(`/api/bookings?${params}`)
       .then(async (r) => {
@@ -349,7 +358,10 @@ export default function BookingsPage() {
       })
       .finally(() => setLoading(false));
 
-    fetch("/api/bookings/stats")
+    const statsParams = new URLSearchParams();
+    applyDateRangeParams(statsParams, dateRange);
+    const statsQs = statsParams.toString();
+    fetch(`/api/bookings/stats${statsQs ? `?${statsQs}` : ""}`)
       .then(async (r) => {
         if (!r.ok) throw new Error(`Stats API error: ${r.status}`);
         return r.json();
@@ -360,7 +372,7 @@ export default function BookingsPage() {
       .catch((err) => {
         console.error("Failed to load stats:", err);
       });
-  }, [page, pageSize, filter, search]);
+  }, [page, pageSize, filter, search, dateRange]);
 
   function handleCopy(bookingId: string) {
     setCopiedId(bookingId);
@@ -712,6 +724,9 @@ We look forward to hosting you!
               className="pl-10 pr-4 py-2 rounded-xl border border-border bg-card text-xs focus:outline-none focus:border-primary/40 focus:ring-1 focus:ring-primary/15 focus:shadow-[0_0_20px_-5px_var(--glow-color)] w-40 sm:w-56 transition-all duration-300 placeholder:text-muted-foreground/50"
             />
           </div>
+
+          {/* Date range filter (stay dates) */}
+          <DateRangeFilter value={dateRange} onChange={setDateRange} />
 
           {/* Animated sliding navigation filter */}
           <div className="flex rounded-xl border border-border p-1 bg-muted/50">

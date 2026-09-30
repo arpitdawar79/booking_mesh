@@ -1,6 +1,11 @@
 "use client";
 
+import { DateRangeFilter } from "@/components/ui/date-range-filter";
 import { Pagination } from "@/components/ui/pagination";
+import {
+    applyDateRangeParams,
+    DateRangeSelection,
+} from "@/lib/date-range";
 import {
     ArrowLeft,
     Banknote,
@@ -109,7 +114,9 @@ export default function SalaryPage() {
   const [showSlipForm, setShowSlipForm] = useState(false);
   const [editingSlipId, setEditingSlipId] = useState<string | null>(null);
   const [sendingId, setSendingId] = useState<string | null>(null);
-  const [slipMonth, setSlipMonth] = useState("");
+  const [slipDateRange, setSlipDateRange] = useState<DateRangeSelection>({
+    preset: "this_month",
+  });
   const [previewSlip, setPreviewSlip] = useState<SalarySlip | null>(null);
   const [showPreview, setShowPreview] = useState(false);
 
@@ -120,7 +127,7 @@ export default function SalaryPage() {
   useEffect(() => {
     if (view === "employees" || view === "employee-detail") fetchEmployees();
     else fetchSlips();
-  }, [view, page, pageSize, search, slipMonth]);
+  }, [view, page, pageSize, search, slipDateRange]);
 
   async function fetchEmployees() {
     setLoading(true);
@@ -147,7 +154,7 @@ export default function SalaryPage() {
     params.set("type", "slips");
     params.set("page", String(page));
     params.set("pageSize", String(pageSize));
-    if (slipMonth) params.set("month", slipMonth);
+    applyDateRangeParams(params, slipDateRange);
     if (search.trim()) params.set("search", search.trim());
     try {
       const res = await fetch(`/api/salary?${params}`);
@@ -329,21 +336,19 @@ export default function SalaryPage() {
           />
         </div>
         {view === "slips" && (
-          <input
-            type="month"
-            value={slipMonth}
-            onChange={(e) => {
-              setSlipMonth(e.target.value);
+          <DateRangeFilter
+            value={slipDateRange}
+            onChange={(v) => {
+              setSlipDateRange(v);
               setPage(1);
             }}
-            className="rounded-xl border border-border bg-card px-3 py-2 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary/30"
           />
         )}
-        {(search || slipMonth) && (
+        {(search || slipDateRange.preset !== "this_month") && (
           <button
             onClick={() => {
               setSearch("");
-              setSlipMonth("");
+              setSlipDateRange({ preset: "this_month" });
             }}
             className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition"
           >

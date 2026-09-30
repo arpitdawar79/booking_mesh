@@ -1,3 +1,4 @@
+import { dateRangeWhere, parseDateRangeParams } from "@/lib/date-range";
 import { prisma } from "@/lib/prisma";
 import { campaignCreateSchema } from "@/lib/validation";
 import { NextResponse } from "next/server";
@@ -11,6 +12,8 @@ export async function GET(request: Request) {
 
   const where: Record<string, unknown> = {};
   if (status) where.status = status;
+  const range = dateRangeWhere(parseDateRangeParams(searchParams));
+  if (range) where.createdAt = range;
 
   const [campaigns, total] = await Promise.all([
     prisma.marketingCampaign.findMany({

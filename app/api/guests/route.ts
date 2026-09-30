@@ -1,3 +1,4 @@
+import { dateRangeWhere, parseDateRangeParams } from "@/lib/date-range";
 import { prisma } from "@/lib/prisma";
 import { guestCreateSchema, guestUpdateSchema } from "@/lib/validation";
 import { NextResponse } from "next/server";
@@ -43,6 +44,8 @@ export async function GET(request: Request) {
   const where: Record<string, unknown> = {};
   if (phone) where.phone = phone;
   if (email) where.email = email;
+  const range = dateRangeWhere(parseDateRangeParams(searchParams));
+  if (range) where.createdAt = range;
   if (search.trim()) {
     const q = search.trim();
     where.OR = [

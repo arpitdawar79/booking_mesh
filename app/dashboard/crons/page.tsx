@@ -6,7 +6,12 @@ import {
     DrawerDescription,
     DrawerTitle,
 } from "@/components/ui/drawer";
+import { DateRangeFilter } from "@/components/ui/date-range-filter";
 import { MagicCard } from "@/components/ui/magic-card";
+import {
+    applyDateRangeParams,
+    DateRangeSelection,
+} from "@/lib/date-range";
 import { useHaptic } from "@/lib/pwa-hooks";
 import { formatDate } from "@/lib/utils";
 import {
@@ -106,6 +111,9 @@ export default function CronsPage() {
   const [loadingHistory, setLoadingHistory] = useState(true);
   const [selectedJob, setSelectedJob] = useState<string>("");
   const [selectedStatus, setSelectedStatus] = useState<string>("");
+  const [dateRange, setDateRange] = useState<DateRangeSelection>({
+    preset: "this_month",
+  });
   const [page, setPage] = useState(1);
   const [triggering, setTriggering] = useState<string | null>(null);
   const [detailRun, setDetailRun] = useState<CronRunItem | null>(null);
@@ -132,6 +140,7 @@ export default function CronsPage() {
       params.set("limit", "20");
       if (selectedJob) params.set("jobName", selectedJob);
       if (selectedStatus) params.set("status", selectedStatus);
+      applyDateRangeParams(params, dateRange);
       const res = await fetch(`/api/crons/history?${params.toString()}`);
       const data = await res.json();
       setHistory(data);
@@ -140,7 +149,7 @@ export default function CronsPage() {
     } finally {
       setLoadingHistory(false);
     }
-  }, [page, selectedJob, selectedStatus]);
+  }, [page, selectedJob, selectedStatus, dateRange]);
 
   useEffect(() => {
     fetchJobs();
@@ -333,10 +342,18 @@ export default function CronsPage() {
                 </option>
               ))}
             </select>
+            <DateRangeFilter
+              value={dateRange}
+              onChange={(v) => {
+                setDateRange(v);
+                setPage(1);
+              }}
+            />
             <button
               onClick={() => {
                 setSelectedJob("");
                 setSelectedStatus("");
+                setDateRange({ preset: "this_month" });
                 setPage(1);
                 fetchHistory();
               }}

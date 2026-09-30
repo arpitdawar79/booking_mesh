@@ -1,3 +1,4 @@
+import { parseDateRangeParams, yearMonthRangeWhere } from "@/lib/date-range";
 import { prisma } from "@/lib/prisma";
 import {
   employeeCreateSchema,
@@ -71,6 +72,10 @@ export async function GET(request: Request) {
       where.month = Number(m);
       where.year = Number(year);
     }
+    const rangeConds = yearMonthRangeWhere(
+      parseDateRangeParams(searchParams),
+    );
+    if (rangeConds) where.AND = rangeConds;
 
     const [slips, total] = await Promise.all([
       prisma.salarySlip.findMany({
