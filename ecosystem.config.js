@@ -2,6 +2,7 @@ const path = require("path");
 
 const deployPath = "/home/ubuntu/apps/booking_mesh";
 const deployKey = process.env.PM2_DEPLOY_KEY;
+const logPath = process.env.PM2_LOG_DIR || path.resolve(__dirname, "logs");
 
 module.exports = {
   apps: [
@@ -22,9 +23,10 @@ module.exports = {
       env_production: {
         NODE_ENV: "production",
         PORT: 5050,
+        WHATSAPP_AUTH_DIR: path.join(deployPath, "shared/whatsapp_auth"),
       },
-      error_log: "./logs/err.log",
-      out_log: "./logs/out.log",
+      error_log: path.join(logPath, "err.log"),
+      out_log: path.join(logPath, "out.log"),
       log_date_format: "YYYY-MM-DD HH:mm:ss Z",
       merge_logs: true,
       time: true,
@@ -47,9 +49,10 @@ module.exports = {
       env_production: {
         NODE_ENV: "production",
         NODE_OPTIONS: "--conditions=import",
+        WHATSAPP_AUTH_DIR: path.join(deployPath, "shared/whatsapp_auth"),
       },
-      error_log: "./logs/cron-err.log",
-      out_log: "./logs/cron-out.log",
+      error_log: path.join(logPath, "cron-err.log"),
+      out_log: path.join(logPath, "cron-out.log"),
       log_date_format: "YYYY-MM-DD HH:mm:ss Z",
       merge_logs: true,
       time: true,

@@ -5,33 +5,34 @@ DEPLOY_DIR="/home/ubuntu/apps/booking_mesh"
 SHARED_DIR="$DEPLOY_DIR/shared"
 APP_URL="http://127.0.0.1:5050"
 
-command -v pnpm >/dev/null 2>&1
+command -v npx >/dev/null 2>&1
 command -v pm2 >/dev/null 2>&1
 command -v curl >/dev/null 2>&1
 [ -s "$SHARED_DIR/.env" ]
+PNPM=(npx --yes pnpm@10.33.4)
 
-echo "[1/7] Linking shared persistent files..."
+echo "[1/7] Preparing shared persistent files..."
 mkdir -p "$SHARED_DIR/logs" "$SHARED_DIR/whatsapp_auth"
 chmod 700 "$SHARED_DIR"
 chmod 600 "$SHARED_DIR/.env"
+[ ! -L ./logs ] || unlink ./logs
+[ ! -L ./whatsapp_auth ] || unlink ./whatsapp_auth
 ln -sfn "$SHARED_DIR/.env" .env
-ln -sfn "$SHARED_DIR/whatsapp_auth" ./whatsapp_auth
-ln -sfn "$SHARED_DIR/logs" ./logs
 
 echo "[2/7] Installing locked dependencies..."
-pnpm install --frozen-lockfile
+"${PNPM[@]}" install --frozen-lockfile
 
 echo "[3/7] Generating Prisma client..."
-pnpm prisma generate
+"${PNPM[@]}" prisma generate
 
 echo "[4/7] Running database migrations..."
-pnpm prisma migrate deploy
+"${PNPM[@]}" prisma migrate deploy
 
 echo "[5/7] Building Next.js for production..."
-NODE_OPTIONS="--max-old-space-size=4096" pnpm build
+NODE_OPTIONS="--max-old-space-size=4096" "${PNPM[@]}" build
 
 echo "[6/7] Reloading PM2 processes..."
-pm2 startOrReload ecosystem.config.js --env production --update-env
+PM2_LOG_DIR="$SHARED_DIR/logs" pm2 startOrReload ecosystem.config.js --env production --update-env
 
 echo "[7/7] Verifying processes and application health..."
 for ((attempt = 1; attempt <= 30; attempt++)); do
