@@ -364,7 +364,7 @@ export default function SheetSyncPage() {
             </button>
           ))}
         </div>
-        <div className="relative flex-1 min-w-[160px] max-w-xs">
+        <div className="relative flex-1 min-w-40 max-w-xs">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
           <input
             type="search"

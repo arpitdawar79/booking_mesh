@@ -7,6 +7,7 @@
     "dev": "next dev --port 4001",
     "build": "next build",
     "start": "next start",
+    "deploy:prod": "./scripts/deploy.sh",
     "lint": "next lint",
     "db:migrate": "dotenv -e .env.local -- prisma migrate dev",
     "db:migrate:reset": "dotenv -e .env.local -- prisma migrate reset",
@@ -88,5 +89,20 @@
     "esbuild": "^0.28.0",
     "madge": "^8.0.0",
     "tsx": "^4.22.4"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@prisma/client",
+      "@prisma/engines",
+      "@swc/core",
+      "@whiskeysockets/baileys",
+      "core-js",
+      "esbuild",
+      "prisma",
+      "protobufjs",
+      "puppeteer",
+      "sharp",
+      "unrs-resolver"
+    ]
   }
 }
