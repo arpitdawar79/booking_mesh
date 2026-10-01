@@ -1,50 +1,77 @@
 #!/usr/bin/env bash
 set -e
 
-# PM2 Deployment System wrapper
-# Documentation: https://pm2.keymetrics.io/docs/usage/deployment/
-#
-# Commands:
-#   ./scripts/deploy.sh setup         # Provision remote server (clones repo & sets up dirs)
-#   ./scripts/deploy.sh               # Deploy latest commit from origin/main
-#   ./scripts/deploy.sh revert [n]    # Rollback to previous release (default: 1)
-#   ./scripts/deploy.sh curr          # Output current active release commit
-#   ./scripts/deploy.sh prev          # Output previous release commit
-#   ./scripts/deploy.sh list          # List previous deploy commits
-#   ./scripts/deploy.sh exec <cmd>    # Run a command on remote server
+SERVER_USER="ubuntu"
+SERVER_HOST="18.60.147.134"
+REMOTE_DIR="/home/ubuntu/booking_mesh"
+SSH_KEY="${SSH_KEY:-}" # Optional: export SSH_KEY=~/.ssh/your-key.pem if needed
 
-CMD="${1:-deploy}"
+SSH_CMD="ssh"
+if [ -n "$SSH_KEY" ]; then
+  SSH_CMD="ssh -i $SSH_KEY"
+fi
 
-case "$CMD" in
-  setup)
-    echo "🚀 Provisioning remote server for PM2 deployment..."
-    pm2 deploy ecosystem.config.js production setup
-    ;;
-  revert)
-    STEPS="${2:-1}"
-    echo "⏪ Reverting to previous deployment (steps: $STEPS)..."
-    pm2 deploy ecosystem.config.js production revert "$STEPS"
-    ;;
-  curr|current)
-    pm2 deploy ecosystem.config.js production curr
-    ;;
-  prev|previous)
-    pm2 deploy ecosystem.config.js production prev
-    ;;
-  list)
-    pm2 deploy ecosystem.config.js production list
-    ;;
-  exec|run)
-    shift
-    pm2 deploy ecosystem.config.js production exec "$*"
-    ;;
-  deploy)
-    echo "🚀 Deploying application to production via PM2 deployment system..."
-    pm2 deploy ecosystem.config.js production
-    ;;
-  *)
-    # Pass through any other pm2 deploy argument (e.g. --force)
-    pm2 deploy ecosystem.config.js production "$@"
-    ;;
-esac
+echo "🚀 [1/4] Building Next.js locally for production..."
+# Use .env.production if it exists, otherwise fall back to .env
+ENV_FILE=".env"
+if [ -f ".env.production" ]; then
+  ENV_FILE=".env.production"
+fi
+echo "📄 Loading environment from $ENV_FILE"
 
+# Generate Prisma client locally
+pnpm exec dotenv -e "$ENV_FILE" -- pnpm prisma generate
+# Build using production environment variables (e.g. NEXT_PUBLIC_* baked into JS bundle)
+pnpm exec dotenv -e "$ENV_FILE" -- pnpm build
+
+echo "📦 [2/4] Syncing build artifacts to $SERVER_HOST..."
+# Sync only necessary production files & built artifacts
+rsync -avz --delete \
+  -e "$SSH_CMD" \
+  --exclude '.git' \
+  --exclude 'node_modules' \
+  --exclude '.env' \
+  --exclude '.env.local' \
+  --exclude '.env.production' \
+  --exclude 'logs' \
+  --exclude 'backups' \
+  --exclude '.next/cache' \
+  ./.next \
+  ./public \
+  ./prisma \
+  ./jobs \
+  ./lib \
+  ./app \
+  ./package.json \
+  ./ecosystem.config.js \
+  "$SERVER_USER@$SERVER_HOST:$REMOTE_DIR/"
+
+echo "🔄 [3/4] Running database migrations & dependencies on server..."
+$SSH_CMD "$SERVER_USER@$SERVER_HOST" bash -l -c "'
+  set -e
+  export NVM_DIR=\"\$HOME/.nvm\"
+  [ -s \"\$NVM_DIR/nvm.sh\" ] && \. \"\$NVM_DIR/nvm.sh\"
+  nvm use 24 || true
+
+  cd $REMOTE_DIR
+  # Simple npm install for production (no pnpm approve-builds/script-blocking issues)
+  npm install --omit=dev --no-audit --no-fund
+  # Run any pending schema migrations
+  npx prisma migrate deploy
+  # Ensure log directory exists
+  mkdir -p logs
+'"
+
+echo "♻️ [4/4] Reloading PM2 on server..."
+$SSH_CMD "$SERVER_USER@$SERVER_HOST" bash -l -c "'
+  set -e
+  export NVM_DIR=\"\$HOME/.nvm\"
+  [ -s \"\$NVM_DIR/nvm.sh\" ] && \. \"\$NVM_DIR/nvm.sh\"
+  nvm use 24 || true
+
+  cd $REMOTE_DIR
+  pm2 startOrReload ecosystem.config.js --env production
+  pm2 status
+'"
+
+echo "✅ Deployment complete! App running at http://$SERVER_HOST:5050"
