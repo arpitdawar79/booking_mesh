@@ -328,8 +328,12 @@ export default function SheetSyncPage() {
 
       {data && !data.settings?.adminGroupConfigured && (
         <p className="text-xs font-medium text-amber-600 dark:text-amber-400 bg-amber-500/10 border border-amber-500/20 rounded-xl px-4 py-3">
-          ADMIN_GROUP_JID is not configured — digests and commands won&rsquo;t
-          work until it&rsquo;s set.
+          No Ops group configured — pick one on the{" "}
+          <a href="/dashboard/whatsapp" className="underline font-bold">
+            WhatsApp Setup page
+          </a>{" "}
+          (or set SHEET_OPS_GROUP_JID). Digests and commands won&rsquo;t work
+          until then.
         </p>
       )}
 

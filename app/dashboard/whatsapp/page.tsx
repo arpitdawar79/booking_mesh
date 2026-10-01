@@ -38,8 +38,10 @@ export default function WhatsAppSetupPage() {
   const [refreshingGroups, setRefreshingGroups] = useState(false);
   const [groupSearch, setGroupSearch] = useState("");
   const [selectedGroupId, setSelectedGroupId] = useState<string>("");
+  const [selectedOpsGroupId, setSelectedOpsGroupId] = useState<string>("");
   const [savingConfig, setSavingConfig] = useState(false);
   const [configSaved, setConfigSaved] = useState(false);
+  const [opsSaved, setOpsSaved] = useState(false);
   const [groupsCached, setGroupsCached] = useState(false);
 
   async function fetchStatus() {
@@ -86,6 +88,9 @@ export default function WhatsAppSetupPage() {
         const data = await res.json();
         if (data.adminGroupId) {
           setSelectedGroupId(data.adminGroupId);
+        }
+        if (data.opsGroupId) {
+          setSelectedOpsGroupId(data.opsGroupId);
         }
       }
     } catch {
@@ -154,6 +159,27 @@ export default function WhatsAppSetupPage() {
       if (res.ok) {
         setConfigSaved(true);
         setTimeout(() => setConfigSaved(false), 3000);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setSavingConfig(false);
+    }
+  }
+
+  async function handleSaveOpsGroup() {
+    if (!selectedOpsGroupId) return;
+    setSavingConfig(true);
+    setOpsSaved(false);
+    try {
+      const res = await fetch("/api/whatsapp/config", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ opsGroupId: selectedOpsGroupId }),
+      });
+      if (res.ok) {
+        setOpsSaved(true);
+        setTimeout(() => setOpsSaved(false), 3000);
       }
     } catch {
       // ignore
@@ -278,14 +304,14 @@ export default function WhatsAppSetupPage() {
         </div>
       )}
 
-      {/* Admin Group Selection */}
+      {/* Notification Groups */}
       {status?.isConnected && (
         <div className="rounded-xl border border-border p-4 sm:p-6 space-y-4 bg-card">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Users className="w-5 h-5 text-primary" />
               <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                Admin Group
+                Notification Groups
               </h2>
             </div>
             {groupsCached && (
@@ -295,8 +321,9 @@ export default function WhatsAppSetupPage() {
             )}
           </div>
           <p className="text-sm text-muted-foreground">
-            Choose the WhatsApp group where daily digests and admin
-            notifications will be sent.
+            The <strong>Admin group</strong> receives daily booking digests and
+            admin notifications. The <strong>Ops group</strong> receives
+            sheet-sync alerts and accepts commands (skip, fix rows, sync).
           </p>
 
           {groupsLoading ? (
@@ -319,7 +346,7 @@ export default function WhatsAppSetupPage() {
               </button>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-4">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <input
@@ -331,52 +358,107 @@ export default function WhatsAppSetupPage() {
                 />
               </div>
 
-              <select
+              <GroupPicker
+                label="Admin group"
+                hint="Booking digests & admin notifications"
                 value={selectedGroupId}
-                onChange={(e) => setSelectedGroupId(e.target.value)}
-                className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary/50"
-              >
-                <option value="">Select a group...</option>
-                {groups
-                  .filter((g) =>
-                    g.name.toLowerCase().includes(groupSearch.toLowerCase()),
-                  )
-                  .map((group) => (
-                    <option key={group.id} value={group.id}>
-                      {group.name}
-                    </option>
-                  ))}
-              </select>
+                onChange={setSelectedGroupId}
+                groups={groups}
+                search={groupSearch}
+                onSave={handleSaveConfig}
+                saving={savingConfig}
+                saved={configSaved}
+              />
 
-              <div className="flex items-center gap-3 flex-wrap">
-                <button
-                  onClick={handleSaveConfig}
-                  disabled={!selectedGroupId || savingConfig}
-                  className="flex items-center gap-2 rounded-xl bg-primary text-primary-foreground px-4 py-2.5 text-sm font-medium hover:opacity-90 disabled:opacity-50 transition"
-                >
-                  <Save className="w-4 h-4" />
-                  {savingConfig ? "Saving..." : "Save"}
-                </button>
-                <button
-                  onClick={() => fetchGroups(true)}
-                  disabled={refreshingGroups}
-                  className="flex items-center gap-2 rounded-xl border border-border px-4 py-2.5 text-sm font-medium hover:bg-secondary disabled:opacity-50 transition"
-                >
-                  <RefreshCw
-                    className={`w-4 h-4 ${refreshingGroups ? "animate-spin" : ""}`}
-                  />
-                  {refreshingGroups ? "Refreshing..." : "Refresh"}
-                </button>
-                {configSaved && (
-                  <span className="flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">
-                    <CheckCircle className="w-3.5 h-3.5" />
-                    Saved
-                  </span>
-                )}
-              </div>
+              <GroupPicker
+                label="Ops group"
+                hint="Sheet-sync alerts & commands"
+                value={selectedOpsGroupId}
+                onChange={setSelectedOpsGroupId}
+                groups={groups}
+                search={groupSearch}
+                onSave={handleSaveOpsGroup}
+                saving={savingConfig}
+                saved={opsSaved}
+              />
+
+              <button
+                onClick={() => fetchGroups(true)}
+                disabled={refreshingGroups}
+                className="flex items-center gap-2 rounded-xl border border-border px-4 py-2.5 text-sm font-medium hover:bg-secondary disabled:opacity-50 transition"
+              >
+                <RefreshCw
+                  className={`w-4 h-4 ${refreshingGroups ? "animate-spin" : ""}`}
+                />
+                {refreshingGroups ? "Refreshing..." : "Refresh group list"}
+              </button>
             </div>
           )}
         </div>
+      )}
+    </div>
+  );
+}
+
+function GroupPicker({
+  label,
+  hint,
+  value,
+  onChange,
+  groups,
+  search,
+  onSave,
+  saving,
+  saved,
+}: {
+  label: string;
+  hint: string;
+  value: string;
+  onChange: (v: string) => void;
+  groups: WhatsAppGroup[];
+  search: string;
+  onSave: () => void;
+  saving: boolean;
+  saved: boolean;
+}) {
+  const filtered = groups.filter((g) =>
+    g.name.toLowerCase().includes(search.toLowerCase()),
+  );
+  return (
+    <div className="space-y-2">
+      <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        {label}
+        <span className="ml-2 normal-case font-normal text-muted-foreground/70">
+          {hint}
+        </span>
+      </label>
+      <div className="flex items-center gap-2">
+        <select
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="flex-1 rounded-xl border border-border bg-background px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary/50"
+        >
+          <option value="">Select a group...</option>
+          {filtered.map((group) => (
+            <option key={group.id} value={group.id}>
+              {group.name}
+            </option>
+          ))}
+        </select>
+        <button
+          onClick={onSave}
+          disabled={!value || saving}
+          className="flex items-center gap-1.5 rounded-xl bg-primary text-primary-foreground px-3.5 py-2.5 text-sm font-medium hover:opacity-90 disabled:opacity-50 transition shrink-0"
+        >
+          <Save className="w-4 h-4" />
+          {saving ? "Saving..." : "Save"}
+        </button>
+      </div>
+      {saved && (
+        <span className="flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+          <CheckCircle className="w-3.5 h-3.5" />
+          Saved
+        </span>
       )}
     </div>
   );

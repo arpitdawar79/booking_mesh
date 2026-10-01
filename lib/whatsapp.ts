@@ -298,10 +298,6 @@ export async function initWhatsApp(): Promise<WASocket | null> {
     // Sheet Referee: admin-group commands (skip/later/<row> field=value/sync)
     sock.ev.on("messages.upsert", ({ messages, type }) => {
       if (type !== "notify") return;
-      const adminJid =
-        process.env.ADMIN_GROUP_JID ?? process.env.ADMIN_WHATSAPP_GROUP_ID;
-      if (!adminJid) return;
-      const jid = adminJid.includes("@") ? adminJid : `${adminJid}@g.us`;
       // Optional participant allowlist: SHEET_ADMIN_SENDERS="9183...,9177..."
       // restricts sheet commands to specific group members.
       const senderAllow = (process.env.SHEET_ADMIN_SENDERS ?? "")
@@ -310,7 +306,8 @@ export async function initWhatsApp(): Promise<WASocket | null> {
         .filter(Boolean);
       for (const msg of messages) {
         try {
-          if (msg.key.remoteJid !== jid || msg.key.fromMe) continue;
+          if (msg.key.fromMe) continue;
+          if (!msg.key.remoteJid?.endsWith("@g.us")) continue;
           if (senderAllow.length) {
             const sender = msg.key.participant ?? "";
             if (!senderAllow.some((allowed) => sender.includes(allowed))) {
@@ -323,6 +320,12 @@ export async function initWhatsApp(): Promise<WASocket | null> {
             "";
           if (!text) continue;
           void (async () => {
+            // Ops group resolves from the dashboard config (WhatsApp Setup
+            // page → AppConfig), falling back to env vars. Cached 60s.
+            const jid = await (
+              await import("@/lib/sheet-sync/admin-jid")
+            ).resolveOpsGroupJid();
+            if (!jid || msg.key.remoteJid !== jid) return;
             const { handleSheetCommand } = await import(
               "@/lib/sheet-sync/commands"
             );

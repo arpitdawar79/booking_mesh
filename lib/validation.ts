@@ -178,7 +178,8 @@ export const gstrExportSchema = z.object({
 });
 
 export const whatsAppConfigSchema = z.object({
-  adminGroupId: z.string().min(1, "Admin group ID is required"),
+  adminGroupId: z.string().min(1).optional(),
+  opsGroupId: z.string().min(1).optional(),
 });
 
 export const expenseCreateSchema = z.object({

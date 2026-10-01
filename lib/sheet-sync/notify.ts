@@ -2,14 +2,15 @@ import {
   sendWhatsAppGroupMessage,
   sendWhatsAppMessage,
 } from "@/lib/whatsapp";
+import { resolveOpsGroupJid } from "./admin-jid";
 import { sheetSyncEnv } from "./config";
 import type { SyncReport } from "./sync";
 
 export async function sendToAdminGroup(
   message: string,
 ): Promise<{ success: boolean; error?: string }> {
-  const jid = sheetSyncEnv.adminGroupJid();
-  if (!jid) return { success: false, error: "ADMIN_GROUP_JID not configured" };
+  const jid = await resolveOpsGroupJid();
+  if (!jid) return { success: false, error: "ops group not configured" };
   return sendWhatsAppGroupMessage(jid, message);
 }
 
@@ -17,8 +18,11 @@ export async function sendToAdminDm(
   message: string,
 ): Promise<{ success: boolean; error?: string }> {
   const jid = sheetSyncEnv.adminDmJid();
-  if (!jid) return { success: false, error: "ADMIN_DM_JID not configured" };
-  return sendWhatsAppMessage(jid, message);
+  if (jid) return sendWhatsAppMessage(jid, message);
+  // No DM target configured — escalate into the Ops group so it isn't lost.
+  const group = await resolveOpsGroupJid();
+  if (!group) return { success: false, error: "no admin DM or ops group configured" };
+  return sendWhatsAppGroupMessage(group, message);
 }
 
 export function formatDryRunSummary(report: SyncReport): string {

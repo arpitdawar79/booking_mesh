@@ -9,6 +9,7 @@ import {
   linkOrCreateLedgerRecord,
   mappedHash,
 } from "@/lib/sheet-sync/ledger";
+import { resolveOpsGroupJid } from "@/lib/sheet-sync/admin-jid";
 import { applyRowPatches } from "@/lib/sheet-sync/patches";
 import {
   cutoffRequestSchema,
@@ -128,7 +129,7 @@ export async function GET(req: NextRequest) {
       fileUrl: `https://docs.google.com/spreadsheets/d/${sheetSyncEnv.fileId()}`,
       watchActive: !!watchChannel?.value,
       watchExpiry: watchExpiry?.value ?? null,
-      adminGroupConfigured: !!sheetSyncEnv.adminGroupJid(),
+      adminGroupConfigured: !!(await resolveOpsGroupJid()),
     },
   });
 }
