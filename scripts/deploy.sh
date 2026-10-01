@@ -25,8 +25,9 @@ pnpm exec dotenv -e "$ENV_FILE" -- pnpm prisma generate
 pnpm exec dotenv -e "$ENV_FILE" -- pnpm build
 
 echo "📦 [2/4] Syncing build artifacts to $SERVER_HOST..."
-# Sync only necessary production files & built artifacts
-rsync -avz --delete \
+# Sync the whole repo minus generated/local-only dirs — a blacklist, not a
+# whitelist, so new top-level dirs can never be silently left behind.
+rsync -avz \
   -e "$SSH_CMD" \
   --exclude '.git' \
   --exclude 'node_modules' \
@@ -35,16 +36,12 @@ rsync -avz --delete \
   --exclude '.env.production' \
   --exclude 'logs' \
   --exclude 'backups' \
+  --exclude 'whatsapp_auth' \
   --exclude '.next/cache' \
-  ./.next \
-  ./public \
-  ./prisma \
-  ./jobs \
-  ./lib \
-  ./app \
-  ./package.json \
-  ./ecosystem.config.js \
-  "$SERVER_USER@$SERVER_HOST:$REMOTE_DIR/"
+  --exclude 'pnpm-lock.yaml' \
+  --exclude 'package-lock.json' \
+  --delete \
+  ./ "$SERVER_USER@$SERVER_HOST:$REMOTE_DIR/"
 
 echo "🔄 [3/4] Running database migrations & dependencies on server..."
 $SSH_CMD "$SERVER_USER@$SERVER_HOST" bash -l -c "'
@@ -54,10 +51,10 @@ $SSH_CMD "$SERVER_USER@$SERVER_HOST" bash -l -c "'
   nvm use 24 || true
 
   cd $REMOTE_DIR
-  # Simple npm install for production (no pnpm approve-builds/script-blocking issues)
-  git fetch origin
-  git restore .
-  git pull origin
+  # node_modules got corrupted mid-install (disk was ~87% full) — wipe it.
+  # Stale package-lock.json pinned next@16.2.7 while the synced .next was
+  # built by 16.3.7 — remove it and let npm resolve fresh from package.json.
+  rm -rf node_modules package-lock.json
   npm install --omit=dev --no-audit --no-fund
   # Run any pending schema migrations
   npx prisma migrate deploy
