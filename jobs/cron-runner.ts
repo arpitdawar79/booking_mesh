@@ -5,6 +5,9 @@ import {
     runJob,
     runPreArrivalReminderJob,
 } from "@/lib/cron-jobs";
+import { runSheetDigestJob } from "@/lib/sheet-sync/digest";
+import { runSheetSyncJob } from "@/lib/sheet-sync/job";
+import { runWatchRenewalJob } from "@/lib/sheet-sync/watch";
 import { prisma } from "@/lib/prisma";
 import cron from "node-cron";
 
@@ -44,6 +47,32 @@ const contactEnrichmentJob = cron.schedule(
   { timezone: "Asia/Kolkata" },
 );
 
+const sheetSyncPollJob = cron.schedule(
+  "7 * * * *",
+  async () => {
+    await runJob("sheet-sync-poll", async (log) => {
+      await runSheetSyncJob(log);
+    });
+  },
+  { timezone: "Asia/Kolkata" },
+);
+
+const sheetDigestJob = cron.schedule(
+  "0 9,20 * * *",
+  async () => {
+    await runJob("sheet-digest", runSheetDigestJob);
+  },
+  { timezone: "Asia/Kolkata" },
+);
+
+const sheetWatchRenewJob = cron.schedule(
+  "30 5 * * *",
+  async () => {
+    await runJob("sheet-watch-renew", runWatchRenewalJob);
+  },
+  { timezone: "Asia/Kolkata" },
+);
+
 log("runner", "Cron runner started. Registered jobs:");
 log("runner", `- admin-digest: ${adminDigestJob.getStatus()} (7:00 AM)`);
 log(
@@ -58,6 +87,18 @@ log(
   "runner",
   `- contact-enrichment: ${contactEnrichmentJob.getStatus()} (every 30 min)`,
 );
+log(
+  "runner",
+  `- sheet-sync-poll: ${sheetSyncPollJob.getStatus()} (hourly, fallback to webhook)`,
+);
+log(
+  "runner",
+  `- sheet-digest: ${sheetDigestJob.getStatus()} (9:00 AM & 8:00 PM)`,
+);
+log(
+  "runner",
+  `- sheet-watch-renew: ${sheetWatchRenewJob.getStatus()} (5:30 AM daily)`,
+);
 
 process.on("SIGINT", async () => {
   log("runner", "Received SIGINT, stopping cron jobs...");
@@ -65,6 +106,9 @@ process.on("SIGINT", async () => {
   checkoutReminderJob.stop();
   preArrivalReminderJob.stop();
   contactEnrichmentJob.stop();
+  sheetSyncPollJob.stop();
+  sheetDigestJob.stop();
+  sheetWatchRenewJob.stop();
   await prisma.$disconnect();
   process.exit(0);
 });
@@ -75,6 +119,9 @@ process.on("SIGTERM", async () => {
   checkoutReminderJob.stop();
   preArrivalReminderJob.stop();
   contactEnrichmentJob.stop();
+  sheetSyncPollJob.stop();
+  sheetDigestJob.stop();
+  sheetWatchRenewJob.stop();
   await prisma.$disconnect();
   process.exit(0);
 });

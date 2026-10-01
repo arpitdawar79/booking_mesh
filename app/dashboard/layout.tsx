@@ -15,6 +15,7 @@ import {
     ChevronLeft,
     ChevronRight,
     Clock,
+    FileSpreadsheet,
     Hotel,
     IndianRupee,
     LayoutDashboard,
@@ -45,6 +46,7 @@ const navItems = [
     label: "Additional Sales",
     icon: ShoppingCart,
   },
+  { href: "/dashboard/sheet-sync", label: "Sheet Sync", icon: FileSpreadsheet },
   { href: "/dashboard/salary", label: "Salary & Payroll", icon: Banknote },
   { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
   {

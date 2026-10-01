@@ -19,6 +19,7 @@
     "test:whatsapp": "NODE_OPTIONS=--conditions=import dotenv -e .env.local -- tsx scripts/test-whatsapp.ts",
     "postinstall": "prisma generate",
     "typecheck": "tsc --noEmit",
+    "test:sheet-sync": "node --import tsx --test lib/sheet-sync/__tests__/*.test.ts",
     "lint:semgrep": "semgrep --config=.semgrep.yml",
     "search:ast": "ast-grep scan",
     "graph:update": "graphify update ."
@@ -27,6 +28,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@hapi/boom": "^10.0.1",
     "@number-flow/react": "^0.6.0",
     "@prisma/client": "^6.16.3",
     "@serwist/window": "^9.5.11",
@@ -43,9 +45,11 @@
     "date-fns": "^4.4.0",
     "eslint": "^9.39.4",
     "eslint-config-next": "^16.2.7",
+    "exceljs": "4.4.0",
     "file-saver": "^2.0.5",
     "framer-motion": "^12.40.0",
     "geist": "^1.7.2",
+    "googleapis": "^182.0.0",
     "html2pdf.js": "^0.10.1",
     "jimp": "^1.6.1",
     "jose": "^6.2.3",

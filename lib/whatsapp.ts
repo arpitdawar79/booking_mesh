@@ -295,6 +295,52 @@ export async function initWhatsApp(): Promise<WASocket | null> {
       }
     });
 
+    // Sheet Referee: admin-group commands (skip/later/<row> field=value/sync)
+    sock.ev.on("messages.upsert", ({ messages, type }) => {
+      if (type !== "notify") return;
+      const adminJid =
+        process.env.ADMIN_GROUP_JID ?? process.env.ADMIN_WHATSAPP_GROUP_ID;
+      if (!adminJid) return;
+      const jid = adminJid.includes("@") ? adminJid : `${adminJid}@g.us`;
+      // Optional participant allowlist: SHEET_ADMIN_SENDERS="9183...,9177..."
+      // restricts sheet commands to specific group members.
+      const senderAllow = (process.env.SHEET_ADMIN_SENDERS ?? "")
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
+      for (const msg of messages) {
+        try {
+          if (msg.key.remoteJid !== jid || msg.key.fromMe) continue;
+          if (senderAllow.length) {
+            const sender = msg.key.participant ?? "";
+            if (!senderAllow.some((allowed) => sender.includes(allowed))) {
+              continue;
+            }
+          }
+          const text =
+            msg.message?.conversation ??
+            msg.message?.extendedTextMessage?.text ??
+            "";
+          if (!text) continue;
+          void (async () => {
+            const { handleSheetCommand } = await import(
+              "@/lib/sheet-sync/commands"
+            );
+            await handleSheetCommand(
+              (m) => sendWhatsAppGroupMessage(jid, m),
+              text,
+            );
+          })().catch((err) => {
+            log(
+              `sheet command failed: ${err instanceof Error ? err.message : String(err)}`,
+            );
+          });
+        } catch {
+          // never let a handler error kill the socket
+        }
+      }
+    });
+
     sock.ev.on("connection.update", async (update) => {
       const { connection, lastDisconnect, qr } = update;
 

@@ -1,3 +1,4 @@
+import { verifyRefreshToken, verifySessionToken } from "@/lib/auth-edge";
 import {
     runAdminDigestJob,
     runCheckoutReminderJob,
@@ -5,6 +6,10 @@ import {
     runJob,
     runPreArrivalReminderJob,
 } from "@/lib/cron-jobs";
+import type { LogFn } from "@/lib/cron-jobs";
+import { runSheetDigestJob } from "@/lib/sheet-sync/digest";
+import { runSheetSyncJob } from "@/lib/sheet-sync/job";
+import { runWatchRenewalJob } from "@/lib/sheet-sync/watch";
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -38,7 +43,37 @@ const CRON_JOBS = [
       "Enriches unenriched WhatsApp leads (profile pic, about text) in small batches of 20",
     label: "Contact Enrichment",
   },
+  {
+    name: "sheet-sync-poll",
+    schedule: "7 * * * *",
+    timezone: "Asia/Kolkata",
+    description: "Hourly fallback pull of the Ops sheet (webhook backup)",
+    label: "Sheet Sync Poll",
+  },
+  {
+    name: "sheet-digest",
+    schedule: "0 9,20 * * *",
+    timezone: "Asia/Kolkata",
+    description: "Twice-daily incomplete-rows digest to the admin group",
+    label: "Sheet Digest",
+  },
+  {
+    name: "sheet-watch-renew",
+    schedule: "30 5 * * *",
+    timezone: "Asia/Kolkata",
+    description: "Renews the Drive webhook channel for sheet sync",
+    label: "Sheet Watch Renewal",
+  },
 ];
+
+async function requireAdmin(req: NextRequest) {
+  const access = req.cookies.get("access_token")?.value;
+  const accessPayload = access ? await verifySessionToken(access) : null;
+  if (accessPayload?.role === "admin") return true;
+  const refresh = req.cookies.get("refresh_token")?.value;
+  const refreshPayload = refresh ? await verifyRefreshToken(refresh) : null;
+  return refreshPayload?.role === "admin";
+}
 
 function getJobFn(name: string) {
   switch (name) {
@@ -50,12 +85,23 @@ function getJobFn(name: string) {
       return runPreArrivalReminderJob;
     case "contact-enrichment":
       return runContactEnrichmentJob;
+    case "sheet-sync-poll":
+      return async (log: LogFn) => {
+        await runSheetSyncJob(log);
+      };
+    case "sheet-digest":
+      return runSheetDigestJob;
+    case "sheet-watch-renew":
+      return runWatchRenewalJob;
     default:
       return null;
   }
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  if (!(await requireAdmin(req))) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   const latestRuns = await prisma.cronRun.groupBy({
     by: ["jobName"],
     _max: { startedAt: true },
@@ -126,6 +172,9 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  if (!(await requireAdmin(req))) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   const body = await req.json().catch(() => ({}));
   const { name } = body;
 

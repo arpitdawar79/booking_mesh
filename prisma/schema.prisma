@@ -73,6 +73,7 @@ model Booking {
   hsnCode           String        @default("996311") @map("hsn_code")
   guestId           String?       @map("guest_id")
   isBackdated       Boolean       @default(false) @map("is_backdated")
+  sourceKey          String?       @unique @map("source_key")
   createdAt         DateTime      @default(now()) @map("created_at")
   updatedAt         DateTime      @updatedAt @map("updated_at")
 
@@ -228,6 +229,7 @@ model Expense {
   recordedBy    String?         @map("recorded_by")
   receiptUrl    String?         @map("receipt_url")
   notes         String?
+  sourceKey     String?         @unique @map("source_key")
   createdAt     DateTime        @default(now()) @map("created_at")
   updatedAt     DateTime        @updatedAt @map("updated_at")
 
@@ -243,6 +245,7 @@ model AdditionalSale {
   amount        Decimal       @db.Decimal(10, 2)
   paymentMethod PaymentMethod @default(cash) @map("payment_method")
   notes         String?
+  sourceKey     String?       @unique @map("source_key")
   createdAt     DateTime      @default(now()) @map("created_at")
   updatedAt     DateTime      @updatedAt @map("updated_at")
 
@@ -552,4 +555,74 @@ model ExtractionJob {
   @@index([type, status])
   @@index([createdAt(sort: Desc)])
   @@map("extraction_jobs")
+}
+
+// ─── Sheet Referee (Ops sheet sync) ───
+
+enum SheetRowStatus {
+  legacy
+  complete
+  incomplete
+  nagged
+  resolved
+  skipped
+  snoozed
+  deleted
+  possible_duplicate
+  conflict
+}
+
+model SheetRow {
+  id               String          @id @default(cuid())
+  sheet            String // logical stream: "expenses" | "payouts" | "revenue"
+  rowId            String          @map("row_id") // S.No; payouts uses "p{rowNum}"
+  rowNum           Int             @map("row_num") // physical sheet row (drift/deletion detection)
+  rawJson          Json            @map("raw_json")
+  rowHash          String          @map("row_hash")
+  parsedDate       DateTime?       @map("parsed_date")
+  status           SheetRowStatus  @default(incomplete)
+  missingRequired  String[]        @default([]) @map("missing_required")
+  missingSoft      String[]        @default([]) @map("missing_soft")
+  patches          Json? // app-side overrides: { field: { value, source } }
+  linkedRecordId   String?         @map("linked_record_id")
+  linkedRecordType String?         @map("linked_record_type") // "expense" | "additional_sale" | "booking"
+  linkedRowHash    String?         @map("linked_row_hash")
+  conflictJson     Json?           @map("conflict_json")
+  importError      String?         @map("import_error")
+  firstSeenAt      DateTime        @default(now()) @map("first_seen_at")
+  lastSeenAt       DateTime        @default(now()) @map("last_seen_at")
+  lastNaggedAt     DateTime?       @map("last_nagged_at")
+  nagCount         Int             @default(0) @map("nag_count")
+  escalatedAt      DateTime?       @map("escalated_at")
+  snoozedUntil     DateTime?       @map("snoozed_until")
+  resolvedVia      String?         @map("resolved_via") // "form" | "whatsapp" | "sheet"
+  resolvedAt       DateTime?       @map("resolved_at")
+  createdAt        DateTime        @default(now()) @map("created_at")
+  updatedAt        DateTime        @updatedAt @map("updated_at")
+
+  fixTokens        SheetFixToken[]
+
+  @@unique([sheet, rowId])
+  @@index([status])
+  @@index([sheet, parsedDate])
+  @@map("sheet_rows")
+}
+
+enum SheetFixTokenKind {
+  fix
+  gaps
+}
+
+model SheetFixToken {
+  id         String            @id @default(cuid())
+  token      String            @unique
+  kind       SheetFixTokenKind @default(fix)
+  sheetRowId String?           @map("sheet_row_id")
+  sheetRow   SheetRow?         @relation(fields: [sheetRowId], references: [id], onDelete: Cascade)
+  expiresAt  DateTime          @map("expires_at")
+  usedAt     DateTime?         @map("used_at")
+  createdAt  DateTime          @default(now()) @map("created_at")
+
+  @@index([expiresAt])
+  @@map("sheet_fix_tokens")
 }

@@ -40,6 +40,7 @@ const DEMO_BOOKING: Booking = {
   status: "confirmed" as any,
   guestId: null,
   isBackdated: false,
+  sourceKey: null,
   gstRate: null,
   cgstAmount: null,
   sgstAmount: null,
