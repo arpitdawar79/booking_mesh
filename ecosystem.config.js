@@ -51,4 +51,20 @@ module.exports = {
       time: true,
     },
   ],
+
+  deploy: {
+    production: {
+      user: "ubuntu",
+      host: ["18.60.147.134"],
+      ref: "origin/main",
+      repo: "git@github.com:arpitdawar79/booking_mesh.git",
+      path: "/home/ubuntu/booking_mesh",
+      ssh_options: "StrictHostKeyChecking=no",
+      "post-setup":
+        "mkdir -p /home/ubuntu/booking_mesh/shared/logs /home/ubuntu/booking_mesh/shared/whatsapp_auth",
+      "post-deploy":
+        "if [ -f ./scripts/post-deploy.sh ]; then chmod +x ./scripts/post-deploy.sh && ./scripts/post-deploy.sh; else ln -sfn /home/ubuntu/booking_mesh/shared/.env .env && ln -sfn /home/ubuntu/booking_mesh/shared/whatsapp_auth ./whatsapp_auth && ln -sfn /home/ubuntu/booking_mesh/shared/logs ./logs && pnpm install && pnpm prisma generate && pnpm prisma migrate deploy && NODE_OPTIONS='--max-old-space-size=4096' pnpm build && pm2 startOrReload ecosystem.config.js --env production --update-env; fi",
+    },
+  },
 };
+
