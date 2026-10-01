@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "next dev --port 4001",
     "build": "next build",
+    "build:cron": "esbuild jobs/cron-runner.ts --bundle --platform=node --format=esm --packages=external --outfile=.next/cron-runner.mjs",
     "start": "next start",
     "deploy:prod": "./scripts/pm2_deploy.sh",
     "deploy:legacy": "./scripts/deploy.sh",

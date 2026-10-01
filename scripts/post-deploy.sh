@@ -28,11 +28,12 @@ echo "[3/7] Generating Prisma client..."
 echo "[4/7] Running database migrations..."
 "${PNPM[@]}" prisma migrate deploy
 
-echo "[5/7] Building Next.js for production..."
+echo "[5/7] Building production processes..."
 NODE_OPTIONS="--max-old-space-size=4096" "${PNPM[@]}" build
+"${PNPM[@]}" build:cron
 
 echo "[6/7] Reloading PM2 processes..."
-PM2_LOG_DIR="$SHARED_DIR/logs" pm2 startOrReload ecosystem.config.js --env production --update-env
+pm2 startOrReload ecosystem.config.js --env production --update-env
 
 echo "[7/7] Verifying processes and application health..."
 for ((attempt = 1; attempt <= 30; attempt++)); do

@@ -2,7 +2,7 @@ const path = require("path");
 
 const deployPath = "/home/ubuntu/apps/booking_mesh";
 const deployKey = process.env.PM2_DEPLOY_KEY;
-const logPath = process.env.PM2_LOG_DIR || path.resolve(__dirname, "logs");
+const logPath = path.join(deployPath, "shared/logs");
 
 module.exports = {
   apps: [
@@ -34,8 +34,8 @@ module.exports = {
     {
       name: "ekantah-cron-runner",
       cwd: path.resolve(__dirname),
-      script: "./node_modules/tsx/dist/cli.mjs",
-      args: "./jobs/cron-runner.ts",
+      script: "./.next/cron-runner.mjs",
+      interpreter: "node",
       node_args: "--env-file=.env",
       exec_mode: "fork",
       instances: 1,
@@ -44,11 +44,9 @@ module.exports = {
       max_memory_restart: "512M",
       env: {
         NODE_ENV: "development",
-        NODE_OPTIONS: "--conditions=import",
       },
       env_production: {
         NODE_ENV: "production",
-        NODE_OPTIONS: "--conditions=import",
         WHATSAPP_AUTH_DIR: path.join(deployPath, "shared/whatsapp_auth"),
       },
       error_log: path.join(logPath, "cron-err.log"),
