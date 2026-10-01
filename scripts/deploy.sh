@@ -44,6 +44,7 @@ rsync -avz --delete \
   ./app \
   ./package.json \
   ./pnpm-lock.yaml \
+  ./pnpm-workspace.yaml \
   ./ecosystem.config.js \
   "$SERVER_USER@$SERVER_HOST:$REMOTE_DIR/"
 

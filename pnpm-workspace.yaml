@@ -1,0 +1,12 @@
+onlyBuiltDependencies:
+  - "@prisma/client"
+  - "@prisma/engines"
+  - "@swc/core"
+  - "@whiskeysockets/baileys"
+  - "core-js"
+  - "esbuild"
+  - "prisma"
+  - "protobufjs"
+  - "puppeteer"
+  - "sharp"
+  - "unrs-resolver"
