@@ -55,6 +55,9 @@ $SSH_CMD "$SERVER_USER@$SERVER_HOST" bash -l -c "'
 
   cd $REMOTE_DIR
   # Simple npm install for production (no pnpm approve-builds/script-blocking issues)
+  git fetch origin
+  git restore .
+  git pull origin
   npm install --omit=dev --no-audit --no-fund
   # Run any pending schema migrations
   npx prisma migrate deploy
