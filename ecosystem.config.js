@@ -1,5 +1,8 @@
 const path = require("path");
 
+const deployPath = "/home/ubuntu/apps/booking_mesh";
+const deployKey = process.env.PM2_DEPLOY_KEY;
+
 module.exports = {
   apps: [
     {
@@ -31,6 +34,7 @@ module.exports = {
       cwd: path.resolve(__dirname),
       script: "./node_modules/tsx/dist/cli.mjs",
       args: "./jobs/cron-runner.ts",
+      node_args: "--env-file=.env",
       exec_mode: "fork",
       instances: 1,
       autorestart: true,
@@ -58,12 +62,18 @@ module.exports = {
       host: ["18.60.147.134"],
       ref: "origin/main",
       repo: "git@github.com:arpitdawar79/booking_mesh.git",
-      path: "/home/ubuntu/booking_mesh",
-      ssh_options: "StrictHostKeyChecking=no",
-      "post-setup":
-        "mkdir -p /home/ubuntu/booking_mesh/shared/logs /home/ubuntu/booking_mesh/shared/whatsapp_auth",
-      "post-deploy":
-        "if [ -f ./scripts/post-deploy.sh ]; then chmod +x ./scripts/post-deploy.sh && ./scripts/post-deploy.sh; else ln -sfn /home/ubuntu/booking_mesh/shared/.env .env && ln -sfn /home/ubuntu/booking_mesh/shared/whatsapp_auth ./whatsapp_auth && ln -sfn /home/ubuntu/booking_mesh/shared/logs ./logs && pnpm install && pnpm prisma generate && pnpm prisma migrate deploy && NODE_OPTIONS='--max-old-space-size=4096' pnpm build && pm2 startOrReload ecosystem.config.js --env production --update-env; fi",
+      path: deployPath,
+      ssh_options: "StrictHostKeyChecking=accept-new",
+      ...(deployKey ? { key: deployKey } : {}),
+      "post-setup": [
+        `mkdir -p '${deployPath}/shared/logs' '${deployPath}/shared/whatsapp_auth'`,
+        `chmod 700 '${deployPath}/shared'`,
+        `if [ ! -s '${deployPath}/shared/.env' ] && [ -s '/home/ubuntu/booking_mesh/shared/.env' ]; then cp '/home/ubuntu/booking_mesh/shared/.env' '${deployPath}/shared/.env'; fi`,
+        `if [ -d '/home/ubuntu/booking_mesh/shared/whatsapp_auth' ]; then cp -an '/home/ubuntu/booking_mesh/shared/whatsapp_auth/.' '${deployPath}/shared/whatsapp_auth/'; fi`,
+        `test -s '${deployPath}/shared/.env'`,
+        `chmod 600 '${deployPath}/shared/.env'`,
+      ].join(" && "),
+      "post-deploy": "./scripts/post-deploy.sh",
     },
   },
 };

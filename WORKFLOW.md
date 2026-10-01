@@ -89,45 +89,56 @@ Never do on shared/prod DBs:
 
 Two PM2 apps run on prod (see `ecosystem.config.js`):
 `ekantah-email-templates` (Next.js, port 5050) and `ekantah-cron-runner`
-(`tsx jobs/cron-runner.ts`).
+(`tsx jobs/cron-runner.ts`). PM2 Deploy manages the checkout under
+`/home/ubuntu/apps/booking_mesh`; persistent environment, logs, and WhatsApp
+credentials live under its `shared` directory.
+
+Provision the PM2 checkout once:
 
 ```bash
-# --- on your laptop ---
-git checkout main
-git pull
-git merge feature/my-thing          # or push directly
-npm run typecheck                   # sanity gate
-git push origin main
-
-# --- on EC2 ---
-ssh <ec2-host>
-cd /path/to/booking_mesh
-git pull origin main                # brings code + migration files
-npm install                         # installs deps + regenerates prisma client (postinstall)
-npx prisma migrate deploy           # applies NEW migrations only — safe/idempotent
-npm run build                       # build Next.js
-pm2 startOrReload ecosystem.config.js --env production
-pm2 status                          # both apps online?
-pm2 logs ekantah-email-templates --lines 50
-pm2 logs ekantah-cron-runner --lines 50
+pnpm deploy:pm2:setup
 ```
 
-Order matters: **migrate deploy → build → restart**. New code must never run
-against a schema it doesn't have.
+For each production release:
 
-Verify after deploy:
-- App responds on prod port (5050)
-- Cron runner logs show jobs registered
-- `npx prisma migrate status` → all migrations applied
+```bash
+git checkout main
+git pull --ff-only
+pnpm typecheck
+pnpm build
+git push origin main
+pnpm deploy:prod
+```
+
+The deployment wrapper refuses to deploy a dirty working tree or a commit that
+does not match `origin/main`. The remote hook installs the exact pnpm lockfile,
+generates Prisma Client, applies migrations, builds Next.js, reloads both PM2
+processes, checks `/api/health`, and saves the healthy PM2 process list for
+reboot recovery.
+
+Useful commands:
+
+```bash
+pnpm deploy:pm2:status
+./scripts/pm2_deploy.sh curr
+./scripts/pm2_deploy.sh prev
+./scripts/pm2_deploy.sh list
+./scripts/pm2_deploy.sh exec "pm2 logs --lines 50 --nostream"
+./scripts/pm2_deploy.sh revert 1
+```
+
+Order matters: **install → migrate deploy → build → reload → health check**.
+New code must never run against a schema it doesn't have.
 
 ### If deploy goes wrong
 
-- **Bad code:** `git revert HEAD && git push`, then redeploy. Prefer
-  forward-fix over rewriting history.
-- **Bad migration:** `migrate deploy` stops at the failure. Check
-  `pm2 logs`, fix the migration SQL locally (only safe if it never
-  applied anywhere), or `prisma migrate resolve --rolled-back <name>`
-  after manually undoing it in the DB.
+- **Bad code:** `./scripts/pm2_deploy.sh revert 1`. A PM2 code rollback does
+  not reverse database migrations, so migrations must remain backward
+  compatible with the prior release.
+- **Bad migration:** `migrate deploy` stops at the failure. Check `pm2 logs`,
+  fix the migration SQL locally (only safe if it never applied anywhere), or
+  `prisma migrate resolve --rolled-back <name>` after manually undoing it in
+  the DB.
 - **Last resort:** restore DB from `pg_dump` backup.
 
 ## 5. Staging
