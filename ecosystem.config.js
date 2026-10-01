@@ -5,7 +5,7 @@ module.exports = {
     {
       name: "ekantah-email-templates",
       cwd: path.resolve(__dirname),
-      script: "./node_modules/.bin/next",
+      script: "./node_modules/next/dist/bin/next",
       args: "start",
       exec_mode: "fork",
       instances: 1,
@@ -29,7 +29,7 @@ module.exports = {
     {
       name: "ekantah-cron-runner",
       cwd: path.resolve(__dirname),
-      script: "./node_modules/.bin/tsx",
+      script: "./node_modules/tsx/dist/cli.mjs",
       args: "./jobs/cron-runner.ts",
       exec_mode: "fork",
       instances: 1,
