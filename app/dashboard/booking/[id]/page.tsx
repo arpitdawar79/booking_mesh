@@ -38,7 +38,7 @@ import {
   User,
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface Booking {
   id: string;
@@ -73,8 +73,30 @@ interface Booking {
   specialRequests: string;
   status: string;
   createdAt: string;
+  updatedAt: string;
   emailsSent: EmailSent[];
   whatsappMessages: WhatsAppMessage[];
+  payments: Payment[];
+  amendments: Amendment[];
+}
+
+interface Payment {
+  id: string;
+  amount: number;
+  method: string;
+  date: string;
+  referenceNumber: string | null;
+  recordedBy: string | null;
+  isRefund: boolean;
+  refundReason: string | null;
+}
+
+interface Amendment {
+  id: string;
+  type: string;
+  summary: string;
+  changedBy: string | null;
+  createdAt: string;
 }
 
 interface EmailSent {
@@ -126,6 +148,36 @@ export default function BookingDetailPage() {
   const [savingEdit, setSavingEdit] = useState(false);
   const [markingPaid, setMarkingPaid] = useState(false);
 
+  // Ledger: record payment / refund
+  const [paymentForm, setPaymentForm] = useState({
+    amount: "",
+    method: "cash",
+    date: toISODateString(new Date()),
+    referenceNumber: "",
+    recordedBy: "",
+    isRefund: false,
+    refundReason: "",
+  });
+  const [savingPayment, setSavingPayment] = useState(false);
+
+  // Partial cancellation (release rooms)
+  const [partialForm, setPartialForm] = useState({
+    roomsToRemove: 1,
+    newTotalAmount: "",
+    refundAmount: "",
+    refundMethod: "cash",
+    reason: "",
+  });
+  const [savingPartial, setSavingPartial] = useState(false);
+
+  // Renegotiated total
+  const [showAdjustTotal, setShowAdjustTotal] = useState(false);
+  const [adjustForm, setAdjustForm] = useState({
+    newTotalAmount: "",
+    reason: "",
+  });
+  const [savingAdjust, setSavingAdjust] = useState(false);
+
   // Mobile navigation tab state
   const [activeMobileTab, setActiveMobileTab] = useState<
     "details" | "ledger" | "manage"
@@ -134,11 +186,15 @@ export default function BookingDetailPage() {
   const { success: showSuccessToast, error: showErrorToast } = useToast();
   const haptic = useHaptic();
 
+  async function loadBooking() {
+    const res = await fetch(`/api/bookings?id=${id}`);
+    const data = await res.json();
+    return (data.bookings?.[0] || null) as Booking | null;
+  }
+
   useEffect(() => {
-    fetch(`/api/bookings?id=${id}`)
-      .then((r) => r.json())
-      .then((data) => {
-        const b = data.bookings?.[0] || null;
+    loadBooking()
+      .then((b) => {
         setBooking(b);
         if (b) {
           setToEmail(b.guestEmail || "");
@@ -149,6 +205,7 @@ export default function BookingDetailPage() {
         setLoading(false);
       })
       .catch(() => setLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   useEffect(() => {
@@ -251,7 +308,8 @@ export default function BookingDetailPage() {
     setCancelling(false);
 
     if (json.booking) {
-      setBooking(json.booking);
+      const fresh = await loadBooking();
+      if (fresh) setBooking(fresh);
       showSuccessToast("Booking reservation cancelled.");
       haptic("success");
     } else {
@@ -280,7 +338,8 @@ export default function BookingDetailPage() {
     setMarkingPaid(false);
 
     if (json.booking) {
-      setBooking(json.booking);
+      const fresh = await loadBooking();
+      if (fresh) setBooking(fresh);
       showSuccessToast("Booking marked as fully paid.");
       haptic("success");
     } else {
@@ -441,8 +500,8 @@ We look forward to hosting you!
       guestFullName: booking.guestFullName,
       guestEmail: booking.guestEmail || "",
       guestPhone: booking.guestPhone || "",
-      checkInDate: booking.checkInDate,
-      checkOutDate: booking.checkOutDate,
+      checkInDate: booking.checkInDate.slice(0, 10),
+      checkOutDate: booking.checkOutDate.slice(0, 10),
       roomCount: booking.roomCount,
       roomType: booking.roomType,
       totalAmount: booking.totalAmount,
@@ -460,19 +519,38 @@ We look forward to hosting you!
   }
 
   async function handleEditSave(e?: React.FormEvent) {
-    if (e) e.preventDefault();
+    e?.preventDefault();
     if (!booking || !editForm) return;
     setSavingEdit(true);
     haptic("light");
+    const payload = {
+      ...editForm,
+      id: booking.id,
+      expectedUpdatedAt: booking.updatedAt,
+      checkInDate: editForm.checkInDate?.slice(0, 10),
+      checkOutDate: editForm.checkOutDate?.slice(0, 10),
+      guestEmail: editForm.guestEmail || null,
+      guestPhone: editForm.guestPhone || null,
+    };
     const res = await fetch("/api/bookings", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: booking.id, ...editForm }),
+      body: JSON.stringify(payload),
     });
     const json = await res.json();
-    setSavingEdit(true);
+    if (res.status === 409 && json.stale) {
+      const fresh = await loadBooking();
+      if (fresh) setBooking(fresh);
+      setIsEditing(false);
+      setEditForm({});
+      setSavingEdit(false);
+      showErrorToast(json.error || "Booking changed elsewhere — reloaded.");
+      haptic("error");
+      return;
+    }
     if (json.booking) {
-      setBooking(json.booking);
+      const fresh = await loadBooking();
+      if (fresh) setBooking(fresh);
       setIsEditing(false);
       setEditForm({});
       setSavingEdit(false);
@@ -481,6 +559,154 @@ We look forward to hosting you!
     } else {
       setSavingEdit(false);
       showErrorToast(json.error || "Failed to save details.");
+      haptic("error");
+    }
+  }
+
+  // Regenerated only after success so a retry of a failed submit reuses the key
+  const paymentKeyRef = useRef(crypto.randomUUID());
+
+  async function handleAddPayment(e: React.FormEvent) {
+    e.preventDefault();
+    if (!booking) return;
+    const amount = Number(paymentForm.amount);
+    if (!amount || amount <= 0) {
+      showErrorToast("Enter a valid amount.");
+      return;
+    }
+    setSavingPayment(true);
+    haptic("light");
+    const res = await fetch("/api/payments", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        bookingId: booking.id,
+        amount,
+        method: paymentForm.method,
+        date: paymentForm.date || undefined,
+        referenceNumber: paymentForm.referenceNumber || undefined,
+        recordedBy: paymentForm.recordedBy || undefined,
+        isRefund: paymentForm.isRefund,
+        refundReason: paymentForm.refundReason || undefined,
+        idempotencyKey: paymentKeyRef.current,
+      }),
+    });
+    const json = await res.json();
+    setSavingPayment(false);
+
+    if (json.payment) {
+      paymentKeyRef.current = crypto.randomUUID();
+      const fresh = await loadBooking();
+      if (fresh) setBooking(fresh);
+      setPaymentForm((prev) => ({
+        ...prev,
+        amount: "",
+        referenceNumber: "",
+        refundReason: "",
+        isRefund: false,
+      }));
+      showSuccessToast(
+        paymentForm.isRefund
+          ? "Refund recorded in ledger."
+          : "Payment recorded in ledger.",
+      );
+      haptic("success");
+    } else {
+      showErrorToast(json.error || "Failed to record payment.");
+      haptic("error");
+    }
+  }
+
+  async function handlePartialCancel(e: React.FormEvent) {
+    e.preventDefault();
+    if (!booking) return;
+    if (partialFormError) {
+      showErrorToast(partialFormError);
+      haptic("error");
+      return;
+    }
+    if (
+      !confirm(
+        `Release ${partialForm.roomsToRemove} room(s)?\n\n` +
+          `• Rooms: ${booking.roomCount} → ${booking.roomCount - partialForm.roomsToRemove}\n` +
+          `• New total: ${booking.currency} ${effectiveNewTotal.toLocaleString("en-IN")}\n` +
+          (effectiveRefund > 0
+            ? `• Refund to guest: ${booking.currency} ${effectiveRefund.toLocaleString("en-IN")}\n`
+            : "") +
+          (retentionFee > 0
+            ? `• Retention fee kept: ${booking.currency} ${retentionFee.toLocaleString("en-IN")}\n`
+            : ""),
+      )
+    )
+      return;
+    setSavingPartial(true);
+    haptic("medium");
+    const res = await fetch("/api/bookings", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: booking.id,
+        partialCancel: true,
+        roomsToRemove: partialForm.roomsToRemove,
+        newTotalAmount: effectiveNewTotal,
+        refundAmount: effectiveRefund > 0 ? effectiveRefund : undefined,
+        refundMethod: partialForm.refundMethod,
+        reason: partialForm.reason || undefined,
+      }),
+    });
+    const json = await res.json();
+    setSavingPartial(false);
+
+    if (json.booking) {
+      const fresh = await loadBooking();
+      if (fresh) setBooking(fresh);
+      setPartialForm({
+        roomsToRemove: 1,
+        newTotalAmount: "",
+        refundAmount: "",
+        refundMethod: "cash",
+        reason: "",
+      });
+      showSuccessToast("Rooms released and totals updated.");
+      haptic("success");
+    } else {
+      showErrorToast(json.error || "Failed to release rooms.");
+      haptic("error");
+    }
+  }
+
+  async function handleAdjustTotal(e: React.FormEvent) {
+    e.preventDefault();
+    if (!booking) return;
+    const newTotal = Number(adjustForm.newTotalAmount);
+    if (adjustForm.newTotalAmount === "" || Number.isNaN(newTotal) || newTotal < 0) {
+      showErrorToast("Enter a valid new total.");
+      return;
+    }
+    setSavingAdjust(true);
+    haptic("medium");
+    const res = await fetch("/api/bookings", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: booking.id,
+        adjustTotal: true,
+        newTotalAmount: newTotal,
+        reason: adjustForm.reason || undefined,
+      }),
+    });
+    const json = await res.json();
+    setSavingAdjust(false);
+
+    if (json.booking) {
+      const fresh = await loadBooking();
+      if (fresh) setBooking(fresh);
+      setShowAdjustTotal(false);
+      setAdjustForm({ newTotalAmount: "", reason: "" });
+      showSuccessToast("Total amount updated.");
+      haptic("success");
+    } else {
+      showErrorToast(json.error || "Failed to update total.");
       haptic("error");
     }
   }
@@ -531,8 +757,46 @@ We look forward to hosting you!
     ? `https://wa.me/${booking.guestPhone.replace(/[^0-9]/g, "")}`
     : "#";
 
+  // Partial-cancel auto-calculations.
+  // Mirror rule: new total = current total − refund, and vice versa.
+  const oldTotal = Number(booking.totalAmount);
+  const perRoomRate = oldTotal / Math.max(1, booking.roomCount);
+  const releasedValue = Math.round(perRoomRate * partialForm.roomsToRemove);
+  const suggestedTotal = Math.max(0, oldTotal - releasedValue);
+  const ledgerNet = booking.payments.reduce(
+    (sum, p) => sum + (p.isRefund ? -Number(p.amount) : Number(p.amount)),
+    0,
+  );
+  const totalCollected = Number(booking.amountPaidOnline) + ledgerNet;
+  const defaultRefund = Math.min(releasedValue, Math.max(0, totalCollected));
+  const effectiveRefund =
+    partialForm.refundAmount !== "" && !Number.isNaN(Number(partialForm.refundAmount))
+      ? Number(partialForm.refundAmount)
+      : defaultRefund;
+  const effectiveNewTotal =
+    partialForm.newTotalAmount !== "" && !Number.isNaN(Number(partialForm.newTotalAmount))
+      ? Number(partialForm.newTotalAmount)
+      : Math.max(0, oldTotal - effectiveRefund);
+  const retentionFee = Math.max(0, releasedValue - effectiveRefund);
+  const refundError =
+    effectiveRefund > totalCollected
+      ? `Refund exceeds amount collected (${booking.currency} ${Math.max(0, totalCollected).toLocaleString("en-IN")})`
+      : effectiveRefund > releasedValue
+        ? `Refund exceeds released room value (${booking.currency} ${releasedValue.toLocaleString("en-IN")}) — use Renegotiate Total for further discounts`
+        : null;
+  const newTotalError =
+    effectiveNewTotal > oldTotal
+      ? `New total cannot exceed current total (${booking.currency} ${oldTotal.toLocaleString("en-IN")})`
+      : Math.abs(effectiveNewTotal - (oldTotal - effectiveRefund)) > 0.5
+        ? "New total must equal current total − refund"
+        : null;
+  const partialFormError = refundError || newTotalError;
+
   // Content groups to display contextually
-  const DetailsGroup = () => (
+  // NOTE: plain JSX values (not inner components) — defining these as
+  // components inside the page recreates their type every render and
+  // remounts the subtree, which steals focus from inputs on each keystroke.
+  const detailsGroup = (
     <div className="space-y-5">
       {/* Stay Timeline Representation */}
       <div className="rounded-3xl border border-border bg-card p-5 space-y-4 relative overflow-hidden backdrop-blur-md">
@@ -646,7 +910,7 @@ We look forward to hosting you!
     </div>
   );
 
-  const LedgerGroup = () => (
+  const ledgerGroup = (
     <div className="space-y-5">
       {/* Financial Overview Card */}
       <div className="rounded-2xl border border-border bg-card p-4 sm:p-5 space-y-4 relative overflow-hidden">
@@ -711,6 +975,215 @@ We look forward to hosting you!
         </div>
       </div>
 
+      {/* Payment History Ledger */}
+      <div className="rounded-3xl border border-border bg-card p-4 sm:p-5 space-y-3 backdrop-blur-md">
+        <div className="flex items-center justify-between border-b border-border pb-2">
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded bg-primary/10 flex items-center justify-center text-primary">
+              <CreditCard className="w-3.5 h-3.5" />
+            </div>
+            <h3 className="text-xs font-black uppercase tracking-wider text-primary">
+              Payment History
+            </h3>
+          </div>
+          <span className="text-[9px] font-black uppercase text-muted-foreground/50">
+            {booking.payments.length} entr
+            {booking.payments.length === 1 ? "y" : "ies"}
+          </span>
+        </div>
+        {booking.payments.length === 0 ? (
+          <p className="text-muted-foreground/45 text-[11px] font-bold py-1">
+            No payments recorded yet.
+          </p>
+        ) : (
+          <div className="space-y-2.5 max-h-64 overflow-y-auto pr-1">
+            {booking.payments.map((p) => (
+              <div
+                key={p.id}
+                className="text-[11px] font-semibold border-b border-border/60 pb-2 last:border-0 last:pb-0 flex justify-between items-center gap-2"
+              >
+                <div className="flex flex-col gap-0.5 min-w-0">
+                  <span className="font-extrabold capitalize text-foreground flex items-center gap-1.5">
+                    <span>{p.method.replace("_", " ")}</span>
+                    {p.isRefund && (
+                      <span className="text-[8px] font-black uppercase tracking-widest bg-rose-500/10 text-rose-600 dark:text-rose-400 px-1 rounded-sm">
+                        refund
+                      </span>
+                    )}
+                  </span>
+                  <span className="text-muted-foreground/50 text-[10px] truncate">
+                    {formatDate(p.date)}
+                    {p.referenceNumber ? ` · ${p.referenceNumber}` : ""}
+                    {p.recordedBy ? ` · by ${p.recordedBy}` : ""}
+                    {p.isRefund && p.refundReason ? ` · ${p.refundReason}` : ""}
+                  </span>
+                </div>
+                <span
+                  className={`text-xs font-black shrink-0 ${
+                    p.isRefund
+                      ? "text-rose-600 dark:text-rose-400"
+                      : "text-emerald-600 dark:text-emerald-400"
+                  }`}
+                >
+                  {p.isRefund ? "−" : "+"}
+                  {booking.currency} {Number(p.amount).toLocaleString("en-IN")}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Record Payment / Refund */}
+      <div className="rounded-3xl border border-border bg-card p-4 sm:p-5 space-y-4 backdrop-blur-md">
+        <div className="flex items-center justify-between border-b border-border pb-2">
+          <h3 className="text-xs font-black uppercase tracking-wider text-primary">
+            Record Entry
+          </h3>
+          <div className="flex rounded-lg border border-border overflow-hidden">
+            {[false, true].map((isRefund) => (
+              <button
+                key={String(isRefund)}
+                type="button"
+                onClick={() => {
+                  setPaymentForm((prev) => ({ ...prev, isRefund }));
+                  haptic("light");
+                }}
+                className={`px-3 py-1 text-[10px] font-black uppercase tracking-wider transition-colors cursor-pointer ${
+                  paymentForm.isRefund === isRefund
+                    ? isRefund
+                      ? "bg-rose-500/15 text-rose-600 dark:text-rose-400"
+                      : "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+                    : "text-muted-foreground/50 hover:text-foreground"
+                }`}
+              >
+                {isRefund ? "Refund" : "Payment"}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <form onSubmit={handleAddPayment} className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wide mb-1">
+                Amount ({booking.currency})
+              </label>
+              <input
+                type="number"
+                min="1"
+                step="any"
+                required
+                value={paymentForm.amount}
+                onChange={(e) =>
+                  setPaymentForm((prev) => ({ ...prev, amount: e.target.value }))
+                }
+                className="w-full text-xs font-semibold rounded-xl border border-border bg-card px-3 py-2 focus:outline-none focus:border-primary/30 transition"
+                placeholder="5000"
+              />
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wide mb-1">
+                Method
+              </label>
+              <select
+                value={paymentForm.method}
+                onChange={(e) =>
+                  setPaymentForm((prev) => ({ ...prev, method: e.target.value }))
+                }
+                className="w-full text-xs font-semibold rounded-xl border border-border bg-card px-3 py-2 focus:outline-none focus:border-primary/30 transition cursor-pointer capitalize"
+              >
+                <option value="cash">Cash</option>
+                <option value="upi">UPI</option>
+                <option value="card">Card</option>
+                <option value="bank_transfer">Bank Transfer</option>
+              </select>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wide mb-1">
+                Date
+              </label>
+              <input
+                type="date"
+                value={paymentForm.date}
+                max={toISODateString(new Date())}
+                onChange={(e) =>
+                  setPaymentForm((prev) => ({ ...prev, date: e.target.value }))
+                }
+                className="w-full text-xs font-semibold rounded-xl border border-border bg-card px-3 py-2 focus:outline-none focus:border-primary/30 transition"
+              />
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wide mb-1">
+                Reference No.
+              </label>
+              <input
+                type="text"
+                value={paymentForm.referenceNumber}
+                onChange={(e) =>
+                  setPaymentForm((prev) => ({
+                    ...prev,
+                    referenceNumber: e.target.value,
+                  }))
+                }
+                className="w-full text-xs font-semibold rounded-xl border border-border bg-card px-3 py-2 focus:outline-none focus:border-primary/30 transition"
+                placeholder="UTR / txn id"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wide mb-1">
+              Recorded By
+            </label>
+            <input
+              type="text"
+              value={paymentForm.recordedBy}
+              onChange={(e) =>
+                setPaymentForm((prev) => ({ ...prev, recordedBy: e.target.value }))
+              }
+              className="w-full text-xs font-semibold rounded-xl border border-border bg-card px-3 py-2 focus:outline-none focus:border-primary/30 transition"
+              placeholder="Staff name"
+            />
+          </div>
+          {paymentForm.isRefund && (
+            <div>
+              <label className="block text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wide mb-1">
+                Refund Reason
+              </label>
+              <input
+                type="text"
+                value={paymentForm.refundReason}
+                onChange={(e) =>
+                  setPaymentForm((prev) => ({
+                    ...prev,
+                    refundReason: e.target.value,
+                  }))
+                }
+                className="w-full text-xs font-semibold rounded-xl border border-border bg-card px-3 py-2 focus:outline-none focus:border-primary/30 transition"
+                placeholder="Why is this being refunded?"
+              />
+            </div>
+          )}
+          <button
+            type="submit"
+            disabled={savingPayment}
+            className={`w-full py-2.5 rounded-xl text-xs font-extrabold active:scale-[0.98] transition-all disabled:opacity-40 cursor-pointer ${
+              paymentForm.isRefund
+                ? "bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 hover:bg-rose-500/20"
+                : "bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20"
+            }`}
+          >
+            {savingPayment
+              ? "Saving..."
+              : paymentForm.isRefund
+                ? "Record Refund"
+                : "Record Payment"}
+          </button>
+        </form>
+      </div>
+
       <DetailCard title="Property Info & Map" icon={Home}>
         <DetailRow label="Property Name" value="The Stream by Ekantah" />
         <DetailRow label="Property Address" value={booking.propertyAddress} />
@@ -747,7 +1220,7 @@ We look forward to hosting you!
     </div>
   );
 
-  const HistoryGroup = () => (
+  const historyGroup = (
     <div className="space-y-5">
       {/* Lifecycle Status controls */}
       <div className="rounded-3xl border border-border bg-card p-4 sm:p-5 space-y-4 backdrop-blur-md">
@@ -815,6 +1288,365 @@ We look forward to hosting you!
           </div>
         )}
       </div>
+
+      {/* Modify Booking: release rooms / renegotiate total */}
+      {booking.status !== "cancelled" && (
+        <div className="rounded-3xl border border-border bg-card p-4 sm:p-5 space-y-4 backdrop-blur-md">
+          <div className="flex items-center gap-2 border-b border-border pb-2">
+            <div className="w-6 h-6 rounded bg-primary/10 flex items-center justify-center text-primary">
+              <Settings className="w-3.5 h-3.5" />
+            </div>
+            <h3 className="text-xs font-black uppercase tracking-wider text-primary">
+              Modify Booking
+            </h3>
+          </div>
+
+          {/* Partial cancellation — release some rooms */}
+          {booking.roomCount > 1 && (
+            <form onSubmit={handlePartialCancel} className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground/60">
+                  Release Rooms
+                </span>
+                <span className="text-[10px] font-bold text-muted-foreground/50">
+                  {booking.roomCount} × {booking.roomType} booked
+                </span>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-[11px] font-bold text-muted-foreground/60">
+                  Rooms to release
+                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setPartialForm((prev) => ({
+                        ...prev,
+                        roomsToRemove: Math.max(1, prev.roomsToRemove - 1),
+                        newTotalAmount: "",
+                        refundAmount: "",
+                      }))
+                    }
+                    className="w-8 h-8 rounded-lg border border-border bg-muted/40 text-sm font-black hover:bg-muted active:scale-95 transition-all cursor-pointer"
+                  >
+                    −
+                  </button>
+                  <span className="w-8 text-center text-sm font-black text-foreground">
+                    {partialForm.roomsToRemove}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setPartialForm((prev) => ({
+                        ...prev,
+                        roomsToRemove: Math.min(
+                          booking.roomCount - 1,
+                          prev.roomsToRemove + 1,
+                        ),
+                        newTotalAmount: "",
+                        refundAmount: "",
+                      }))
+                    }
+                    className="w-8 h-8 rounded-lg border border-border bg-muted/40 text-sm font-black hover:bg-muted active:scale-95 transition-all cursor-pointer"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+              <div className="rounded-xl bg-muted/30 border border-border/50 p-3 space-y-1 text-[11px] font-semibold text-muted-foreground/70">
+                <span>
+                  New allocation:{" "}
+                  <b className="text-foreground">
+                    {booking.roomCount - partialForm.roomsToRemove} ×{" "}
+                    {booking.roomType}
+                  </b>
+                </span>
+                <br />
+                <span>
+                  Released room value:{" "}
+                  <b className="text-foreground">
+                    {booking.currency} {releasedValue.toLocaleString("en-IN")}
+                  </b>{" "}
+                  ({booking.currency} {Math.round(perRoomRate).toLocaleString("en-IN")}
+                  /room × {partialForm.roomsToRemove})
+                </span>
+                <br />
+                <span>
+                  Collected so far:{" "}
+                  <b className="text-foreground">
+                    {booking.currency} {Math.max(0, totalCollected).toLocaleString("en-IN")}
+                  </b>
+                </span>
+                <br />
+                <span>
+                  After release → refund{" "}
+                  <b className={effectiveRefund > 0 ? "text-rose-600 dark:text-rose-400" : "text-foreground"}>
+                    {booking.currency} {effectiveRefund.toLocaleString("en-IN")}
+                  </b>
+                  , new total{" "}
+                  <b className="text-foreground">
+                    {booking.currency} {effectiveNewTotal.toLocaleString("en-IN")}
+                  </b>
+                </span>
+                {retentionFee > 0 && (
+                  <>
+                    <br />
+                    <span>
+                      Retention fee kept as revenue:{" "}
+                      <b className="text-amber-600 dark:text-amber-400">
+                        {booking.currency} {retentionFee.toLocaleString("en-IN")}
+                      </b>
+                    </span>
+                  </>
+                )}
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wide mb-1">
+                    New Total (₹)
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    max={oldTotal}
+                    step="any"
+                    value={partialForm.newTotalAmount}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      const n = Number(v);
+                      setPartialForm((prev) => ({
+                        ...prev,
+                        newTotalAmount: v,
+                        refundAmount:
+                          v === "" || Number.isNaN(n)
+                            ? ""
+                            : String(Math.max(0, Math.min(oldTotal, oldTotal - n))),
+                      }));
+                    }}
+                    placeholder={String(suggestedTotal)}
+                    className={`w-full text-xs font-semibold rounded-xl border bg-card px-3 py-2 focus:outline-none transition ${
+                      newTotalError
+                        ? "border-rose-500/40 focus:border-rose-500/60"
+                        : "border-border focus:border-primary/30"
+                    }`}
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wide mb-1">
+                    Refund Amount (₹)
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="any"
+                    value={partialForm.refundAmount}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      const n = Number(v);
+                      setPartialForm((prev) => ({
+                        ...prev,
+                        refundAmount: v,
+                        newTotalAmount:
+                          v === "" || Number.isNaN(n)
+                            ? ""
+                            : String(Math.max(0, oldTotal - n)),
+                      }));
+                    }}
+                    placeholder={String(defaultRefund)}
+                    className={`w-full text-xs font-semibold rounded-xl border bg-card px-3 py-2 focus:outline-none transition ${
+                      refundError
+                        ? "border-rose-500/40 focus:border-rose-500/60"
+                        : "border-border focus:border-primary/30"
+                    }`}
+                  />
+                </div>
+              </div>
+              {partialFormError && (
+                <p className="text-[10px] font-bold text-rose-600 dark:text-rose-400">
+                  {partialFormError}
+                </p>
+              )}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wide mb-1">
+                    Refund Method
+                  </label>
+                  <select
+                    value={partialForm.refundMethod}
+                    onChange={(e) =>
+                      setPartialForm((prev) => ({
+                        ...prev,
+                        refundMethod: e.target.value,
+                      }))
+                    }
+                    className="w-full text-xs font-semibold rounded-xl border border-border bg-card px-3 py-2 focus:outline-none focus:border-primary/30 transition cursor-pointer"
+                  >
+                    <option value="cash">Cash</option>
+                    <option value="upi">UPI</option>
+                    <option value="card">Card</option>
+                    <option value="bank_transfer">Bank Transfer</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wide mb-1">
+                    Reason
+                  </label>
+                  <input
+                    type="text"
+                    value={partialForm.reason}
+                    onChange={(e) =>
+                      setPartialForm((prev) => ({
+                        ...prev,
+                        reason: e.target.value,
+                      }))
+                    }
+                    placeholder="Guest requested..."
+                    className="w-full text-xs font-semibold rounded-xl border border-border bg-card px-3 py-2 focus:outline-none focus:border-primary/30 transition"
+                  />
+                </div>
+              </div>
+              <button
+                type="submit"
+                disabled={savingPartial || !!partialFormError}
+                className="w-full py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs font-extrabold text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 active:scale-[0.98] transition-all disabled:opacity-40 cursor-pointer"
+              >
+                {savingPartial
+                  ? "Applying..."
+                  : `Release ${partialForm.roomsToRemove} Room${partialForm.roomsToRemove > 1 ? "s" : ""}`}
+              </button>
+            </form>
+          )}
+
+          {/* Renegotiate total */}
+          <div className="border-t border-border pt-3">
+            {!showAdjustTotal ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setAdjustForm({
+                    newTotalAmount: String(Number(booking.totalAmount)),
+                    reason: "",
+                  });
+                  setShowAdjustTotal(true);
+                  haptic("light");
+                }}
+                className="w-full py-2.5 rounded-xl bg-card border border-border text-xs font-bold hover:bg-muted active:scale-[0.98] transition-all cursor-pointer text-foreground flex items-center justify-center gap-1.5"
+              >
+                <Pencil className="w-3.5 h-3.5" />
+                <span>Renegotiate Total Amount</span>
+              </button>
+            ) : (
+              <form onSubmit={handleAdjustTotal} className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground/60">
+                    Adjust Total (currently {booking.currency}{" "}
+                    {Number(booking.totalAmount).toLocaleString("en-IN")})
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setShowAdjustTotal(false)}
+                    className="text-[10px] font-bold text-muted-foreground/60 hover:text-foreground cursor-pointer"
+                  >
+                    Close
+                  </button>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wide mb-1">
+                      New Total (₹)
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="any"
+                      required
+                      value={adjustForm.newTotalAmount}
+                      onChange={(e) =>
+                        setAdjustForm((prev) => ({
+                          ...prev,
+                          newTotalAmount: e.target.value,
+                        }))
+                      }
+                      className="w-full text-xs font-semibold rounded-xl border border-border bg-card px-3 py-2 focus:outline-none focus:border-primary/30 transition"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wide mb-1">
+                      Reason
+                    </label>
+                    <input
+                      type="text"
+                      value={adjustForm.reason}
+                      onChange={(e) =>
+                        setAdjustForm((prev) => ({
+                          ...prev,
+                          reason: e.target.value,
+                        }))
+                      }
+                      placeholder="Negotiated discount..."
+                      className="w-full text-xs font-semibold rounded-xl border border-border bg-card px-3 py-2 focus:outline-none focus:border-primary/30 transition"
+                    />
+                  </div>
+                </div>
+                <button
+                  type="submit"
+                  disabled={savingAdjust}
+                  className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground text-xs font-extrabold hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-40 cursor-pointer"
+                >
+                  {savingAdjust ? "Saving..." : "Apply New Total"}
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Change History */}
+      {booking.amendments && booking.amendments.length > 0 && (
+        <div className="rounded-3xl border border-border bg-card p-4 sm:p-5 space-y-3 backdrop-blur-md">
+          <div className="flex items-center gap-2 border-b border-border pb-2">
+            <div className="w-6 h-6 rounded bg-primary/10 flex items-center justify-center text-primary">
+              <History className="w-3.5 h-3.5" />
+            </div>
+            <h3 className="text-xs font-black uppercase tracking-wider text-primary">
+              Change History
+            </h3>
+          </div>
+          <div className="space-y-2.5 max-h-64 overflow-y-auto pr-1">
+            {booking.amendments.map((a) => (
+              <div
+                key={a.id}
+                className="text-[11px] font-semibold border-b border-border/60 pb-2 last:border-0 last:pb-0 flex flex-col gap-0.5"
+              >
+                <div className="flex justify-between items-center gap-2">
+                  <span
+                    className={`text-[9px] font-black uppercase tracking-wider px-1.5 py-0.2 rounded-sm shrink-0 ${
+                      a.type === "partial_cancel"
+                        ? "bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                        : a.type === "price_adjustment"
+                          ? "bg-primary/10 text-primary"
+                          : a.type === "status_change"
+                            ? "bg-rose-500/10 text-rose-600 dark:text-rose-400"
+                            : "bg-muted text-muted-foreground"
+                    }`}
+                  >
+                    {a.type.replace(/_/g, " ")}
+                  </span>
+                  <span className="text-muted-foreground/50 text-[10px] shrink-0">
+                    {formatDate(a.createdAt)}
+                  </span>
+                </div>
+                <span className="text-foreground/80">{a.summary}</span>
+                {a.changedBy && (
+                  <span className="text-muted-foreground/50 text-[10px]">
+                    by {a.changedBy}
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Quick Actions Card */}
       <div className="rounded-3xl border border-border bg-card p-4 sm:p-5 space-y-3.5 backdrop-blur-md">
@@ -1100,7 +1932,7 @@ We look forward to hosting you!
   );
 
   // Common Edit Form Inputs
-  const FormContent = () => (
+  const formContent = (
     <div className="space-y-6">
       {/* Section 1: Guest Information */}
       <div className="space-y-4">
@@ -1316,7 +2148,7 @@ We look forward to hosting you!
                     Cancel
                   </button>
                 </div>
-                <FormContent />
+                {formContent}
                 <div className="pt-4 flex gap-3 border-t border-border">
                   <button
                     type="submit"
@@ -1333,8 +2165,8 @@ We look forward to hosting you!
           {/* Desktop Info Views (Hidden when editing on desktop) */}
           {!isEditing && (
             <div className="hidden lg:block space-y-5">
-              <DetailsGroup />
-              <LedgerGroup />
+              {detailsGroup}
+              {ledgerGroup}
             </div>
           )}
 
@@ -1420,9 +2252,9 @@ We look forward to hosting you!
                   }
                 }}
               >
-                {activeMobileTab === "details" && <DetailsGroup />}
-                {activeMobileTab === "ledger" && <LedgerGroup />}
-                {activeMobileTab === "manage" && <HistoryGroup />}
+                {activeMobileTab === "details" && detailsGroup}
+                {activeMobileTab === "ledger" && ledgerGroup}
+                {activeMobileTab === "manage" && historyGroup}
               </motion.div>
             </AnimatePresence>
           </div>
@@ -1430,7 +2262,7 @@ We look forward to hosting you!
 
         {/* Right Column (Span 1 on lg) - Actions & History Sidebar (Desktop only) */}
         <div className="hidden lg:block">
-          <HistoryGroup />
+          {historyGroup}
         </div>
       </div>
 
@@ -1450,7 +2282,7 @@ We look forward to hosting you!
               Modify reservation information
             </DrawerDescription>
             <div className="flex-1 overflow-y-auto pb-4 pr-1">
-              <FormContent />
+              {formContent}
             </div>
             <div className="pt-3 border-t border-border flex gap-3">
               <button

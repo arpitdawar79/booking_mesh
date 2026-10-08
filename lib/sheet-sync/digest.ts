@@ -51,7 +51,7 @@ export async function runSheetDigestJob(log: LogFn): Promise<void> {
     prisma.appConfig.findUnique({ where: { key: "sheet.lastSoftGapCount" } }),
   ]);
   const since = lastDigest ? new Date(lastDigest.value) : new Date(0);
-  const [candidates, softGapCount, deleted, conflicts, importFailed] =
+  const [candidates, softGapCount, deleted, conflicts, pendingDups, importFailed, merged] =
     await Promise.all([
       prisma.sheetRow.findMany({
         where: { status: { in: ["incomplete", "nagged", "snoozed"] } },
@@ -68,7 +68,17 @@ export async function runSheetDigestJob(log: LogFn): Promise<void> {
       }),
       prisma.sheetRow.findMany({
         where: {
-          status: { in: ["conflict", "possible_duplicate"] },
+          status: "conflict",
+          updatedAt: { gt: since },
+        },
+        orderBy: [{ sheet: "asc" }, { rowNum: "asc" }],
+      }),
+      // Held-from-import duplicates get their own section: accept/keep do
+      // not apply to them (nothing is linked yet), so they must not be
+      // merged into the conflict line.
+      prisma.sheetRow.findMany({
+        where: {
+          status: "possible_duplicate",
           updatedAt: { gt: since },
         },
         orderBy: [{ sheet: "asc" }, { rowNum: "asc" }],
@@ -78,6 +88,12 @@ export async function runSheetDigestJob(log: LogFn): Promise<void> {
           importError: { not: null },
           updatedAt: { gt: since },
         },
+        orderBy: [{ sheet: "asc" }, { rowNum: "asc" }],
+      }),
+      // A7 audit: every auto-merge is visible in the digest, never silent.
+      // resolvedAt (not updatedAt) so a merged row is announced once, not every sync.
+      prisma.sheetRow.findMany({
+        where: { resolvedVia: "merge", resolvedAt: { gt: since } },
         orderBy: [{ sheet: "asc" }, { rowNum: "asc" }],
       }),
     ]);
@@ -92,7 +108,9 @@ export async function runSheetDigestJob(log: LogFn): Promise<void> {
     !softGapChanged &&
     deleted.length === 0 &&
     conflicts.length === 0 &&
-    importFailed.length === 0
+    pendingDups.length === 0 &&
+    importFailed.length === 0 &&
+    merged.length === 0
   ) {
     log("sheet-digest", "nothing to notify");
     return;
@@ -115,6 +133,8 @@ export async function runSheetDigestJob(log: LogFn): Promise<void> {
     deleted,
     conflicts,
     importFailed,
+    merged,
+    pendingDups,
   );
 
   const res = await sendToAdminGroup(message);
@@ -164,6 +184,6 @@ export async function runSheetDigestJob(log: LogFn): Promise<void> {
   await setConfig("sheet.lastSoftGapCount", String(softGapCount));
   log(
     "sheet-digest",
-    `sent digest: ${toNag.length} rows, ${softGapCount} soft-gap rows, ${conflicts.length} conflicts, ${deleted.length} deleted`,
+    `sent digest: ${toNag.length} rows, ${softGapCount} soft-gap rows, ${conflicts.length} conflicts, ${pendingDups.length} pending dups, ${deleted.length} deleted, ${merged.length} merged`,
   );
 }

@@ -1,9 +1,21 @@
+import { toErrorResponse } from "@/lib/http-error";
 import { prisma } from "@/lib/prisma";
 import { leadUpdateSchema } from "@/lib/validation";
 import { enrichContactProfile } from "@/lib/whatsapp";
 import { NextResponse } from "next/server";
 
 export async function GET(
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  try {
+    return await handleGET(_request, { params });
+  } catch (err) {
+    return toErrorResponse(err, "GET /api/whatsapp/contacts/[id]");
+  }
+}
+
+async function handleGET(
   _request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
@@ -16,6 +28,17 @@ export async function GET(
 }
 
 export async function PATCH(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  try {
+    return await handlePATCH(request, { params });
+  } catch (err) {
+    return toErrorResponse(err, "PATCH /api/whatsapp/contacts/[id]");
+  }
+}
+
+async function handlePATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
@@ -45,12 +68,34 @@ export async function DELETE(
   _request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  try {
+    return await handleDELETE(_request, { params });
+  } catch (err) {
+    return toErrorResponse(err, "DELETE /api/whatsapp/contacts/[id]");
+  }
+}
+
+async function handleDELETE(
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
   const { id } = await params;
   await prisma.userLead.delete({ where: { id } });
   return NextResponse.json({ success: true });
 }
 
 export async function PUT(
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  try {
+    return await handlePUT(_request, { params });
+  } catch (err) {
+    return toErrorResponse(err, "PUT /api/whatsapp/contacts/[id]");
+  }
+}
+
+async function handlePUT(
   _request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {

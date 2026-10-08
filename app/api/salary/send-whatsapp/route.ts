@@ -1,9 +1,18 @@
+import { toErrorResponse } from "@/lib/http-error";
 import { type SalarySlipPdfData } from "@/lib/pdf";
 import { prisma } from "@/lib/prisma";
 import { sendSalarySlipWhatsApp } from "@/lib/whatsapp";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
+  try {
+    return await handlePOST(request);
+  } catch (err) {
+    return toErrorResponse(err, "POST /api/salary/send-whatsapp");
+  }
+}
+
+async function handlePOST(request: Request) {
   const body = await request.json().catch(() => ({}));
   const { slipId } = body;
 

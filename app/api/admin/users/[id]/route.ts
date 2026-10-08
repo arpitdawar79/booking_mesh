@@ -1,10 +1,22 @@
 import { getUserFromToken, hashPassword, isAdmin } from "@/lib/auth";
+import { toErrorResponse } from "@/lib/http-error";
 import { PrismaClient } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
 const prisma = new PrismaClient();
 
 export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  try {
+    return await handleGET(request, { params });
+  } catch (err) {
+    return toErrorResponse(err, "GET /api/admin/users/[id]");
+  }
+}
+
+async function handleGET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
@@ -40,6 +52,17 @@ export async function GET(
 }
 
 export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  try {
+    return await handlePATCH(request, { params });
+  } catch (err) {
+    return toErrorResponse(err, "PATCH /api/admin/users/[id]");
+  }
+}
+
+async function handlePATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
@@ -88,6 +111,17 @@ export async function PATCH(
 }
 
 export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  try {
+    return await handleDELETE(request, { params });
+  } catch (err) {
+    return toErrorResponse(err, "DELETE /api/admin/users/[id]");
+  }
+}
+
+async function handleDELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {

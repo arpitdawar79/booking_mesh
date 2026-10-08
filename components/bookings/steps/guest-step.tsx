@@ -14,6 +14,7 @@ import {
   Minus,
   Phone,
   Plus,
+  Sparkles,
   User,
   Users,
 } from "lucide-react";
@@ -25,6 +26,7 @@ interface Props {
   setGuestPhone: (v: string) => void;
   guestEmail: string;
   setGuestEmail: (v: string) => void;
+  returningGuest?: { name: string; stays: number } | null;
   adultCount: number;
   setAdultCount: (v: number) => void;
   childCount: number;
@@ -43,6 +45,7 @@ export function GuestStep({
   setGuestPhone,
   guestEmail,
   setGuestEmail,
+  returningGuest,
   adultCount,
   setAdultCount,
   childCount,
@@ -91,6 +94,35 @@ export function GuestStep({
             />
           </div>
         </div>
+
+        {/* Returning-guest recognition */}
+        <AnimatePresence initial={false}>
+          {returningGuest && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 350, damping: 28 }}
+              className="overflow-hidden"
+            >
+              <div className="flex items-center gap-3 rounded-2xl border border-primary/20 bg-primary/5 px-4 py-3">
+                <div className="w-9 h-9 rounded-xl bg-primary/15 text-primary flex items-center justify-center shrink-0">
+                  <Sparkles className="w-4.5 h-4.5" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-extrabold text-primary truncate">
+                    Returning guest · {returningGuest.name}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground/60 font-medium">
+                    {returningGuest.stays > 0
+                      ? `${returningGuest.stays} previous stay${returningGuest.stays > 1 ? "s" : ""} on record`
+                      : "Already in your guest book"}
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Room configuration - high-fidelity interactive cards */}
         <div className="rounded-3xl border border-border bg-card p-4 sm:p-5 space-y-4 sm:space-y-5">

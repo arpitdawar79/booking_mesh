@@ -1,3 +1,4 @@
+import { toErrorResponse } from "@/lib/http-error";
 import { prisma } from "@/lib/prisma";
 import { SHEET_STREAMS } from "@/lib/sheet-sync/config";
 import { applyRowPatches } from "@/lib/sheet-sync/patches";
@@ -14,6 +15,14 @@ const streamFields = (sheet: string) =>
 
 /** GET ?token= → every row with any missing field (required or soft) */
 export async function GET(req: NextRequest) {
+  try {
+    return await handleGET(req);
+  } catch (err) {
+    return toErrorResponse(err, "GET /api/sheet-gaps");
+  }
+}
+
+async function handleGET(req: NextRequest) {
   const token = await validateFixToken(
     req.nextUrl.searchParams.get("token") ?? "",
     "gaps",
@@ -54,6 +63,14 @@ export async function GET(req: NextRequest) {
 
 /** POST { token, updates: [{ id, fields }] } → batch save */
 export async function POST(req: NextRequest) {
+  try {
+    return await handlePOST(req);
+  } catch (err) {
+    return toErrorResponse(err, "POST /api/sheet-gaps");
+  }
+}
+
+async function handlePOST(req: NextRequest) {
   const parsed = gapsRequestSchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) {
     return NextResponse.json({ error: "invalid request" }, { status: 422 });

@@ -1,4 +1,5 @@
 import { verifyRefreshToken, verifySessionToken } from "@/lib/auth-edge";
+import { toErrorResponse } from "@/lib/http-error";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 import { APP_CONFIG_KEYS, sheetSyncEnv } from "@/lib/sheet-sync/config";
@@ -11,6 +12,7 @@ import {
 } from "@/lib/sheet-sync/ledger";
 import { resolveOpsGroupJid } from "@/lib/sheet-sync/admin-jid";
 import { applyRowPatches } from "@/lib/sheet-sync/patches";
+import { RECORD_TYPES } from "@/lib/sheet-sync/record-links";
 import {
   cutoffRequestSchema,
   dashboardPatchSchema,
@@ -29,6 +31,14 @@ async function requireAdmin(req: NextRequest) {
 
 /** GET → stats + rows + sync settings for /dashboard/sheet-sync */
 export async function GET(req: NextRequest) {
+  try {
+    return await handleGET(req);
+  } catch (err) {
+    return toErrorResponse(err, "GET /api/sheet-sync");
+  }
+}
+
+async function handleGET(req: NextRequest) {
   if (!(await requireAdmin(req))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -38,11 +48,17 @@ export async function GET(req: NextRequest) {
   if (!query.success) {
     return NextResponse.json({ error: "invalid query" }, { status: 422 });
   }
-  const { status, sheet, queue, q, page, pageSize } = query.data;
+  const { status, sheet, queue, linked, q, page, pageSize } = query.data;
 
   const where: Prisma.SheetRowWhereInput = {};
   if (status) where.status = status;
   if (sheet) where.sheet = sheet;
+  if (linked === "record") {
+    where.linkedRecordId = { not: null };
+    where.linkedRecordType = { in: [...RECORD_TYPES] };
+  } else if (linked === "none") {
+    where.linkedRecordId = null;
+  }
   if (queue === "attention") {
     where.OR = [
       {
@@ -136,6 +152,14 @@ export async function GET(req: NextRequest) {
 
 /** PUT { syncFromDate } → update the cutoff */
 export async function PUT(req: NextRequest) {
+  try {
+    return await handlePUT(req);
+  } catch (err) {
+    return toErrorResponse(err, "PUT /api/sheet-sync");
+  }
+}
+
+async function handlePUT(req: NextRequest) {
   if (!(await requireAdmin(req))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -151,6 +175,14 @@ export async function PUT(req: NextRequest) {
 
 /** PATCH { id, fields?, action?, days? } → edit a row or run a row action */
 export async function PATCH(req: NextRequest) {
+  try {
+    return await handlePATCH(req);
+  } catch (err) {
+    return toErrorResponse(err, "PATCH /api/sheet-sync");
+  }
+}
+
+async function handlePATCH(req: NextRequest) {
   if (!(await requireAdmin(req))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -196,7 +228,10 @@ export async function PATCH(req: NextRequest) {
     const ok = await acceptSheetIntoLinkedRecord(row);
     if (!ok) {
       return NextResponse.json(
-        { error: "row is not linked to a record" },
+        {
+          error:
+            "row has no live linked record — if it was deleted in-app, use import to re-create it",
+        },
         { status: 409 },
       );
     }
@@ -256,11 +291,16 @@ export async function PATCH(req: NextRequest) {
       },
     });
   } else if (action === "import") {
-    // Not a duplicate — force-create a fresh ledger record.
+    // Not a duplicate (or its record was deleted in-app) — force-create a
+    // fresh ledger record. Clear any stale claim first, else linkOrCreate
+    // would short-circuit on the dead link.
     await prisma.sheetRow.update({
       where: { id: row.id },
       data: {
         status: "resolved",
+        linkedRecordId: null,
+        linkedRecordType: null,
+        linkedRowHash: null,
         conflictJson: Prisma.JsonNull,
         importError: null,
       },

@@ -34,6 +34,14 @@ function checkRateLimit(
   maxRequests: number,
 ): { allowed: boolean; retryAfter?: number } {
   const now = Date.now();
+
+  // Lazy eviction: sweep expired entries when the store grows, so it stays bounded
+  if (rateLimitStore.size > 1000) {
+    for (const [k, e] of rateLimitStore) {
+      if (now > e.resetAt) rateLimitStore.delete(k);
+    }
+  }
+
   const entry = rateLimitStore.get(key);
 
   if (!entry || now > entry.resetAt) {
@@ -51,6 +59,18 @@ function checkRateLimit(
   entry.count++;
   return { allowed: true };
 }
+
+const RATE_LIMITED_ROUTES: Array<{
+  prefix: string;
+  key: string;
+  windowMs: number;
+  max: number;
+}> = [
+  { prefix: "/api/auth", key: "auth", windowMs: 60_000, max: 5 },
+  { prefix: "/api/passkeys/login", key: "passkey", windowMs: 60_000, max: 10 },
+  { prefix: "/api/send-email", key: "email", windowMs: 60_000, max: 10 },
+  { prefix: "/api/whatsapp/send", key: "whatsapp", windowMs: 60_000, max: 10 },
+];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -75,31 +95,22 @@ export async function middleware(request: NextRequest) {
 
   // Rate limiting for sensitive API routes
   const ip = getClientIP(request);
-  if (pathname === "/api/auth") {
-    const result = checkRateLimit(`auth:${ip}`, 60_000, 5);
-    if (!result.allowed) {
-      return NextResponse.json(
-        { error: "Too many requests. Try again later." },
-        { status: 429, headers: { "Retry-After": String(result.retryAfter) } },
+  for (const rule of RATE_LIMITED_ROUTES) {
+    if (pathname === rule.prefix || pathname.startsWith(rule.prefix + "/")) {
+      const result = checkRateLimit(
+        `${rule.key}:${ip}`,
+        rule.windowMs,
+        rule.max,
       );
-    }
-  }
-  if (pathname === "/api/send-email") {
-    const result = checkRateLimit(`email:${ip}`, 60_000, 10);
-    if (!result.allowed) {
-      return NextResponse.json(
-        { error: "Too many requests. Try again later." },
-        { status: 429, headers: { "Retry-After": String(result.retryAfter) } },
-      );
-    }
-  }
-  if (pathname === "/api/whatsapp/send") {
-    const result = checkRateLimit(`whatsapp:${ip}`, 60_000, 10);
-    if (!result.allowed) {
-      return NextResponse.json(
-        { error: "Too many requests. Try again later." },
-        { status: 429, headers: { "Retry-After": String(result.retryAfter) } },
-      );
+      if (!result.allowed) {
+        return NextResponse.json(
+          { error: "Too many requests. Try again later." },
+          {
+            status: 429,
+            headers: { "Retry-After": String(result.retryAfter) },
+          },
+        );
+      }
     }
   }
 

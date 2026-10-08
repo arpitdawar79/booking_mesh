@@ -46,23 +46,33 @@ export const bookingCreateSchema = z.object({
       }),
     )
     .optional(),
+}).refine((d) => new Date(d.checkOutDate) > new Date(d.checkInDate), {
+  message: "Check-out date must be after check-in date",
+  path: ["checkOutDate"],
 });
+
+// Accepts both "yyyy-MM-dd" and full ISO timestamps (normalized to the date part)
+const flexibleDateString = z.preprocess(
+  (val) => (typeof val === "string" && val.length > 10 ? val.slice(0, 10) : val),
+  z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format (yyyy-MM-dd)"),
+);
 
 export const bookingUpdateSchema = z.object({
   id: z.string().min(1),
+  expectedUpdatedAt: z.string().optional(),
   guestFullName: z.string().min(1).optional(),
-  guestEmail: z.string().email().optional(),
-  guestPhone: z.string().optional().nullable(),
+  guestEmail: z.preprocess(
+    (val) => (val === "" ? null : val),
+    z.string().email("Invalid email address").nullable(),
+  ).optional(),
+  guestPhone: z.preprocess(
+    (val) => (val === "" ? null : val),
+    z.string().nullable(),
+  ).optional(),
   adultCount: z.coerce.number().int().min(1).optional(),
   childCount: z.coerce.number().int().min(0).optional(),
-  checkInDate: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/)
-    .optional(),
-  checkOutDate: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/)
-    .optional(),
+  checkInDate: flexibleDateString.optional(),
+  checkOutDate: flexibleDateString.optional(),
   checkInTime: z.string().optional(),
   checkOutTime: z.string().optional(),
   roomCount: z.coerce.number().int().min(1).optional(),
@@ -83,6 +93,25 @@ export const bookingUpdateSchema = z.object({
 export const bookingStatusSchema = z.object({
   id: z.string().min(1),
   status: z.enum(["confirmed", "cancelled", "completed", "archived"]),
+});
+
+export const bookingPartialCancelSchema = z.object({
+  id: z.string().min(1),
+  partialCancel: z.literal(true),
+  roomsToRemove: z.coerce.number().int().min(1),
+  newTotalAmount: z.coerce.number().min(0).optional(),
+  refundAmount: z.coerce.number().min(0).optional(),
+  refundMethod: z.enum(["upi", "card", "cash", "bank_transfer"]).optional(),
+  reason: z.string().optional(),
+  changedBy: z.string().optional(),
+});
+
+export const bookingAdjustTotalSchema = z.object({
+  id: z.string().min(1),
+  adjustTotal: z.literal(true),
+  newTotalAmount: z.coerce.number().min(0),
+  reason: z.string().optional(),
+  changedBy: z.string().optional(),
 });
 
 export const sendEmailSchema = z.object({
@@ -159,19 +188,31 @@ export const guestUpdateSchema = z.object({
 
 export const paymentCreateSchema = z.object({
   bookingId: z.string().min(1),
-  amount: z.coerce.number().min(0),
+  amount: z.coerce
+    .number()
+    .positive("Amount must be greater than zero"),
   method: z.enum(["upi", "card", "cash", "bank_transfer"]),
+  date: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format (yyyy-MM-dd)")
+    .optional(),
   referenceNumber: z.string().optional(),
   recordedBy: z.string().optional(),
   isRefund: z.boolean().default(false),
   refundReason: z.string().optional(),
+  idempotencyKey: z.string().min(1).max(64).optional(),
 });
 
-export const availabilityQuerySchema = z.object({
-  checkInDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  checkOutDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  roomType: z.string().optional(),
-});
+export const availabilityQuerySchema = z
+  .object({
+    checkInDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    checkOutDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    roomType: z.string().optional(),
+  })
+  .refine((d) => new Date(d.checkOutDate) > new Date(d.checkInDate), {
+    message: "Check-out date must be after check-in date",
+    path: ["checkOutDate"],
+  });
 
 export const gstrExportSchema = z.object({
   month: z.string().regex(/^\d{4}-\d{2}$/), // yyyy-MM

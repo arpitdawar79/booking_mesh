@@ -10,7 +10,7 @@ import {
   parsePartialPayment,
   shouldImportBookingProperty,
 } from "../ledger";
-import { judgeRow, parseStream } from "../parse";
+import { findRowIdCollisions, judgeRow, parseStream } from "../parse";
 import { fixRequestSchema, gapsRequestSchema } from "../validation";
 
 const expenses = SHEET_STREAMS.find((stream) => stream.key === "expenses")!;
@@ -182,4 +182,98 @@ test("property matching tolerates compound names but not other properties", () =
   assert.equal(shouldImportBookingProperty("Tirthan Valley"), true);
   assert.equal(shouldImportBookingProperty("tirthan "), true);
   assert.equal(shouldImportBookingProperty("Doon Valley"), false);
+});
+
+test("mappedHash uses the supplied parsedDate — drift checks must pass it", () => {
+  // Yearless sheet dates re-parse with a fixed 2025 fallback when parsedDate
+  // is omitted, so a 2026 row would false-flag as "sheet changed after
+  // import" unless the sync-side hash receives the row's real parsedDate.
+  const fields = {
+    sno: "5",
+    date: "10th Sept",
+    property: "Tirthan",
+    particular: "Dinner",
+    amount: "500",
+    paidBy: "Ekantah",
+  };
+  const parsed2026 = new Date("2026-09-10T00:00:00Z");
+  const withDate = mappedHash({
+    sheet: "expenses",
+    rawJson: fields,
+    patches: null,
+    parsedDate: parsed2026,
+  });
+  const withoutDate = mappedHash({ sheet: "expenses", rawJson: fields, patches: null });
+  assert.notEqual(withDate, withoutDate, "parsedDate must drive the date bucket");
+  assert.equal(
+    withDate,
+    mappedHash({
+      sheet: "expenses",
+      rawJson: { ...fields, date: "10th Sept 2026" },
+      patches: null,
+      parsedDate: parsed2026,
+    }),
+  );
+});
+
+test("duplicate S.No rows collide as a cluster", () => {
+  const rows = parseStream(
+    expenses,
+    [
+      ["9th Sept 2025 onwards"],
+      ["S. No.", "Date", "Property", "Particular", "Amount", "Paid by"],
+      ["12", "10th Sept", "Tirthan", "Vegetables", "500", "Ekantah"],
+      ["12", "11th Sept", "Tirthan", "Petrol", "500", "Ekantah"],
+      ["13", "12th Sept", "Tirthan", "Dinner", "300", "Ekantah"],
+    ],
+    2025,
+  );
+  assert.equal(rows.length, 3);
+  const collided = findRowIdCollisions(rows);
+  assert.deepEqual([...collided.keys()], ["12"]);
+  assert.equal(collided.get("12")?.length, 2);
+});
+
+test("held duplicates get their own digest section, not accept/keep advice", () => {
+  const dup = {
+    sheet: "revenue",
+    rowId: "77",
+    rawJson: {
+      property: "Tirthan",
+      type: "Room Tariff",
+      revenue: "4320",
+    },
+    missingRequired: [],
+    conflictJson: {
+      reason: "near-duplicate of r76 (62%) — merge or import",
+      duplicateOfRow: { id: "abc", rowId: "76" },
+      confidence: 0.62,
+      reasons: ["dates 1d apart", "full label match"],
+    },
+  } as unknown as SheetRow;
+  const message = formatDigest([], () => "", "", 0, [], [], [], [], [dup]);
+  assert.match(message, /1 possible duplicate\(s\) held from import/);
+  assert.match(message, /r77/);
+  assert.match(message, /\(62%\)/);
+  assert.match(message, /accept\/keep don't apply/);
+  assert.doesNotMatch(message, /need admin review/);
+  assert.doesNotMatch(message, /all tracked rows complete/);
+});
+
+test("merged rows are announced once in the digest with confidence", () => {  const row = {
+    sheet: "expenses",
+    rowId: "184",
+    rawJson: {
+      property: "Tirthan",
+      particular: "Plumber visit",
+      amount: "800",
+    },
+    missingRequired: [],
+    conflictJson: { merge: { confidence: 0.9, reasons: ["same amount"] } },
+  } as unknown as SheetRow;
+  const message = formatDigest([], () => "", "", 0, [], [], [], [row]);
+  assert.match(message, /1 row\(s\) auto-merged as duplicates/);
+  assert.match(message, /e184/);
+  assert.match(message, /90%/);
+  assert.doesNotMatch(message, /all tracked rows complete/);
 });

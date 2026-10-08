@@ -5,14 +5,15 @@ import { APP_CONFIG_KEYS, SHEET_STREAMS, sheetSyncEnv } from "./config";
 import type { SheetStreamDef } from "./config";
 import { fetchTabs, getFileMeta } from "./google";
 import type { SheetFileMeta } from "./google";
+import { shouldAutoMerge } from "./dedup-score";
 import {
-  findProductionDuplicate,
-  findSheetSibling,
+  findDuplicateSibling,
+  linkedRecordExists,
   linkOrCreateLedgerRecord,
   mappedHash,
   shouldImportBookingProperty,
 } from "./ledger";
-import { inferBaseYear, judgeRow, parseStream } from "./parse";
+import { findRowIdCollisions, inferBaseYear, judgeRow, parseStream } from "./parse";
 import type { ParsedRow, SheetMatrix } from "./parse";
 
 export type LogFn = (label: string, message: string) => void;
@@ -33,6 +34,9 @@ export interface StreamReport {
   conflicts: number;
   importErrors: number;
   deleted: number;
+  merged: number;
+  possibleDuplicates: number;
+  collisions: number;
   unparsedDateRows: string[];
   driftSuspected: boolean;
 }
@@ -161,15 +165,72 @@ async function syncStream(
     conflicts: 0,
     importErrors: 0,
     deleted: 0,
+    merged: 0,
+    possibleDuplicates: 0,
+    collisions: 0,
     unparsedDateRows: [],
     driftSuspected:
       stream.key !== "payouts" && rows.length < 5,
   };
 
-  const seenRowIds = new Set<string>();
+  // A3: two physical rows sharing an S.No are ambiguous as a pair — the DB
+  // key is (sheet,rowId), so processing both would let the later row silently
+  // clobber the earlier. Flag the whole cluster, import neither until reviewed.
+  const collided = findRowIdCollisions(rows);
+  if (collided.size) {
+    report.collisions = [...collided.values()].reduce((a, g) => a + g.length, 0);
+    if (!dryRun) {
+      for (const [rowId, group] of collided) {
+        const first = group[0];
+        const summary = group.map((g) => ({
+          rowNum: g.rowNum,
+          date: g.fields[stream.dateField ?? ""] ?? "",
+          amount: g.fields.amount ?? g.fields.revenue ?? "",
+          label: g.fields.particular ?? g.fields.guestName ?? g.fields.beneficiary ?? "",
+        }));
+        try {
+          const existing = await prisma.sheetRow.findUnique({
+            where: { sheet_rowId: { sheet: stream.key, rowId } },
+          });
+          // An admin decision on this (sheet,rowId) sticks: skipped is
+          // hands-off, and an existing link means one cluster member was
+          // already imported deliberately. Refresh liveness only, so neither
+          // gets re-flagged every sync or falsely marked deleted.
+          if (existing && (existing.status === "skipped" || existing.linkedRecordId)) {
+            await prisma.sheetRow.update({
+              where: { id: existing.id },
+              data: { lastSeenAt: startedAt },
+            });
+            continue;
+          }
+          const data = {
+            rowNum: first.rowNum,
+            rawJson: first.fields,
+            rowHash: first.rowHash,
+            parsedDate: first.parsedDate,
+            status: "possible_duplicate" as const,
+            lastSeenAt: startedAt,
+            conflictJson: {
+              reason: `S.No ${rowId} used by ${group.length} sheet rows — nothing imported until resolved`,
+              rows: summary,
+            },
+          };
+          await (existing
+            ? prisma.sheetRow.update({ where: { id: existing.id }, data })
+            : prisma.sheetRow.create({ data: { sheet: stream.key, rowId, ...data } }));
+        } catch (e) {
+          report.importErrors++;
+          log(
+            "sheet-sync",
+            `${stream.key}#${rowId}: collision flag failed — ${e instanceof Error ? e.message : e}`,
+          );
+        }
+      }
+    }
+  }
 
   for (const row of rows) {
-    seenRowIds.add(row.rowId);
+    if (collided.has(row.rowId)) continue;
     if (row.dateUnparsed) {
       report.unparsedDateRows.push(
         `${row.rowId} (${stream.dateField}: "${row.fields[stream.dateField ?? ""] ?? ""}")`,
@@ -219,9 +280,17 @@ async function syncStream(
     // Sticky sheet-drift detection: compare the record-affecting fields
     // against the hash captured when the record was linked/imported — NOT
     // against last sync's hash (which would silently clear the flag next run).
+    // parsedDate MUST be passed: without it mappedHash re-parses the raw date
+    // string with a fixed fallback year, which would differ from the year the
+    // stream actually inferred and false-flag every linked row as drifted.
     const currentMappedHash =
       existing?.linkedRecordId != null
-        ? mappedHash({ sheet: stream.key, rawJson: row.fields, patches })
+        ? mappedHash({
+            sheet: stream.key,
+            rawJson: row.fields,
+            patches,
+            parsedDate: row.parsedDate,
+          })
         : null;
     const linkedSheetEdit =
       !isSkipped &&
@@ -229,11 +298,19 @@ async function syncStream(
       !!existing?.linkedRowHash &&
       currentMappedHash !== existing.linkedRowHash;
     const isConflict = linkedPolicyViolation || linkedSheetEdit;
+    // A8: a linked record deleted in-app leaves a phantom link — the row
+    // looks safe while its money no longer exists anywhere.
+    const orphanedLink =
+      !isConflict &&
+      !isSkipped &&
+      !!existing?.linkedRecordId &&
+      !!existing.linkedRecordType &&
+      !(await linkedRecordExists(existing.linkedRecordType, existing.linkedRecordId));
     const retryTerminalImport =
       !!existing?.linkedRecordType &&
       !existing.linkedRecordId &&
       existing.rowHash !== row.rowHash;
-    const status = isConflict ? "conflict" : decision.status;
+    const status = isConflict || orphanedLink ? "conflict" : decision.status;
 
     if (status === "conflict") report.conflicts++;
     else if (isLegacy) report.legacy++;
@@ -262,7 +339,17 @@ async function syncStream(
                 : "sheet changed after import",
             },
           }
-        : { conflictJson: Prisma.JsonNull }),
+        : orphanedLink
+          ? {
+              conflictJson: {
+                reason: "linked record no longer exists in the app — re-import or unlink",
+                lostRecord: {
+                  type: existing!.linkedRecordType,
+                  id: existing!.linkedRecordId,
+                },
+              },
+            }
+          : { conflictJson: Prisma.JsonNull }),
       ...(!isConflict && decision.resolvedVia
         ? { resolvedVia: decision.resolvedVia }
         : {}),
@@ -273,23 +360,10 @@ async function syncStream(
 
     try {
       if (!existing) {
-        const created = await prisma.sheetRow.create({
+        await prisma.sheetRow.create({
           data: { sheet: stream.key, rowId: row.rowId, ...data },
         });
         report.created++;
-        if (!isLegacy && status === "complete") {
-          const duplicate = await findProductionDuplicate(created);
-          if (duplicate) {
-            await prisma.sheetRow.update({
-              where: { id: created.id },
-              data: {
-                linkedRecordId: duplicate.id,
-                linkedRecordType: duplicate.type,
-                linkedRowHash: mappedHash(created),
-              },
-            });
-          }
-        }
       } else {
         await prisma.sheetRow.update({ where: { id: existing.id }, data });
         if (existing.rowHash !== row.rowHash) report.updated++;
@@ -320,23 +394,75 @@ async function syncStream(
     let bridged = 0;
     for (const r of linkable) {
       try {
-        // Intra-sheet dup check: same stream + date + amount + label on a
-        // different row → flag for review instead of importing twice.
-        const sibling = await findSheetSibling(r);
-        if (sibling) {
+        // Intra-sheet dup check: the dedup engine scores every nearby same-stream
+        // row. Confident pairs collapse onto the sibling's record (merge);
+        // likely-but-not-certain pairs wait for a human.
+        const dup = await findDuplicateSibling(r);
+        if (dup) {
+          const tag =
+            dup.sibling.sheet === "expenses"
+              ? `e${dup.sibling.rowId}`
+              : dup.sibling.sheet === "revenue"
+                ? `r${dup.sibling.rowId}`
+                : `p${dup.sibling.rowId}`;
+          const siblingRecord =
+            ["expense", "additional_sale", "booking"].includes(
+              dup.sibling.linkedRecordType ?? "",
+            ) && dup.sibling.linkedRecordId
+              ? { type: dup.sibling.linkedRecordType!, id: dup.sibling.linkedRecordId }
+              : null;
+
+          // A8: the sibling's link may be a phantom (record deleted in-app and
+          // not yet re-swept) — never merge onto a record that doesn't exist.
+          const siblingRecordLive =
+            siblingRecord && (await linkedRecordExists(siblingRecord.type, siblingRecord.id))
+              ? siblingRecord
+              : null;
+
+          if (siblingRecordLive && shouldAutoMerge(dup.verdict)) {
+            await prisma.sheetRow.update({
+              where: { id: r.id },
+              data: {
+                status: "resolved",
+                linkedRecordId: siblingRecordLive.id,
+                linkedRecordType: siblingRecordLive.type,
+                linkedRowHash: mappedHash(r),
+                resolvedVia: "merge",
+                resolvedAt: new Date(),
+                importError: null,
+                conflictJson: {
+                  merge: {
+                    into: siblingRecordLive,
+                    mergedWithRow: tag,
+                    confidence: dup.verdict.confidence,
+                    reasons: dup.verdict.reasons,
+                  },
+                },
+              },
+            });
+            report.merged++;
+            bridged++;
+            continue;
+          }
+
           await prisma.sheetRow.update({
             where: { id: r.id },
             data: {
               status: "possible_duplicate",
               conflictJson: {
-                reason: `identical to ${sibling.sheet === "expenses" ? "e" : sibling.sheet === "revenue" ? "r" : "p"}${sibling.rowId} in the sheet`,
-                duplicateOfRow: { id: sibling.id, rowId: sibling.rowId },
+                reason: `near-duplicate of ${tag} (${Math.round(dup.verdict.confidence * 100)}%) — merge or import`,
+                duplicateOfRow: { id: dup.sibling.id, rowId: dup.sibling.rowId },
+                confidence: dup.verdict.confidence,
+                reasons: dup.verdict.reasons,
               },
             },
           });
+          report.possibleDuplicates++;
           continue;
         }
-        await linkOrCreateLedgerRecord(r);
+        const outcome = await linkOrCreateLedgerRecord(r);
+        if (outcome === "merged") report.merged++;
+        else if (outcome === "flagged_duplicate") report.possibleDuplicates++;
         bridged++;
       } catch (e) {
         const message = e instanceof Error ? e.message : String(e);
@@ -369,6 +495,8 @@ async function syncStream(
     `${stream.key}: scanned=${report.scanned} created=${report.created} ` +
       `updated=${report.updated} incomplete=${report.incomplete} ` +
       `softGaps=${report.softGaps} conflicts=${report.conflicts} ` +
+      `merged=${report.merged} possibleDuplicates=${report.possibleDuplicates} ` +
+      `collisions=${report.collisions} ` +
       `importErrors=${report.importErrors} deleted=${report.deleted}` +
       (report.unparsedDateRows.length
         ? ` unparsedDates=[${report.unparsedDateRows.join("; ")}]`

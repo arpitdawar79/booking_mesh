@@ -1,9 +1,18 @@
 import { dateRangeWhere, parseDateRangeParams } from "@/lib/date-range";
+import { toErrorResponse } from "@/lib/http-error";
 import { prisma } from "@/lib/prisma";
 import { additionalSaleCreateSchema, additionalSaleUpdateSchema } from "@/lib/validation";
 import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
+  try {
+    return await handleGET(request);
+  } catch (err) {
+    return toErrorResponse(err, "GET /api/additional-sales");
+  }
+}
+
+async function handleGET(request: Request) {
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
   const month = searchParams.get("month"); // yyyy-MM
@@ -20,6 +29,7 @@ export async function GET(request: Request) {
   }
 
   const where: Record<string, unknown> = {};
+  if (searchParams.get("source") === "sheet") where.sourceKey = { not: null };
   if (month) {
     const [year, m] = month.split("-");
     const start = new Date(Number(year), Number(m) - 1, 1);
@@ -64,6 +74,14 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  try {
+    return await handlePOST(request);
+  } catch (err) {
+    return toErrorResponse(err, "POST /api/additional-sales");
+  }
+}
+
+async function handlePOST(request: Request) {
   const body = await request.json().catch(() => ({}));
   const parsed = additionalSaleCreateSchema.safeParse(body);
   if (!parsed.success) {
@@ -94,6 +112,14 @@ export async function POST(request: Request) {
 }
 
 export async function PATCH(request: Request) {
+  try {
+    return await handlePATCH(request);
+  } catch (err) {
+    return toErrorResponse(err, "PATCH /api/additional-sales");
+  }
+}
+
+async function handlePATCH(request: Request) {
   const body = await request.json().catch(() => ({}));
   const parsed = additionalSaleUpdateSchema.safeParse(body);
   if (!parsed.success) {
@@ -130,6 +156,14 @@ export async function PATCH(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+  try {
+    return await handleDELETE(request);
+  } catch (err) {
+    return toErrorResponse(err, "DELETE /api/additional-sales");
+  }
+}
+
+async function handleDELETE(request: Request) {
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
   if (!id) {

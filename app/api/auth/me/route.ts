@@ -1,7 +1,16 @@
 import { getUserFromToken } from "@/lib/auth";
+import { toErrorResponse } from "@/lib/http-error";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
+  try {
+    return await handleGET(request);
+  } catch (err) {
+    return toErrorResponse(err, "GET /api/auth/me");
+  }
+}
+
+async function handleGET(request: NextRequest) {
   const token = request.cookies.get("access_token")?.value;
   if (!token) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });

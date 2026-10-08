@@ -1,7 +1,16 @@
+import { toErrorResponse } from "@/lib/http-error";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 export async function GET() {
+  try {
+    return await handleGET();
+  } catch (err) {
+    return toErrorResponse(err, "GET /api/whatsapp/contacts/stats");
+  }
+}
+
+async function handleGET() {
   const [
     total,
     active,

@@ -3,6 +3,12 @@
 import { SlideOver } from "@/components/ui/slide-over";
 import { useToast } from "@/components/ui/toast";
 import { SHEET_STREAMS } from "@/lib/sheet-sync/config";
+import {
+  RECORD_LABEL,
+  isRecordType,
+  recordHref,
+  terminalImportReason,
+} from "@/lib/sheet-sync/record-links";
 import { cn } from "@/lib/utils";
 import {
   AlertTriangle,
@@ -12,6 +18,13 @@ import {
   Loader2,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+
+type Candidate = {
+  type: string;
+  id: string;
+  confidence?: number;
+  reasons?: string[];
+};
 
 export interface DashRow {
   id: string;
@@ -36,8 +49,17 @@ export interface DashRow {
     reason?: string;
     previous?: Record<string, string>;
     current?: Record<string, string>;
-    candidates?: { type: string; id: string }[];
+    candidates?: Candidate[];
+    merge?: {
+      into: Candidate;
+      confidence?: number;
+      reasons?: string[];
+    };
+    lostRecord?: { type: string; id: string };
     duplicateOfRow?: { id: string; rowId: string };
+    rows?: { rowNum: number }[];
+    reasons?: string[];
+    confidence?: number;
   } | null;
   rawJson: Record<string, string>;
   patches: Record<string, { value: string; source: string }> | null;
@@ -77,6 +99,35 @@ const SOURCE_LABEL: Record<string, string> = {
   form: "fix link",
   dashboard: "dashboard",
 };
+
+function RecordLink({
+  type,
+  id,
+  label,
+}: {
+  type?: string | null;
+  id?: string | null;
+  label?: string;
+}) {
+  const href = recordHref(type, id);
+  if (!href || !isRecordType(type) || !id) return null;
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      className="inline-flex items-center gap-1 rounded-lg border border-primary/25 bg-primary/10 px-2 py-1 text-[11px] font-bold text-primary hover:bg-primary/20 transition shrink-0"
+    >
+      {label ?? RECORD_LABEL[type]}
+      <ExternalLink className="w-3 h-3" />
+    </a>
+  );
+}
+
+/** Short tail of a cuid — enough to tell two matched records apart. */
+function shortId(id: string): string {
+  return id.slice(-6);
+}
 
 export function RowDrawer({
   row,
@@ -181,10 +232,22 @@ export function RowDrawer({
               <AlertTriangle className="w-3.5 h-3.5" />
               {(row.conflictJson.reason ?? "needs review").toString()}
             </p>
-            <p className="text-muted-foreground">
-              The sheet no longer matches the imported record. Pick Accept or
-              Keep below.
-            </p>
+            {row.conflictJson.lostRecord ? (
+              <p className="text-muted-foreground">
+                The <code className="text-[10px]">{shortId(row.conflictJson.lostRecord.id)}</code>{" "}
+                {row.conflictJson.lostRecord.type.replace(/_/g, " ")} it pointed
+                at is gone. Use Import to re-create it, or Unlink to leave the
+                row as sheet-only.
+              </p>
+            ) : (
+              <p className="text-muted-foreground">
+                The sheet no longer matches the imported record. Pick Accept or
+                Keep below, or open the record to compare it by hand.
+              </p>
+            )}
+            {!!row.conflictJson.candidates?.length && (
+              <CandidateList candidates={row.conflictJson.candidates} />
+            )}
           </div>
         )}
         {row.status === "possible_duplicate" && row.conflictJson && (
@@ -197,20 +260,58 @@ export function RowDrawer({
               {row.conflictJson.duplicateOfRow
                 ? `Matches sheet row ${
                     { expenses: "e", revenue: "r", payouts: "p" }[row.sheet]
-                  }${row.conflictJson.duplicateOfRow.rowId} — same date, amount and name.`
-                : "Matches an existing record in the app."}{" "}
-              Link it to avoid double-entry, or import it anyway.
+                  }${row.conflictJson.duplicateOfRow.rowId}.`
+                : row.conflictJson.candidates?.length
+                  ? "Matches an existing record in the app."
+                  : "Duplicated S.No in the sheet — fix the numbering there, or import this row to take the first entry as-is."}{" "}
+              {(row.conflictJson.candidates?.length ?? 0) > 0 ||
+              row.conflictJson.duplicateOfRow
+                ? "Link it to avoid double-entry, or import it anyway."
+                : ""}
+              {row.conflictJson.reasons?.length
+                ? ` Evidence: ${row.conflictJson.reasons.join(", ")}.`
+                : ""}
             </p>
+            {!!row.conflictJson.candidates?.length && (
+              <CandidateList candidates={row.conflictJson.candidates} />
+            )}
           </div>
         )}
-        {row.linkedRecordId && (
-          <div className="flex items-center gap-2 text-xs rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-3 py-2 text-emerald-600 dark:text-emerald-400">
-            <Link2 className="w-3.5 h-3.5" />
-            Linked to{" "}
-            <span className="font-bold">
-              {row.linkedRecordType?.replace("_", " ")}
-            </span>
-            <code className="text-[10px] opacity-70">{row.linkedRecordId}</code>
+        {(row.linkedRecordId || row.linkedRecordType) && (
+          <div
+            className={cn(
+              "flex items-center gap-2 text-xs rounded-xl border px-3 py-2",
+              isRecordType(row.linkedRecordType) && row.linkedRecordId
+                ? "border-emerald-500/20 bg-emerald-500/5 text-emerald-600 dark:text-emerald-400"
+                : "border-border/60 bg-muted/20 text-muted-foreground",
+            )}
+          >
+            <Link2 className="w-3.5 h-3.5 shrink-0" />
+            {isRecordType(row.linkedRecordType) && row.linkedRecordId ? (
+              <>
+                <span className="min-w-0 flex-1">
+                  {row.resolvedVia === "merge" ? "Merged into" : "Linked to"}{" "}
+                  <span className="font-bold">
+                    {RECORD_LABEL[row.linkedRecordType]}
+                  </span>{" "}
+                  <code className="text-[10px] opacity-70">
+                    {shortId(row.linkedRecordId)}
+                  </code>
+                </span>
+                <RecordLink
+                  type={row.linkedRecordType}
+                  id={row.linkedRecordId}
+                  label="Open record"
+                />
+              </>
+            ) : (
+              <span className="min-w-0 flex-1">
+                Not imported —{" "}
+                <span className="font-bold">
+                  {terminalImportReason(row.linkedRecordType) ?? "no record yet"}
+                </span>
+              </span>
+            )}
           </div>
         )}
 
@@ -377,6 +478,33 @@ export function RowDrawer({
         </div>
       </div>
     </SlideOver>
+  );
+}
+
+/**
+ * The records a duplicate/review verdict is pointing at. Deciding to merge
+ * without seeing the existing entry is a guess, so every candidate is openable.
+ */
+function CandidateList({ candidates }: { candidates: Candidate[] }) {
+  const linked = candidates.filter((c) => recordHref(c.type, c.id));
+  if (!linked.length) return null;
+  return (
+    <ul className="space-y-1 pt-1">
+      {linked.map((c) => (
+        <li key={`${c.type}-${c.id}`} className="flex items-center gap-2">
+          <span className="min-w-0 flex-1 truncate text-muted-foreground">
+            <span className="font-bold text-foreground">
+              {isRecordType(c.type) ? RECORD_LABEL[c.type] : c.type}
+            </span>{" "}
+            <code className="text-[10px]">{shortId(c.id)}</code>
+            {typeof c.confidence === "number" &&
+              ` · ${Math.round(c.confidence * 100)}% match`}
+            {c.reasons?.length && ` (${c.reasons.join(", ")})`}
+          </span>
+          <RecordLink type={c.type} id={c.id} label="Open" />
+        </li>
+      ))}
+    </ul>
   );
 }
 

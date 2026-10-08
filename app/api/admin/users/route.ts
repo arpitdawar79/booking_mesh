@@ -1,4 +1,5 @@
 import { getUserFromToken, hashPassword, isAdmin } from "@/lib/auth";
+import { toErrorResponse } from "@/lib/http-error";
 import { authAdminUserSchema } from "@/lib/validation";
 import { PrismaClient } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
@@ -6,6 +7,14 @@ import { NextRequest, NextResponse } from "next/server";
 const prisma = new PrismaClient();
 
 export async function GET(request: NextRequest) {
+  try {
+    return await handleGET(request);
+  } catch (err) {
+    return toErrorResponse(err, "GET /api/admin/users");
+  }
+}
+
+async function handleGET(request: NextRequest) {
   const token = request.cookies.get("access_token")?.value;
   if (!token) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -33,6 +42,14 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  try {
+    return await handlePOST(request);
+  } catch (err) {
+    return toErrorResponse(err, "POST /api/admin/users");
+  }
+}
+
+async function handlePOST(request: NextRequest) {
   const token = request.cookies.get("access_token")?.value;
   if (!token) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

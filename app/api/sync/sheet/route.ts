@@ -1,5 +1,7 @@
 import { runJob } from "@/lib/cron-jobs";
 import { verifyRefreshToken, verifySessionToken } from "@/lib/auth-edge";
+import { toErrorResponse } from "@/lib/http-error";
+import { logger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { APP_CONFIG_KEYS } from "@/lib/sheet-sync/config";
 import { runSheetSyncJob } from "@/lib/sheet-sync/job";
@@ -14,6 +16,14 @@ import { NextRequest, NextResponse } from "next/server";
  *  3. Admin UI: POST with a valid admin session cookie
  */
 export async function POST(req: NextRequest) {
+  try {
+    return await handlePOST(req);
+  } catch (err) {
+    return toErrorResponse(err, "POST /api/sync/sheet");
+  }
+}
+
+async function handlePOST(req: NextRequest) {
   const googChannel = req.headers.get("x-goog-channel-id");
   const googState = req.headers.get("x-goog-resource-state");
 
@@ -57,7 +67,11 @@ export async function POST(req: NextRequest) {
 
     runJob("sheet-sync", async (log) => {
       await runSheetSyncJob(log);
-    }, "schedule").catch(() => {});
+    }, "schedule").catch((err) =>
+      logger.error("sheet-sync", "Webhook-triggered sync failed", {
+        error: String(err),
+      }),
+    );
     return NextResponse.json({ ok: true, via: "webhook" });
   }
 
@@ -94,7 +108,11 @@ export async function POST(req: NextRequest) {
 
   runJob("sheet-sync", async (log) => {
     await runSheetSyncJob(log, { dryRun });
-  }, "manual").catch(() => {});
+  }, "manual").catch((err) =>
+    logger.error("sheet-sync", "Manually-triggered sync failed", {
+      error: String(err),
+    }),
+  );
 
   return NextResponse.json({ ok: true, dryRun });
 }

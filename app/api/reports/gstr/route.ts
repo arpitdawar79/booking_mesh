@@ -1,8 +1,17 @@
+import { toErrorResponse } from "@/lib/http-error";
 import { prisma } from "@/lib/prisma";
 import { gstrExportSchema } from "@/lib/validation";
 import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
+  try {
+    return await handleGET(request);
+  } catch (err) {
+    return toErrorResponse(err, "GET /api/reports/gstr");
+  }
+}
+
+async function handleGET(request: Request) {
   const { searchParams } = new URL(request.url);
   const parsed = gstrExportSchema.safeParse({
     month: searchParams.get("month"),

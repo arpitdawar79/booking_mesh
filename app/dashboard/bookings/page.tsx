@@ -24,6 +24,7 @@ import {
   Download,
   Eye,
   IndianRupee,
+  Link2,
   Loader2,
   MessageCircle,
   Phone,
@@ -56,6 +57,7 @@ interface Booking {
   balanceAmount: number;
   paymentStatus: string;
   status: string;
+  sourceKey: string | null;
   createdAt: string;
 }
 
@@ -128,6 +130,15 @@ function BookingCard({
               </span>
               {b.status === "confirmed" && (
                 <span className="inline-flex w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+              )}
+              {b.sourceKey && (
+                <span
+                  title={`Imported from sheet row ${b.sourceKey}`}
+                  className="inline-flex items-center gap-1 rounded-sm border border-primary/25 bg-primary/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-primary"
+                >
+                  <Link2 className="w-2.5 h-2.5" />
+                  {b.sourceKey.split(":")[1]}
+                </span>
               )}
             </div>
             <div className="font-extrabold text-sm tracking-tight text-foreground truncate">
@@ -264,6 +275,7 @@ export default function BookingsPage() {
     preset: "this_month",
   });
   const [search, setSearch] = useState("");
+  const [fromSheet, setFromSheet] = useState(false);
   const [page, setPage] = useState(1);
   const [pageSize] = useState(20);
   const [total, setTotal] = useState(0);
@@ -333,7 +345,7 @@ export default function BookingsPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [filter, search, dateRange]);
+  }, [filter, search, fromSheet, dateRange]);
 
   useEffect(() => {
     setLoading(true);
@@ -342,6 +354,7 @@ export default function BookingsPage() {
     params.set("pageSize", String(pageSize));
     if (search.trim()) params.set("search", search.trim());
     if (filter !== "all") params.set("status", filter);
+    if (fromSheet) params.set("source", "sheet");
     applyDateRangeParams(params, dateRange);
 
     fetch(`/api/bookings?${params}`)
@@ -372,7 +385,7 @@ export default function BookingsPage() {
       .catch((err) => {
         console.error("Failed to load stats:", err);
       });
-  }, [page, pageSize, filter, search, dateRange]);
+  }, [page, pageSize, filter, search, fromSheet, dateRange]);
 
   function handleCopy(bookingId: string) {
     setCopiedId(bookingId);
@@ -728,6 +741,20 @@ We look forward to hosting you!
           {/* Date range filter (stay dates) */}
           <DateRangeFilter value={dateRange} onChange={setDateRange} />
 
+          <button
+            onClick={() => setFromSheet((v) => !v)}
+            aria-pressed={fromSheet}
+            title="Only bookings imported from the Google Sheet"
+            className={`rounded-xl border px-3 py-2 text-xs font-bold transition flex items-center gap-1.5 ${
+              fromSheet
+                ? "bg-primary/10 text-primary border-primary/30"
+                : "bg-card text-muted-foreground/70 border-border hover:text-foreground"
+            }`}
+          >
+            <Link2 className="w-3.5 h-3.5" />
+            From sheet
+          </button>
+
           {/* Animated sliding navigation filter */}
           <div className="flex rounded-xl border border-border p-1 bg-muted/50">
             {(["all", "confirmed", "cancelled", "archived"] as const).map(
@@ -831,6 +858,15 @@ We look forward to hosting you!
                       >
                         <td className="font-mono text-xs text-muted-foreground/60">
                           {b.bookingId}
+                          {b.sourceKey && (
+                            <span
+                              title={`Imported from sheet row ${b.sourceKey}`}
+                              className="ml-1.5 inline-flex items-center gap-0.5 rounded-sm border border-primary/25 bg-primary/10 px-1 py-0.5 text-[9px] font-bold uppercase text-primary align-middle"
+                            >
+                              <Link2 className="w-2.5 h-2.5" />
+                              {b.sourceKey.split(":")[1]}
+                            </span>
+                          )}
                         </td>
                         <td>
                           <div className="font-extrabold text-xs text-foreground group-hover:text-primary transition-colors">

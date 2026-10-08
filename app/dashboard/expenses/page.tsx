@@ -14,6 +14,7 @@ import {
     CalendarDays,
     ClipboardList,
     IndianRupee,
+    Link2,
     Pencil,
     PlusCircle,
     Receipt,
@@ -34,6 +35,7 @@ interface Expense {
   recordedBy: string | null;
   receiptUrl: string | null;
   notes: string | null;
+  sourceKey: string | null;
   createdAt: string;
 }
 
@@ -69,6 +71,7 @@ export default function ExpensesPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("");
+  const [fromSheet, setFromSheet] = useState(false);
   const [dateRange, setDateRange] = useState<DateRangeSelection>({
     preset: "this_month",
   });
@@ -91,6 +94,7 @@ export default function ExpensesPage() {
     params.set("pageSize", String(pageSize));
     if (search.trim()) params.set("search", search.trim());
     if (category) params.set("category", category);
+    if (fromSheet) params.set("source", "sheet");
     applyDateRangeParams(params, dateRange);
 
     fetch(`/api/expenses?${params}`)
@@ -102,11 +106,11 @@ export default function ExpensesPage() {
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, [page, search, category, dateRange]);
+  }, [page, search, category, fromSheet, dateRange]);
 
   useEffect(() => {
     setPage(1);
-  }, [search, category, dateRange]);
+  }, [search, category, fromSheet, dateRange]);
 
   useEffect(() => {
     loadData();
@@ -114,10 +118,16 @@ export default function ExpensesPage() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    if (params.get("action") === "add") {
-      setSlideOpen(true);
-      window.history.replaceState({}, "", window.location.pathname);
+    const editId = params.get("edit");
+    if (!editId && params.get("action") !== "add") return;
+    if (editId) {
+      setEditingId(editId);
+      // A sheet-sync row usually points at an older entry than this month's
+      // default window — widen so the record is findable after the drawer closes.
+      setDateRange({ preset: "all" });
     }
+    setSlideOpen(true);
+    window.history.replaceState({}, "", window.location.pathname);
   }, []);
 
   useEffect(() => {
@@ -202,11 +212,25 @@ export default function ExpensesPage() {
           ))}
         </select>
         <DateRangeFilter value={dateRange} onChange={setDateRange} />
-        {(search || category || dateRange.preset !== "this_month") && (
+        <button
+          onClick={() => setFromSheet((v) => !v)}
+          aria-pressed={fromSheet}
+          title="Only entries imported from the Google Sheet"
+          className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition flex items-center gap-1.5 ${
+            fromSheet
+              ? "bg-primary/10 text-primary border-primary/30"
+              : "bg-background text-muted-foreground border-border hover:text-foreground"
+          }`}
+        >
+          <Link2 className="w-3 h-3" />
+          From sheet
+        </button>
+        {(search || category || fromSheet || dateRange.preset !== "this_month") && (
           <button
             onClick={() => {
               setSearch("");
               setCategory("");
+              setFromSheet(false);
               setDateRange({ preset: "this_month" });
             }}
             className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
@@ -282,7 +306,17 @@ export default function ExpensesPage() {
                           {CATEGORY_LABELS[e.category] || e.category}
                         </span>
                       </td>
-                      <td className="font-medium">{e.description}</td>
+                      <td className="font-medium">
+                        {e.description}
+                        {e.sourceKey && (
+                          <span
+                            title={`Imported from sheet row ${e.sourceKey}`}
+                            className="ml-2 rounded-full border border-primary/25 bg-primary/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-primary"
+                          >
+                            sheet {e.sourceKey.split(":")[1]}
+                          </span>
+                        )}
+                      </td>
                       <td className="font-bold text-rose-600 dark:text-rose-400">
                         {fmtCurrency(Number(e.amount))}
                       </td>

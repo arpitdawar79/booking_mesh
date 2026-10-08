@@ -1,7 +1,19 @@
 import { cancelJob, getJobFromDB } from "@/lib/extraction-job";
+import { toErrorResponse } from "@/lib/http-error";
 import { NextResponse } from "next/server";
 
 export async function GET(
+  _request: Request,
+  { params }: { params: Promise<{ jobId: string }> },
+) {
+  try {
+    return await handleGET(_request, { params });
+  } catch (err) {
+    return toErrorResponse(err, "GET /api/whatsapp/contacts/extract/[jobId]");
+  }
+}
+
+async function handleGET(
   _request: Request,
   { params }: { params: Promise<{ jobId: string }> },
 ) {
@@ -16,6 +28,17 @@ export async function GET(
 }
 
 export async function DELETE(
+  _request: Request,
+  { params }: { params: Promise<{ jobId: string }> },
+) {
+  try {
+    return await handleDELETE(_request, { params });
+  } catch (err) {
+    return toErrorResponse(err, "DELETE /api/whatsapp/contacts/extract/[jobId]");
+  }
+}
+
+async function handleDELETE(
   _request: Request,
   { params }: { params: Promise<{ jobId: string }> },
 ) {

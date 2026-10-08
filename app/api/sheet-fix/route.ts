@@ -1,3 +1,4 @@
+import { toErrorResponse } from "@/lib/http-error";
 import { prisma } from "@/lib/prisma";
 import { SHEET_STREAMS } from "@/lib/sheet-sync/config";
 import { applyRowPatches } from "@/lib/sheet-sync/patches";
@@ -14,6 +15,14 @@ const streamFields = (sheet: string) =>
 
 /** GET ?token= → row payload for the fix form */
 export async function GET(req: NextRequest) {
+  try {
+    return await handleGET(req);
+  } catch (err) {
+    return toErrorResponse(err, "GET /api/sheet-fix");
+  }
+}
+
+async function handleGET(req: NextRequest) {
   const token = await validateFixToken(
     req.nextUrl.searchParams.get("token") ?? "",
     "fix",
@@ -43,6 +52,14 @@ export async function GET(req: NextRequest) {
 
 /** POST { token, fields } → apply fixes */
 export async function POST(req: NextRequest) {
+  try {
+    return await handlePOST(req);
+  } catch (err) {
+    return toErrorResponse(err, "POST /api/sheet-fix");
+  }
+}
+
+async function handlePOST(req: NextRequest) {
   const parsed = fixRequestSchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) {
     return NextResponse.json({ error: "invalid request" }, { status: 422 });

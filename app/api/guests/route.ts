@@ -1,9 +1,18 @@
 import { dateRangeWhere, parseDateRangeParams } from "@/lib/date-range";
+import { toErrorResponse } from "@/lib/http-error";
 import { prisma } from "@/lib/prisma";
 import { guestCreateSchema, guestUpdateSchema } from "@/lib/validation";
 import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
+  try {
+    return await handleGET(request);
+  } catch (err) {
+    return toErrorResponse(err, "GET /api/guests");
+  }
+}
+
+async function handleGET(request: Request) {
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
   const phone = searchParams.get("phone");
@@ -70,6 +79,14 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  try {
+    return await handlePOST(request);
+  } catch (err) {
+    return toErrorResponse(err, "POST /api/guests");
+  }
+}
+
+async function handlePOST(request: Request) {
   const body = await request.json().catch(() => ({}));
   const parsed = guestCreateSchema.safeParse(body);
   if (!parsed.success) {
@@ -93,6 +110,14 @@ export async function POST(request: Request) {
 }
 
 export async function PATCH(request: Request) {
+  try {
+    return await handlePATCH(request);
+  } catch (err) {
+    return toErrorResponse(err, "PATCH /api/guests");
+  }
+}
+
+async function handlePATCH(request: Request) {
   const body = await request.json().catch(() => ({}));
   const parsed = guestUpdateSchema.safeParse(body);
   if (!parsed.success) {

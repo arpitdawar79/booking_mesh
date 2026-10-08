@@ -1,7 +1,16 @@
+import { HttpError, toErrorResponse } from "@/lib/http-error";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
+  try {
+    return await handleGET(request);
+  } catch (err) {
+    return toErrorResponse(err, "GET /api/analytics/calendar");
+  }
+}
+
+async function handleGET(request: Request) {
   const { searchParams } = new URL(request.url);
   const year = parseInt(
     searchParams.get("year") || String(new Date().getFullYear()),
@@ -11,6 +20,12 @@ export async function GET(request: Request) {
     searchParams.get("month") || String(new Date().getMonth() + 1),
     10,
   );
+  if (!Number.isInteger(year) || year < 2000 || year > 2100) {
+    throw new HttpError(400, "Invalid year parameter");
+  }
+  if (!Number.isInteger(month) || month < 1 || month > 12) {
+    throw new HttpError(400, "Invalid month parameter (must be 1-12)");
+  }
 
   const startStr = `${year}-${String(month).padStart(2, "0")}-01`;
   const lastDay = new Date(year, month, 0).getDate();

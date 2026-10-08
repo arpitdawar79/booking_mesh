@@ -1,4 +1,5 @@
 import { parseDateRangeParams, yearMonthRangeWhere } from "@/lib/date-range";
+import { toErrorResponse } from "@/lib/http-error";
 import { prisma } from "@/lib/prisma";
 import {
   employeeCreateSchema,
@@ -9,6 +10,14 @@ import {
 import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
+  try {
+    return await handleGET(request);
+  } catch (err) {
+    return toErrorResponse(err, "GET /api/salary");
+  }
+}
+
+async function handleGET(request: Request) {
   const { searchParams } = new URL(request.url);
   const type = searchParams.get("type"); // 'employees' | 'slips'
   const id = searchParams.get("id");
@@ -95,6 +104,14 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  try {
+    return await handlePOST(request);
+  } catch (err) {
+    return toErrorResponse(err, "POST /api/salary");
+  }
+}
+
+async function handlePOST(request: Request) {
   const body = await request.json().catch(() => ({}));
   const { type, ...data } = body;
 
@@ -158,6 +175,14 @@ export async function POST(request: Request) {
 }
 
 export async function PATCH(request: Request) {
+  try {
+    return await handlePATCH(request);
+  } catch (err) {
+    return toErrorResponse(err, "PATCH /api/salary");
+  }
+}
+
+async function handlePATCH(request: Request) {
   const body = await request.json().catch(() => ({}));
   const { type, ...data } = body;
 
@@ -220,6 +245,14 @@ export async function PATCH(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+  try {
+    return await handleDELETE(request);
+  } catch (err) {
+    return toErrorResponse(err, "DELETE /api/salary");
+  }
+}
+
+async function handleDELETE(request: Request) {
   const { searchParams } = new URL(request.url);
   const type = searchParams.get("type");
   const id = searchParams.get("id");

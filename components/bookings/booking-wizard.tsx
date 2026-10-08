@@ -67,6 +67,51 @@ export function BookingWizard() {
   const [adultCount, setAdultCount] = useState(2);
   const [childCount, setChildCount] = useState(0);
 
+  // Returning-guest recognition (debounced lookup by phone/email)
+  const [returningGuest, setReturningGuest] = useState<{
+    name: string;
+    stays: number;
+  } | null>(null);
+  useEffect(() => {
+    const controller = new AbortController();
+    const phoneDigits = guestPhone.replace(/\D/g, "");
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail.trim());
+    const query =
+      phoneDigits.length >= 8
+        ? `phone=${encodeURIComponent(guestPhone.trim())}`
+        : emailOk
+          ? `email=${encodeURIComponent(guestEmail.trim())}`
+          : null;
+    if (!query) {
+      setReturningGuest(null);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/guests?${query}`, {
+          signal: controller.signal,
+        });
+        if (!res.ok) return;
+        const json = await res.json();
+        const match = json.guests?.[0];
+        if (match) {
+          setReturningGuest({
+            name: match.name,
+            stays: match._count?.bookings ?? 0,
+          });
+        } else {
+          setReturningGuest(null);
+        }
+      } catch {
+        // aborted or network error — ignore, lookup is best-effort
+      }
+    }, 400);
+    return () => {
+      controller.abort();
+      clearTimeout(timer);
+    };
+  }, [guestPhone, guestEmail]);
+
   // Room state (moved from stay for UX priority)
   const [isFullProperty, setIsFullProperty] = useState(false);
   const [roomCount, setRoomCount] = useState(1);
@@ -106,6 +151,45 @@ export function BookingWizard() {
     return d;
   }, []);
   const isPastStay = checkOutDate !== null && checkOutDate < todayStart;
+
+  // Base room rates for price suggestion (only present once PropertyConfig has basePrice set)
+  const [basePrices, setBasePrices] = useState<Record<string, number>>({});
+  useEffect(() => {
+    if (!checkInDate || !checkOutDate || nightCount <= 0) {
+      setBasePrices({});
+      return;
+    }
+    const controller = new AbortController();
+    (async () => {
+      try {
+        const res = await fetch(
+          `/api/availability?checkInDate=${formatDate(checkInDate)}&checkOutDate=${formatDate(checkOutDate)}`,
+          { signal: controller.signal },
+        );
+        if (!res.ok) return;
+        const json = await res.json();
+        const map: Record<string, number> = {};
+        for (const a of json.availability ?? []) {
+          if (a.basePrice != null) map[a.roomType] = Number(a.basePrice);
+        }
+        setBasePrices(map);
+      } catch {
+        // aborted or network error — suggestion is best-effort
+      }
+    })();
+    return () => controller.abort();
+  }, [checkInDate, checkOutDate, nightCount]);
+
+  const suggestedTotal = useMemo(() => {
+    if (nightCount <= 0 || roomAllocations.length === 0) return null;
+    let perNight = 0;
+    for (const r of roomAllocations) {
+      const price = basePrices[r.roomType];
+      if (price == null) return null;
+      perNight += price * r.count;
+    }
+    return perNight * nightCount;
+  }, [basePrices, roomAllocations, nightCount]);
 
   // Auto-compute adults/children and room allocations when rooms change
   useEffect(() => {
@@ -455,6 +539,7 @@ export function BookingWizard() {
                 setGuestPhone={setGuestPhone}
                 guestEmail={guestEmail}
                 setGuestEmail={setGuestEmail}
+                returningGuest={returningGuest}
                 adultCount={adultCount}
                 setAdultCount={setAdultCount}
                 childCount={childCount}
@@ -507,6 +592,7 @@ export function BookingWizard() {
                 setPastPaymentMethod={setPastPaymentMethod}
                 pastPaymentReference={pastPaymentReference}
                 setPastPaymentReference={setPastPaymentReference}
+                suggestedTotal={suggestedTotal}
               />
             )}
             {step === 4 && (

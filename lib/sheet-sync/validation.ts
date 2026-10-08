@@ -51,6 +51,7 @@ export const dashboardQuerySchema = z.object({
     .optional(),
   sheet: z.enum(["expenses", "payouts", "revenue"]).optional(),
   queue: z.enum(["attention"]).optional(),
+  linked: z.enum(["record", "none"]).optional(),
   q: z.string().trim().max(80).optional(),
   page: z.coerce.number().int().min(1).default(1),
   pageSize: z.coerce.number().int().min(1).max(100).default(25),

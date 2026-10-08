@@ -1,9 +1,18 @@
 import { EmailType, sendEmail } from "@/lib/email";
+import { toErrorResponse } from "@/lib/http-error";
 import { prisma } from "@/lib/prisma";
 import { sendEmailSchema } from "@/lib/validation";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
+  try {
+    return await handlePOST(request);
+  } catch (err) {
+    return toErrorResponse(err, "POST /api/send-email");
+  }
+}
+
+async function handlePOST(request: Request) {
   const body = await request.json().catch(() => ({}));
   const parsed = sendEmailSchema.safeParse(body);
   if (!parsed.success) {

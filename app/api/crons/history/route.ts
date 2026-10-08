@@ -1,8 +1,17 @@
 import { dateRangeWhere, parseDateRangeParams } from "@/lib/date-range";
+import { toErrorResponse } from "@/lib/http-error";
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
+  try {
+    return await handleGET(req);
+  } catch (err) {
+    return toErrorResponse(err, "GET /api/crons/history");
+  }
+}
+
+async function handleGET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const jobName = searchParams.get("jobName");
   const status = searchParams.get("status");

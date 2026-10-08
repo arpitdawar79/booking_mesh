@@ -14,6 +14,7 @@ import {
     CalendarDays,
     ClipboardList,
     IndianRupee,
+    Link2,
     Pencil,
     PlusCircle,
     Search,
@@ -33,6 +34,7 @@ interface AdditionalSale {
   amount: number;
   paymentMethod: string;
   notes: string | null;
+  sourceKey: string | null;
   createdAt: string;
 }
 
@@ -68,6 +70,7 @@ export default function AdditionalSalesPage() {
   const [sales, setSales] = useState<AdditionalSale[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [fromSheet, setFromSheet] = useState(false);
   const [dateRange, setDateRange] = useState<DateRangeSelection>({
     preset: "this_month",
   });
@@ -89,6 +92,7 @@ export default function AdditionalSalesPage() {
     params.set("page", String(page));
     params.set("pageSize", String(pageSize));
     if (search.trim()) params.set("search", search.trim());
+    if (fromSheet) params.set("source", "sheet");
     applyDateRangeParams(params, dateRange);
 
     fetch(`/api/additional-sales?${params}`)
@@ -100,11 +104,11 @@ export default function AdditionalSalesPage() {
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, [page, search, dateRange]);
+  }, [page, search, fromSheet, dateRange]);
 
   useEffect(() => {
     setPage(1);
-  }, [search, dateRange]);
+  }, [search, fromSheet, dateRange]);
 
   useEffect(() => {
     loadData();
@@ -112,10 +116,14 @@ export default function AdditionalSalesPage() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    if (params.get("action") === "add") {
-      setSlideOpen(true);
-      window.history.replaceState({}, "", window.location.pathname);
+    const editId = params.get("edit");
+    if (!editId && params.get("action") !== "add") return;
+    if (editId) {
+      setEditingId(editId);
+      setDateRange({ preset: "all" });
     }
+    setSlideOpen(true);
+    window.history.replaceState({}, "", window.location.pathname);
   }, []);
 
   useEffect(() => {
@@ -190,10 +198,24 @@ export default function AdditionalSalesPage() {
           />
         </div>
         <DateRangeFilter value={dateRange} onChange={setDateRange} />
-        {(search || dateRange.preset !== "this_month") && (
+        <button
+          onClick={() => setFromSheet((v) => !v)}
+          aria-pressed={fromSheet}
+          title="Only entries imported from the Google Sheet"
+          className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition flex items-center gap-1.5 ${
+            fromSheet
+              ? "bg-primary/10 text-primary border-primary/30"
+              : "bg-background text-muted-foreground border-border hover:text-foreground"
+          }`}
+        >
+          <Link2 className="w-3 h-3" />
+          From sheet
+        </button>
+        {(search || fromSheet || dateRange.preset !== "this_month") && (
           <button
             onClick={() => {
               setSearch("");
+              setFromSheet(false);
               setDateRange({ preset: "this_month" });
             }}
             className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
@@ -267,7 +289,17 @@ export default function AdditionalSalesPage() {
                       <td className="text-muted-foreground">
                         {fmtDate(s.date)}
                       </td>
-                      <td className="font-semibold">{s.guestName}</td>
+                      <td className="font-semibold">
+                        {s.guestName}
+                        {s.sourceKey && (
+                          <span
+                            title={`Imported from sheet row ${s.sourceKey}`}
+                            className="ml-2 rounded-full border border-primary/25 bg-primary/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-primary"
+                          >
+                            sheet {s.sourceKey.split(":")[1]}
+                          </span>
+                        )}
+                      </td>
                       <td>
                         <span className="rounded-full bg-muted border border-border px-2 py-0.5 text-[10px] font-bold text-muted-foreground">
                           {fmtLabel(s.saleType)}

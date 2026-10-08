@@ -1,8 +1,17 @@
 import { getUserFromToken } from "@/lib/auth";
+import { toErrorResponse } from "@/lib/http-error";
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
+  try {
+    return await handlePOST(req);
+  } catch (err) {
+    return toErrorResponse(err, "POST /api/push/subscribe");
+  }
+}
+
+async function handlePOST(req: NextRequest) {
   const token = req.cookies.get("access_token")?.value;
   if (!token) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -37,6 +46,14 @@ export async function POST(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  try {
+    return await handleDELETE(req);
+  } catch (err) {
+    return toErrorResponse(err, "DELETE /api/push/subscribe");
+  }
+}
+
+async function handleDELETE(req: NextRequest) {
   const token = req.cookies.get("access_token")?.value;
   if (!token) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

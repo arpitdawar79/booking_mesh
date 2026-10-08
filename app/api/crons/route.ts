@@ -7,6 +7,8 @@ import {
     runPreArrivalReminderJob,
 } from "@/lib/cron-jobs";
 import type { LogFn } from "@/lib/cron-jobs";
+import { toErrorResponse } from "@/lib/http-error";
+import { logger } from "@/lib/logger";
 import { runSheetDigestJob } from "@/lib/sheet-sync/digest";
 import { runSheetSyncJob } from "@/lib/sheet-sync/job";
 import { runWatchRenewalJob } from "@/lib/sheet-sync/watch";
@@ -99,6 +101,14 @@ function getJobFn(name: string) {
 }
 
 export async function GET(req: NextRequest) {
+  try {
+    return await handleGET(req);
+  } catch (err) {
+    return toErrorResponse(err, "GET /api/crons");
+  }
+}
+
+async function handleGET(req: NextRequest) {
   if (!(await requireAdmin(req))) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
@@ -172,6 +182,14 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  try {
+    return await handlePOST(req);
+  } catch (err) {
+    return toErrorResponse(err, "POST /api/crons");
+  }
+}
+
+async function handlePOST(req: NextRequest) {
   if (!(await requireAdmin(req))) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
@@ -193,7 +211,11 @@ export async function POST(req: NextRequest) {
   }
 
   // Run without awaiting so the HTTP request returns immediately
-  runJob(name, jobFn, "manual").catch(() => {});
+  runJob(name, jobFn, "manual").catch((err) =>
+    logger.error("cron", `Manual trigger of ${name} failed`, {
+      error: String(err),
+    }),
+  );
 
   return NextResponse.json({ ok: true, message: `Triggered ${name}` });
 }

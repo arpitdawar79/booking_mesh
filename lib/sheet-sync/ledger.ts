@@ -1,8 +1,19 @@
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 import type { SheetRow } from "@prisma/client";
+import {
+  DEDUP_DATE_WINDOW_DAYS,
+  dayFloor,
+  nearAmountVariants,
+  scorePair,
+  shouldAutoMerge,
+  type DedupSubject,
+  type DedupVerdict,
+} from "./dedup-score";
 import { parseSheetDate, parseStayRange } from "./dates";
 import { effectiveFields, hashFields } from "./parse";
+
+const DAY_MS = 86400_000;
 
 type Fields = Record<string, string>;
 type DbClient = Prisma.TransactionClient | typeof prisma;
@@ -57,15 +68,6 @@ export function shouldImportBookingProperty(property: string) {
 
 function sourceKey(row: Pick<SheetRow, "sheet" | "rowId">) {
   return `${row.sheet}:${row.rowId}`;
-}
-
-function dayRange(date: Date) {
-  const start = new Date(Date.UTC(
-    date.getUTCFullYear(),
-    date.getUTCMonth(),
-    date.getUTCDate(),
-  ));
-  return { gte: start, lt: new Date(start.getTime() + 86400_000) };
 }
 
 /**
@@ -151,108 +153,259 @@ async function findBySourceKey(
 }
 
 /**
- * Finds an exact production match for rows that may have been entered manually
- * before the source key existed.
+ * Scored duplicate matching. Candidates come from production records and from
+ * sibling sheet rows; each pair gets a tier from the dedup engine:
+ *   auto   → collapse onto the existing record immediately (audit-logged as a
+ *            merge), only for low-coincidence evidence (non-round amount,
+ *            strong label, near date or identical stay).
+ *   review → flag `possible_duplicate` with confidence for one-tap merge.
+ *   ignore → coincidence (round amounts collide constantly in this book).
  */
-export async function findProductionDuplicates(
-  row: Pick<SheetRow, "sheet" | "rowId" | "rawJson" | "patches" | "parsedDate">,
-  db: DbClient = prisma,
-): Promise<{ type: DestinationType; id: string }[]> {
-  const fields = rowFields(row);
-  const amount = parseAmount(fields.amount ?? fields.revenue);
-  if (!amount || !row.parsedDate) return [];
-
-  if (row.sheet === "expenses") {
-    if (!fields.particular?.trim()) return [];
-    const hits = await db.expense.findMany({
-      where: {
-        amount,
-        date: dayRange(row.parsedDate),
-        description: { equals: fields.particular, mode: "insensitive" },
-      },
-      select: { id: true },
-      take: 4,
-    });
-    return hits.map((h) => ({ type: "expense" as const, id: h.id }));
-  }
-
-  if (row.sheet !== "revenue") return [];
-  const kind = classifyRevenue(fields.type ?? "");
-  if (kind === "restaurant" || kind === "activity") {
-    if (!fields.guestName?.trim()) return []; // don't link on a placeholder name
-    const hits = await db.additionalSale.findMany({
-      where: {
-        amount,
-        date: dayRange(row.parsedDate),
-        saleType: kind,
-        guestName: { equals: fields.guestName, mode: "insensitive" },
-      },
-      select: { id: true },
-      take: 4,
-    });
-    return hits.map((h) => ({ type: "additional_sale" as const, id: h.id }));
-  }
-
-  if (kind === "booking") {
-    const stay = parseStayRange(fields.stayDates ?? "", row.parsedDate);
-    if (!stay || !fields.guestName) return [];
-    const hits = await db.booking.findMany({
-      where: {
-        totalAmount: amount,
-        checkInDate: stay.checkIn,
-        checkOutDate: stay.checkOut,
-        guestFullName: { equals: fields.guestName, mode: "insensitive" },
-      },
-      select: { id: true },
-      take: 4,
-    });
-    return hits.map((h) => ({ type: "booking" as const, id: h.id }));
-  }
-
-  return [];
-}
-
-export async function findProductionDuplicate(
-  row: Pick<SheetRow, "sheet" | "rowId" | "rawJson" | "patches" | "parsedDate">,
-  db: DbClient = prisma,
-): Promise<{ type: DestinationType; id: string } | null> {
-  const hits = await findProductionDuplicates(row, db);
-  return hits[0] ?? null;
-}
-
-/**
- * Intra-sheet duplicate: another tracked row in the same stream carries the
- * same date + amount + primary label — almost always a double entry.
- */
-export async function findSheetSibling(
-  row: SheetRow,
-  db: DbClient = prisma,
-): Promise<SheetRow | null> {
-  if (row.sheet === "payouts" || !row.parsedDate) return null;
+function sheetSubject(
+  row: Pick<SheetRow, "sheet" | "rawJson" | "patches" | "parsedDate">,
+): DedupSubject | null {
   const fields = rowFields(row);
   const amount = parseAmount(fields.amount ?? fields.revenue);
   if (!amount) return null;
-  const label =
-    row.sheet === "expenses" ? fields.particular : fields.guestName;
-  if (!label?.trim()) return null;
+  if (row.sheet === "expenses") {
+    return {
+      kind: "expense",
+      amount,
+      date: row.parsedDate,
+      label: fields.particular ?? "",
+      payer: fields.paidBy,
+      property: fields.property,
+    };
+  }
+  if (row.sheet !== "revenue") return null;
+  const kind = classifyRevenue(fields.type ?? "");
+  if (!kind) return null;
+  const stay =
+    kind === "booking" ? parseStayRange(fields.stayDates ?? "", row.parsedDate) : null;
+  return {
+    kind: kind === "booking" ? "booking" : "additional_sale",
+    amount,
+    date: row.parsedDate,
+    label: fields.guestName ?? "",
+    payer: fields.receivedBy,
+    property: fields.property,
+    source: fields.source,
+    checkIn: stay?.checkIn ?? null,
+    checkOut: stay?.checkOut ?? null,
+  };
+}
+
+function dayWindow(date: Date, days = DEDUP_DATE_WINDOW_DAYS) {
+  const center = dayFloor(date).getTime();
+  return {
+    gte: new Date(center - days * DAY_MS),
+    lt: new Date(center + (days + 1) * DAY_MS),
+  };
+}
+
+export interface ScoredCandidate {
+  type: DestinationType;
+  id: string;
+  verdict: DedupVerdict;
+}
+
+/**
+ * Finds production records that plausibly represent the same transaction as
+ * this sheet row — including same-amount entries recorded a day or two apart
+ * (ops routinely enters the payment date, not the incurred date) and digit
+ * typo / decimal-slip variants of the amount.
+ */
+export async function productionCandidates(
+  row: Pick<SheetRow, "sheet" | "rowId" | "rawJson" | "patches" | "parsedDate">,
+  db: DbClient = prisma,
+): Promise<ScoredCandidate[]> {
+  const subject = sheetSubject(row);
+  if (!subject || !subject.date) return [];
+  const amounts = nearAmountVariants(subject.amount);
+  const scored: ScoredCandidate[] = [];
+
+  const collect = (
+    type: DestinationType,
+    id: string,
+    candidate: DedupSubject | null,
+  ) => {
+    if (!candidate) return;
+    const verdict = scorePair(subject, candidate);
+    if (verdict.tier !== "ignore") scored.push({ type, id, verdict });
+  };
+
+  if (subject.kind === "expense") {
+    const hits = await db.expense.findMany({
+      where: { amount: { in: amounts }, date: dayWindow(subject.date) },
+      select: { id: true, amount: true, date: true, description: true, recordedBy: true },
+      take: 40,
+    });
+    for (const h of hits) {
+      collect("expense", h.id, {
+        kind: "expense",
+        amount: Number(h.amount),
+        date: h.date,
+        label: h.description ?? "",
+        payer: h.recordedBy ?? "",
+      });
+    }
+  } else if (subject.kind === "booking") {
+    const or: Prisma.BookingWhereInput[] = [
+      { bookingDate: dayWindow(subject.date) },
+    ];
+    if (subject.checkIn) or.push({ checkInDate: dayWindow(subject.checkIn) });
+    const hits = await db.booking.findMany({
+      where: { totalAmount: { in: amounts }, OR: or },
+      select: {
+        id: true, totalAmount: true, bookingDate: true,
+        guestFullName: true, checkInDate: true, checkOutDate: true,
+      },
+      take: 40,
+    });
+    for (const h of hits) {
+      collect("booking", h.id, {
+        kind: "booking",
+        amount: Number(h.totalAmount),
+        date: h.bookingDate,
+        label: h.guestFullName ?? "",
+        checkIn: h.checkInDate,
+        checkOut: h.checkOutDate,
+      });
+    }
+  } else {
+    const hits = await db.additionalSale.findMany({
+      where: { amount: { in: amounts }, date: dayWindow(subject.date) },
+      select: { id: true, amount: true, date: true, guestName: true },
+      take: 40,
+    });
+    for (const h of hits) {
+      collect("additional_sale", h.id, {
+        kind: subject.kind,
+        amount: Number(h.amount),
+        date: h.date,
+        label: h.guestName,
+      });
+    }
+  }
+
+  return scored.sort((a, b) => b.verdict.score - a.verdict.score).slice(0, 5);
+}
+
+/**
+ * A ledger record must be claimed by at most one sheet row — unless the two
+ * rows are themselves a verified duplicate pair (that's a merge, not a clash).
+ */
+async function recordClaimedBy(
+  db: DbClient,
+  type: DestinationType,
+  recordId: string,
+  exceptRowId: string,
+): Promise<SheetRow | null> {
+  return db.sheetRow.findFirst({
+    where: {
+      linkedRecordType: type,
+      linkedRecordId: recordId,
+      id: { not: exceptRowId },
+    },
+  });
+}
+
+export interface ProductionAnalysis {
+  linkNow: ScoredCandidate | null;
+  mergedViaHolder: string | null; // rowId of the sibling whose claim we merge into
+  review: ScoredCandidate[];
+  claimConflict: { candidate: ScoredCandidate; holderRowId: string } | null;
+}
+
+export async function analyzeAgainstProduction(
+  row: SheetRow,
+  db: DbClient = prisma,
+): Promise<ProductionAnalysis> {
+  const candidates = await productionCandidates(row, db);
+  const linkable = candidates.filter((c) => shouldAutoMerge(c.verdict));
+  const review = candidates
+    .filter((c) => c.verdict.tier === "review")
+    .slice(0, 3);
+
+  if (linkable.length > 1) {
+    // Multiple strong matches — ambiguous, hand to review rather than pick one.
+    const linkableIds = new Set(linkable.map((c) => c.id));
+    return {
+      linkNow: null,
+      mergedViaHolder: null,
+      review: [...linkable, ...review.filter((c) => !linkableIds.has(c.id))].slice(0, 3),
+      claimConflict: null,
+    };
+  }
+
+  const candidate = linkable[0];
+  if (!candidate) return { linkNow: null, mergedViaHolder: null, review, claimConflict: null };
+
+  const holder = await recordClaimedBy(db, candidate.type, candidate.id, row.id);
+  if (holder) {
+    const holderSubject = sheetSubject(holder);
+    const rowSubject = sheetSubject(row);
+    if (holderSubject && rowSubject && shouldAutoMerge(scorePair(rowSubject, holderSubject))) {
+      return { linkNow: candidate, mergedViaHolder: holder.rowId, review: [], claimConflict: null };
+    }
+    return { linkNow: null, mergedViaHolder: null, review, claimConflict: { candidate, holderRowId: holder.rowId } };
+  }
+  return { linkNow: candidate, mergedViaHolder: null, review, claimConflict: null };
+}
+
+export function conflictCandidatePayload(c: ScoredCandidate) {
+  return {
+    type: c.type,
+    id: c.id,
+    confidence: c.verdict.confidence,
+    reasons: c.verdict.reasons,
+  };
+}
+
+/**
+ * Intra-sheet duplicate: another tracked row in the same stream that the dedup
+ * engine considers the same transaction (scored, ±window on date).
+ */
+export async function findDuplicateSibling(
+  row: SheetRow,
+  db: DbClient = prisma,
+): Promise<{ sibling: SheetRow; verdict: DedupVerdict } | null> {
+  const subject = sheetSubject(row);
+  if (!subject || !subject.date || row.sheet === "payouts") return null;
 
   const siblings = await db.sheetRow.findMany({
     where: {
       sheet: row.sheet,
       id: { not: row.id },
-      parsedDate: row.parsedDate,
+      parsedDate: dayWindow(subject.date),
       status: { notIn: ["deleted", "skipped", "possible_duplicate", "legacy"] },
     },
-    take: 25,
+    take: 100,
   });
-  return (
-    siblings.find((sib) => {
-      const sf = rowFields(sib);
-      if (parseAmount(sf.amount ?? sf.revenue) !== amount) return false;
-      const sibLabel = row.sheet === "expenses" ? sf.particular : sf.guestName;
-      return (sibLabel ?? "").trim().toLowerCase() === label.trim().toLowerCase();
-    }) ?? null
-  );
+
+  let best: { sibling: SheetRow; verdict: DedupVerdict } | null = null;
+  for (const sib of siblings) {
+    const sibSubject = sheetSubject(sib);
+    if (!sibSubject) continue;
+    const verdict = scorePair(subject, sibSubject);
+    if (verdict.tier === "ignore") continue;
+    if (!best || verdict.score > best.verdict.score) best = { sibling: sib, verdict };
+  }
+  return best;
+}
+
+export type LedgerRecordType = "expense" | "additional_sale" | "booking";
+
+/** A8: does the record this row links to still exist in the app? */
+export async function linkedRecordExists(
+  type: string,
+  id: string,
+): Promise<boolean> {
+  if (type === "expense") return !!(await prisma.expense.findUnique({ where: { id }, select: { id: true } }));
+  if (type === "additional_sale")
+    return !!(await prisma.additionalSale.findUnique({ where: { id }, select: { id: true } }));
+  if (type === "booking") return !!(await prisma.booking.findUnique({ where: { id }, select: { id: true } }));
+  return true; // terminal classifications ("excluded_property", …) claim no record
 }
 
 export function parsePartialPayment(raw: string | undefined, total: number) {
@@ -395,6 +548,11 @@ export async function acceptSheetIntoLinkedRecord(
   row: SheetRow,
 ): Promise<boolean> {
   if (!row.linkedRecordId || !row.linkedRecordType) return false;
+  // Orphan link (A8): the record was deleted in-app — updating it would
+  // crash on a missing row. The admin needs unlink/import, not accept.
+  if (!(await linkedRecordExists(row.linkedRecordType, row.linkedRecordId))) {
+    return false;
+  }
   await applyFieldsToLinkedRecord(row, MAPPED_FIELDS[row.sheet] ?? []);
   await prisma.sheetRow.update({
     where: { id: row.id },
@@ -420,11 +578,18 @@ export async function keepLinkedRecord(row: SheetRow): Promise<boolean> {
   return true;
 }
 
+export type BridgeOutcome =
+  | "created"
+  | "linked"
+  | "merged"
+  | "flagged_duplicate"
+  | "nothing";
+
 export async function linkOrCreateLedgerRecord(
   row: SheetRow,
   opts: { forceCreate?: boolean } = {},
-): Promise<void> {
-  if (row.linkedRecordId || row.linkedRecordType) return;
+): Promise<BridgeOutcome> {
+  if (row.linkedRecordId || row.linkedRecordType) return "nothing";
   const fields = rowFields(row);
   const amount = parseAmount(fields.amount ?? fields.revenue);
   if (!amount || !row.parsedDate) {
@@ -432,12 +597,12 @@ export async function linkOrCreateLedgerRecord(
       where: { id: row.id },
       data: { importError: "A valid transaction date and positive amount are required" },
     });
-    return;
+    return "nothing";
   }
 
-  await prisma.$transaction(async (tx) => {
+  return prisma.$transaction(async (tx): Promise<BridgeOutcome> => {
     const current = await tx.sheetRow.findUnique({ where: { id: row.id } });
-    if (!current || current.linkedRecordId || current.linkedRecordType) return;
+    if (!current || current.linkedRecordId || current.linkedRecordType) return "nothing";
 
     const currentFields = rowFields(current);
     const key = sourceKey(current);
@@ -457,7 +622,7 @@ export async function linkOrCreateLedgerRecord(
               importError: null,
             },
           });
-          return;
+          return "nothing";
         }
         destinationType = "booking";
       } else if (kind === "restaurant" || kind === "activity") {
@@ -470,47 +635,87 @@ export async function linkOrCreateLedgerRecord(
             importError: `Unsupported revenue type: ${currentFields.type || "(empty)"}`,
           },
         });
-        return;
+        return "nothing";
       }
     } else {
       await tx.sheetRow.update({
         where: { id: current.id },
         data: { linkedRecordType: "not_imported", linkedRowHash: current.rowHash },
       });
-      return;
+      return "nothing";
     }
 
     const sourceMatch = await findBySourceKey(tx, destinationType, key);
     if (!sourceMatch && !opts.forceCreate) {
-      const candidates = await findProductionDuplicates(current, tx);
-      if (candidates.length > 1) {
-        // Ambiguous: multiple live records match — surface for review instead
-        // of silently collapsing two real entries onto one record.
+      const analysis = await analyzeAgainstProduction(current, tx);
+
+      if (analysis.claimConflict) {
+        // The matched record is already claimed by an unrelated sheet row —
+        // never double-claim silently; surface for review. `candidates` keeps
+        // the dashboard `link` action contract (admin override = merge).
         await tx.sheetRow.update({
           where: { id: current.id },
           data: {
             status: "possible_duplicate",
             conflictJson: {
-              reason: `matches ${candidates.length} existing ${destinationType} records`,
-              candidates: candidates.slice(0, 3),
+              reason: `matched record already claimed by row ${analysis.claimConflict.holderRowId} — review before merging`,
+              candidates: [conflictCandidatePayload(analysis.claimConflict.candidate)],
+              holderRowId: analysis.claimConflict.holderRowId,
             } as Prisma.InputJsonValue,
             importError: null,
           },
         });
-        return;
+        return "flagged_duplicate";
       }
-      const match = candidates[0];
-      if (match) {
+
+      if (analysis.linkNow) {
+        const link = analysis.linkNow;
+        const isMerge = link.verdict.tier === "auto" || !!analysis.mergedViaHolder;
         await tx.sheetRow.update({
           where: { id: current.id },
           data: {
-            linkedRecordId: match.id,
-            linkedRecordType: match.type,
+            linkedRecordId: link.id,
+            linkedRecordType: link.type,
             linkedRowHash: mappedHash(current),
+            importError: null,
+            ...(isMerge
+              ? {
+                  resolvedVia: "merge",
+                  resolvedAt: new Date(),
+                  conflictJson: {
+                    merge: {
+                      into: { type: link.type, id: link.id },
+                      confidence: link.verdict.confidence,
+                      reasons: [
+                        ...link.verdict.reasons,
+                        ...(analysis.mergedViaHolder
+                          ? [`sibling duplicate of row ${analysis.mergedViaHolder}`]
+                          : []),
+                      ],
+                    },
+                  } as Prisma.InputJsonValue,
+                }
+              : {}),
+          },
+        });
+        return isMerge ? "merged" : "linked";
+      }
+
+      if (analysis.review.length) {
+        // Smart-but-not-certain evidence (date-skewed pair, fuzzy label,
+        // digit typo, round amount): hold the import, let a human one-tap it.
+        await tx.sheetRow.update({
+          where: { id: current.id },
+          data: {
+            status: "possible_duplicate",
+            conflictJson: {
+              reason: `possible duplicate of ${analysis.review.length} existing ${destinationType} record(s) — merge or import`,
+              candidates: analysis.review.map(conflictCandidatePayload),
+            } as Prisma.InputJsonValue,
             importError: null,
           },
         });
-        return;
+        return "flagged_duplicate";
       }
     }
 
@@ -528,7 +733,7 @@ export async function linkOrCreateLedgerRecord(
           importError: null,
         },
       });
-      return;
+      return "linked";
     }
 
     if (destinationType === "expense") {
@@ -557,7 +762,7 @@ export async function linkOrCreateLedgerRecord(
           importError: null,
         },
       });
-      return;
+      return "created";
     }
 
     if (destinationType === "additional_sale") {
@@ -591,7 +796,7 @@ export async function linkOrCreateLedgerRecord(
           importError: null,
         },
       });
-      return;
+      return "created";
     }
 
     const stay = parseStayRange(currentFields.stayDates, current.parsedDate);
@@ -600,7 +805,7 @@ export async function linkOrCreateLedgerRecord(
         where: { id: current.id },
         data: { importError: "Guest name and valid stay dates are required" },
       });
-      return;
+      return "nothing";
     }
     const nights = Math.max(
       1,
@@ -648,5 +853,6 @@ export async function linkOrCreateLedgerRecord(
         importError: null,
       },
     });
+    return "created";
   });
 }

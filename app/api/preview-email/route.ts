@@ -1,4 +1,5 @@
 import { EmailType, renderEmailHtml } from "@/lib/email";
+import { toErrorResponse } from "@/lib/http-error";
 import { prisma } from "@/lib/prisma";
 import type { Booking } from "@prisma/client";
 import { NextResponse } from "next/server";
@@ -51,6 +52,14 @@ const DEMO_BOOKING: Booking = {
 };
 
 export async function POST(request: Request) {
+  try {
+    return await handlePOST(request);
+  } catch (err) {
+    return toErrorResponse(err, "POST /api/preview-email");
+  }
+}
+
+async function handlePOST(request: Request) {
   const body = await request.json();
   const { bookingId, type, customMessage } = body;
 

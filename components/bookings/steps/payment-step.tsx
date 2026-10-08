@@ -3,7 +3,7 @@
 import { Input, Select, StepCard } from "@/components/ui/form-primitives";
 import { cn } from "@/lib/utils";
 import NumberFlow from "@number-flow/react";
-import { CircleDollarSign, Coins, CreditCard, History, Landmark, ShieldCheck } from "lucide-react";
+import { CircleDollarSign, Coins, CreditCard, History, Landmark, ShieldCheck, Sparkles } from "lucide-react";
 
 interface Props {
   totalAmount: string;
@@ -20,6 +20,7 @@ interface Props {
   setPastPaymentMethod: (v: string) => void;
   pastPaymentReference: string;
   setPastPaymentReference: (v: string) => void;
+  suggestedTotal?: number | null;
 }
 
 export function PaymentStep({
@@ -37,6 +38,7 @@ export function PaymentStep({
   setPastPaymentMethod,
   pastPaymentReference,
   setPastPaymentReference,
+  suggestedTotal,
 }: Props) {
   const total = Number(totalAmount || 0);
   const paid = Number(amountPaidOnline || 0);
@@ -70,6 +72,22 @@ export function PaymentStep({
             icon={CreditCard}
           />
         </div>
+
+        {suggestedTotal != null && suggestedTotal > 0 && totalAmount === "" && (
+          <button
+            type="button"
+            onClick={() => setTotalAmount(String(suggestedTotal))}
+            className="w-full flex items-center gap-2.5 rounded-2xl border border-primary/20 bg-primary/5 px-4 py-3 text-left transition-colors hover:bg-primary/10 cursor-pointer"
+          >
+            <Sparkles className="w-4 h-4 text-primary shrink-0" />
+            <span className="text-xs font-bold text-primary">
+              Use suggested {currency} {suggestedTotal.toLocaleString("en-IN")}
+            </span>
+            <span className="text-[10px] text-muted-foreground/50 font-medium ml-auto">
+              from base room rates
+            </span>
+          </button>
+        )}
 
         {/* Financial Summary panel */}
         <div className="rounded-3xl border border-border bg-card p-4 sm:p-5 space-y-4 shadow-sm relative overflow-hidden">

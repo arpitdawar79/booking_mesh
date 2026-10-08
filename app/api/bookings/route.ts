@@ -1,13 +1,18 @@
 import { parseDateRangeParams } from "@/lib/date-range";
 import { sendEmail, type EmailType } from "@/lib/email";
+import { HttpError, toErrorResponse } from "@/lib/http-error";
 import { logger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
+import { findCapacityViolation } from "@/lib/room-allocations";
 import {
+    bookingAdjustTotalSchema,
     bookingCreateSchema,
+    bookingPartialCancelSchema,
     bookingStatusSchema,
     bookingUpdateSchema,
 } from "@/lib/validation";
 import { sendBookingWhatsApp } from "@/lib/whatsapp";
+import { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 function generateBookingId(): string {
@@ -18,6 +23,82 @@ function generateBookingId(): string {
     String(date.getDate()).padStart(2, "0");
   const rand = Math.floor(1000 + Math.random() * 9000);
   return `${prefix}${rand}`;
+}
+
+// Retries until the random suffix doesn't clash with an existing bookingId,
+// so the @unique constraint can't surface as an opaque 500 on a busy day.
+async function generateUniqueBookingId(): Promise<string> {
+  for (let i = 0; i < 8; i++) {
+    const id = generateBookingId();
+    const clash = await prisma.booking.findUnique({
+      where: { bookingId: id },
+      select: { id: true },
+    });
+    if (!clash) return id;
+  }
+  return `${generateBookingId()}${Date.now().toString().slice(-3)}`;
+}
+
+function round2(n: number) {
+  return Math.round(n * 100) / 100;
+}
+
+function gstBreakdown(total: number) {
+  const gstRate = total >= 7500 ? 18 : 12;
+  const taxableValue = round2(total / (1 + gstRate / 100));
+  const gstAmount = round2(total - taxableValue);
+  const cgstAmount = round2(gstAmount / 2);
+  return { gstRate, cgstAmount, sgstAmount: round2(gstAmount - cgstAmount) };
+}
+
+const UPDATE_FIELD_LABELS: Record<string, string> = {
+  guestFullName: "Guest name",
+  guestEmail: "Email",
+  guestPhone: "Phone",
+  adultCount: "Adults",
+  childCount: "Children",
+  checkInDate: "Check-in",
+  checkOutDate: "Check-out",
+  checkInTime: "Check-in time",
+  checkOutTime: "Check-out time",
+  roomCount: "Rooms",
+  roomType: "Room type",
+  extraMattressCount: "Extra mattresses",
+  mealPlan: "Meal plan",
+  totalAmount: "Total amount",
+  amountPaidOnline: "Paid online",
+  status: "Status",
+  specialRequests: "Special requests",
+};
+
+async function recomputeFromLedger(
+  db: Prisma.TransactionClient,
+  bookingId: string,
+  totalAmount: number,
+) {
+  const [booking, paymentsAgg, refundsAgg] = await Promise.all([
+    db.booking.findUniqueOrThrow({ where: { id: bookingId } }),
+    db.payment.aggregate({
+      _sum: { amount: true },
+      where: { bookingId, isRefund: false },
+    }),
+    db.payment.aggregate({
+      _sum: { amount: true },
+      where: { bookingId, isRefund: true },
+    }),
+  ]);
+  const totalPaid =
+    Number(booking.amountPaidOnline) + Number(paymentsAgg._sum?.amount || 0);
+  const totalRefunded = Number(refundsAgg._sum?.amount || 0);
+  const balance = round2(totalAmount - totalPaid + totalRefunded);
+  const paymentStatus =
+    balance <= 0 ? "paid_in_full" : totalPaid > 0 ? "partially_paid" : "pending";
+  return { balanceAmount: balance, paymentStatus } as const;
+}
+
+// Serializes concurrent money mutations on the same booking (Postgres row lock).
+async function lockBookingRow(db: Prisma.TransactionClient, bookingId: string) {
+  await db.$queryRaw`SELECT id FROM bookings WHERE id = ${bookingId} FOR UPDATE`;
 }
 
 export async function GET(request: Request) {
@@ -38,7 +119,8 @@ export async function GET(request: Request) {
       include: {
         emailsSent: { orderBy: { sentAt: "desc" }, take: 20 },
         whatsappMessages: { orderBy: { sentAt: "desc" }, take: 20 },
-        payments: { orderBy: { createdAt: "desc" } },
+        payments: { orderBy: { date: "desc" } },
+        amendments: { orderBy: { createdAt: "desc" }, take: 50 },
         guest: true,
       },
     });
@@ -46,6 +128,7 @@ export async function GET(request: Request) {
   }
 
   const where: Record<string, unknown> = {};
+  if (searchParams.get("source") === "sheet") where.sourceKey = { not: null };
   if (statusFilter) {
     where.status = statusFilter;
   } else {
@@ -86,6 +169,14 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  try {
+    return await handlePost(request);
+  } catch (err) {
+    return toErrorResponse(err, "POST /api/bookings");
+  }
+}
+
+async function handlePost(request: Request) {
   const body = await request.json().catch(() => ({}));
   const parsed = bookingCreateSchema.safeParse(body);
   if (!parsed.success) {
@@ -138,76 +229,78 @@ export async function POST(request: Request) {
 
   // Overbooking guard — warn instead of blocking when the stay already happened
   let warning: string | null = null;
-  const config = await prisma.propertyConfig.findUnique({
-    where: { roomType: data.roomType },
+  const violation = await findCapacityViolation({
+    roomType: data.roomType,
+    roomCount: data.roomCount,
+    checkIn,
+    checkOut,
   });
-  if (config) {
-    const overlapping = await prisma.booking.aggregate({
-      _sum: { roomCount: true },
-      where: {
-        status: { in: ["confirmed", "completed"] },
-        roomType: data.roomType,
-        checkInDate: { lt: checkOut },
-        checkOutDate: { gt: checkIn },
-      },
-    });
-    const bookedRooms = Number(overlapping._sum.roomCount || 0);
-    if (bookedRooms + data.roomCount > config.totalRooms) {
-      if (stayFullyPast) {
-        warning = `Over capacity: ${bookedRooms + data.roomCount} rooms recorded against ${config.totalRooms} available for those dates — saved anyway since the stay is in the past.`;
-      } else {
-        return NextResponse.json(
-          {
-            error:
-              "Overbooking guard: not enough rooms available for the selected dates",
-          },
-          { status: 409 },
-        );
-      }
+  if (violation) {
+    if (stayFullyPast) {
+      warning = `Over capacity: ${violation.booked + violation.requested} ${violation.roomType} rooms recorded against ${violation.total} available for those dates — saved anyway since the stay is in the past.`;
+    } else {
+      return NextResponse.json(
+        {
+          error: `Overbooking guard: ${violation.booked + violation.requested} ${violation.roomType} rooms would exceed the ${violation.total} available for those dates`,
+        },
+        { status: 409 },
+      );
     }
   }
 
   const totalAmount = Number(data.totalAmount || 0);
   const amountPaidOnline = Number(data.amountPaidOnline || 0);
   const paymentsSum = (data.payments ?? []).reduce((s, p) => s + p.amount, 0);
-  const balanceAmount = totalAmount - amountPaidOnline - paymentsSum;
-  const paymentStatus = balanceAmount > 0 ? "partially_paid" : "paid_in_full";
+  const balanceAmount = round2(totalAmount - amountPaidOnline - paymentsSum);
+  const paymentStatus =
+    balanceAmount <= 0
+      ? "paid_in_full"
+      : amountPaidOnline + paymentsSum > 0
+        ? "partially_paid"
+        : "pending";
 
-  // GST calculation (default 18% for accommodation)
-  const gstRate = data.totalAmount >= 7500 ? 18 : 12;
-  const taxableValue = totalAmount / (1 + gstRate / 100);
-  const gstAmount = totalAmount - taxableValue;
-  const cgstAmount = gstAmount / 2;
-  const sgstAmount = gstAmount / 2;
+  const gst = gstBreakdown(totalAmount);
 
   // Auto-create or link existing guest
   let guestId: string | null = null;
   if (data.guestPhone || data.guestEmail) {
-    const existingGuest = await prisma.guest.findFirst({
-      where: {
-        OR: [
-          ...(data.guestPhone ? [{ phone: data.guestPhone }] : []),
-          ...(data.guestEmail ? [{ email: data.guestEmail }] : []),
-        ],
-      },
-    });
+    const guestMatch = {
+      OR: [
+        ...(data.guestPhone ? [{ phone: data.guestPhone }] : []),
+        ...(data.guestEmail ? [{ email: data.guestEmail }] : []),
+      ],
+    };
+    const existingGuest = await prisma.guest.findFirst({ where: guestMatch });
     if (existingGuest) {
       guestId = existingGuest.id;
     } else {
-      const newGuest = await prisma.guest.create({
-        data: {
-          name: data.guestFullName,
-          phone: data.guestPhone || null,
-          email: data.guestEmail || null,
-        },
-      });
-      guestId = newGuest.id;
+      try {
+        const newGuest = await prisma.guest.create({
+          data: {
+            name: data.guestFullName,
+            phone: data.guestPhone || null,
+            email: data.guestEmail || null,
+          },
+        });
+        guestId = newGuest.id;
+      } catch (err) {
+        // Concurrent request created the same guest first — link to it instead
+        if (
+          err instanceof Prisma.PrismaClientKnownRequestError &&
+          err.code === "P2002"
+        ) {
+          const raced = await prisma.guest.findFirst({ where: guestMatch });
+          guestId = raced?.id ?? null;
+        } else {
+          throw err;
+        }
+      }
     }
   }
 
   const booking = await prisma.booking.create({
     data: {
-      bookingId: generateBookingId(),
+      bookingId: await generateUniqueBookingId(),
       guestFirstName: data.guestFullName.split(" ")[0] || data.guestFullName,
       guestFullName: data.guestFullName,
       guestEmail: data.guestEmail || null,
@@ -228,9 +321,7 @@ export async function POST(request: Request) {
       amountPaidOnline,
       balanceAmount,
       paymentStatus,
-      gstRate,
-      cgstAmount,
-      sgstAmount,
+      ...gst,
       propertyAddress: data.propertyAddress || "The Stream by Ekantah",
       propertyPhone: data.propertyPhone || "+91 93193 47443, +91 99100 06437",
       propertyEmail: data.propertyEmail || "digital@ekantah.com",
@@ -309,6 +400,14 @@ export async function POST(request: Request) {
 }
 
 export async function PATCH(request: Request) {
+  try {
+    return await handlePatch(request);
+  } catch (err) {
+    return toErrorResponse(err, "PATCH /api/bookings");
+  }
+}
+
+async function handlePatch(request: Request) {
   const body = await request.json().catch(() => ({}));
 
   // Dedicated mark-fully-paid action
@@ -319,30 +418,239 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: "Booking not found" }, { status: 404 });
     }
 
-    const balance = Number(existing.balanceAmount);
-    const booking = await prisma.booking.update({
-      where: { id },
-      data: {
-        amountPaidOnline: existing.totalAmount,
-        balanceAmount: 0,
-        paymentStatus: "paid_in_full",
-      },
-    });
-
-    // Record an audit Payment if there was still an outstanding balance
-    if (balance > 0) {
-      await prisma.payment.create({
+    const total = Number(existing.totalAmount);
+    const booking = await prisma.$transaction(async (tx) => {
+      const before = await recomputeFromLedger(tx, id, total);
+      if (before.balanceAmount > 0) {
+        await tx.payment.create({
+          data: {
+            bookingId: id,
+            amount: before.balanceAmount,
+            method: "cash",
+            referenceNumber: "Auto-settled: mark fully paid",
+            recordedBy: "System",
+          },
+        });
+      }
+      const after = await recomputeFromLedger(tx, id, total);
+      return tx.booking.update({
+        where: { id },
         data: {
-          bookingId: id,
-          amount: balance,
-          method: "cash",
-          referenceNumber: "Auto-settled: mark fully paid",
-          recordedBy: "System",
+          balanceAmount: after.balanceAmount,
+          paymentStatus: after.paymentStatus,
         },
       });
-    }
+    });
 
     logger.info("booking", `Marked fully paid ${booking.bookingId}`, {
+      bookingId: booking.id,
+    });
+    return NextResponse.json({ booking });
+  }
+
+  // Partial cancellation: reduce room count and adjust totals
+  if (body.partialCancel) {
+    const parsed = bookingPartialCancelSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        {
+          error: "Invalid input",
+          details: parsed.error.issues.map(
+            (i) => `${String(i.path)}: ${i.message}`,
+          ),
+        },
+        { status: 400 },
+      );
+    }
+    const data = parsed.data;
+    const existing = await prisma.booking.findUnique({ where: { id: data.id } });
+    if (!existing) {
+      return NextResponse.json({ error: "Booking not found" }, { status: 404 });
+    }
+    if (existing.status === "cancelled") {
+      return NextResponse.json(
+        { error: "Booking is already cancelled" },
+        { status: 409 },
+      );
+    }
+    if (data.roomsToRemove >= existing.roomCount) {
+      return NextResponse.json(
+        {
+          error:
+            "Cannot remove all rooms — cancel the whole booking instead (partial cancel must leave at least 1 room)",
+        },
+        { status: 400 },
+      );
+    }
+
+    const oldRoomCount = existing.roomCount;
+    const oldTotal = Number(existing.totalAmount);
+    const newRoomCount = oldRoomCount - data.roomsToRemove;
+    const perRoomRate = oldTotal / oldRoomCount;
+    const newTotal =
+      data.newTotalAmount ?? Math.max(0, Math.round(perRoomRate * newRoomCount));
+
+    if (newTotal > oldTotal) {
+      return NextResponse.json(
+        {
+          error: `New total cannot exceed current total in a partial cancellation (current: ${existing.currency} ${oldTotal.toLocaleString("en-IN")})`,
+        },
+        { status: 400 },
+      );
+    }
+
+    const refundAmount = data.refundAmount ?? 0;
+    const gst = gstBreakdown(newTotal);
+
+    let booking;
+    try {
+      booking = await prisma.$transaction(async (tx) => {
+        await lockBookingRow(tx, existing.id);
+
+        if (refundAmount > 0) {
+          const [paidAgg, refundAgg] = await Promise.all([
+            tx.payment.aggregate({
+              where: { bookingId: existing.id, isRefund: false },
+              _sum: { amount: true },
+            }),
+            tx.payment.aggregate({
+              where: { bookingId: existing.id, isRefund: true },
+              _sum: { amount: true },
+            }),
+          ]);
+          const collected =
+            Number(existing.amountPaidOnline) +
+            Number(paidAgg._sum.amount || 0) -
+            Number(refundAgg._sum.amount || 0);
+          if (refundAmount > collected) {
+            throw new HttpError(
+              400,
+              `Refund exceeds amount collected (${existing.currency} ${collected.toLocaleString("en-IN")})`,
+            );
+          }
+          await tx.payment.create({
+            data: {
+              bookingId: existing.id,
+              amount: refundAmount,
+              method: data.refundMethod ?? "cash",
+              isRefund: true,
+              refundReason:
+                data.reason ||
+                `Partial cancellation: ${data.roomsToRemove} room(s) released`,
+              recordedBy: data.changedBy || null,
+            },
+          });
+        }
+
+        const { balanceAmount, paymentStatus } = await recomputeFromLedger(
+          tx,
+          existing.id,
+          newTotal,
+        );
+
+        const updated = await tx.booking.update({
+          where: { id: existing.id },
+          data: {
+            roomCount: newRoomCount,
+            totalAmount: newTotal,
+            balanceAmount,
+            paymentStatus,
+            ...gst,
+          },
+        });
+
+        await tx.bookingAmendment.create({
+          data: {
+            bookingId: existing.id,
+            type: "partial_cancel",
+            summary: [
+              `Cancelled ${data.roomsToRemove} of ${oldRoomCount} ${existing.roomType} room(s) — now ${newRoomCount} room(s)`,
+              `Total ${existing.currency} ${oldTotal.toLocaleString("en-IN")} → ${newTotal.toLocaleString("en-IN")}`,
+              refundAmount > 0
+                ? `Refund of ${existing.currency} ${refundAmount.toLocaleString("en-IN")} recorded`
+                : null,
+              data.reason ? `Reason: ${data.reason}` : null,
+            ]
+              .filter(Boolean)
+              .join(" · "),
+            changedBy: data.changedBy || null,
+          },
+        });
+
+        return updated;
+      });
+    } catch (err) {
+      return toErrorResponse(err, "partial cancel");
+    }
+
+    logger.info(
+      "booking",
+      `Partial cancel on ${booking.bookingId}: -${data.roomsToRemove} room(s)`,
+      { bookingId: booking.id },
+    );
+    return NextResponse.json({ booking });
+  }
+
+  // Price renegotiation: adjust total amount and recompute balance/GST
+  if (body.adjustTotal) {
+    const parsed = bookingAdjustTotalSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        {
+          error: "Invalid input",
+          details: parsed.error.issues.map(
+            (i) => `${String(i.path)}: ${i.message}`,
+          ),
+        },
+        { status: 400 },
+      );
+    }
+    const data = parsed.data;
+    const existing = await prisma.booking.findUnique({ where: { id: data.id } });
+    if (!existing) {
+      return NextResponse.json({ error: "Booking not found" }, { status: 404 });
+    }
+
+    const oldTotal = Number(existing.totalAmount);
+    const newTotal = data.newTotalAmount;
+    const gst = gstBreakdown(newTotal);
+
+    const booking = await prisma.$transaction(async (tx) => {
+      await lockBookingRow(tx, existing.id);
+      const { balanceAmount, paymentStatus } = await recomputeFromLedger(
+        tx,
+        existing.id,
+        newTotal,
+      );
+
+      const updated = await tx.booking.update({
+        where: { id: existing.id },
+        data: {
+          totalAmount: newTotal,
+          balanceAmount,
+          paymentStatus,
+          ...gst,
+        },
+      });
+
+      await tx.bookingAmendment.create({
+        data: {
+          bookingId: existing.id,
+          type: "price_adjustment",
+          summary: [
+            `Total renegotiated ${existing.currency} ${oldTotal.toLocaleString("en-IN")} → ${newTotal.toLocaleString("en-IN")}`,
+            data.reason ? `Reason: ${data.reason}` : null,
+          ]
+            .filter(Boolean)
+            .join(" · "),
+          changedBy: data.changedBy || null,
+        },
+      });
+
+      return updated;
+    });
+
+    logger.info("booking", `Adjusted total on ${booking.bookingId}`, {
       bookingId: booking.id,
     });
     return NextResponse.json({ booking });
@@ -364,10 +672,24 @@ export async function PATCH(request: Request) {
     }
 
     const { id, status } = parsed.data;
+    const previous = await prisma.booking.findUnique({
+      where: { id },
+      select: { status: true },
+    });
     const booking = await prisma.booking.update({
       where: { id },
       data: { status },
     });
+
+    if (previous && previous.status !== status) {
+      await prisma.bookingAmendment.create({
+        data: {
+          bookingId: id,
+          type: "status_change",
+          summary: `Status changed from ${previous.status} to ${status}`,
+        },
+      });
+    }
 
     let waType: string | null = null;
     let emailType: EmailType | null = null;
@@ -381,7 +703,13 @@ export async function PATCH(request: Request) {
     }
 
     if (booking.guestPhone && waType) {
-      sendBookingWhatsApp(waType, booking, { sendPdf: true }).catch(() => {});
+      sendBookingWhatsApp(waType, booking, { sendPdf: true }).catch((err) =>
+        logger.error(
+          "whatsapp",
+          `Failed to send ${waType} for ${booking.bookingId}`,
+          { error: String(err) },
+        ),
+      );
     }
     if (booking.guestEmail && emailType) {
       const guestEmail = booking.guestEmail;
@@ -401,7 +729,13 @@ export async function PATCH(request: Request) {
             },
           });
         })
-        .catch(() => {});
+        .catch((err) =>
+          logger.error(
+            "email",
+            `Failed to send ${emailType} for ${booking.bookingId}`,
+            { error: String(err) },
+          ),
+        );
     }
 
     return NextResponse.json({ booking });
@@ -424,6 +758,22 @@ export async function PATCH(request: Request) {
   const existing = await prisma.booking.findUnique({ where: { id: data.id } });
   if (!existing) {
     return NextResponse.json({ error: "Booking not found" }, { status: 404 });
+  }
+
+  // Optimistic locking: reject writes based on a stale client snapshot
+  if (
+    data.expectedUpdatedAt &&
+    data.expectedUpdatedAt !== existing.updatedAt.toISOString()
+  ) {
+    return NextResponse.json(
+      {
+        error:
+          "This booking was modified elsewhere — reload the page and try again",
+        stale: true,
+        updatedAt: existing.updatedAt.toISOString(),
+      },
+      { status: 409 },
+    );
   }
 
   const updateData: Record<string, unknown> = {};
@@ -457,12 +807,55 @@ export async function PATCH(request: Request) {
   // Recompute night count if dates changed
   const inDate = (updateData.checkInDate as Date) || existing.checkInDate;
   const outDate = (updateData.checkOutDate as Date) || existing.checkOutDate;
-  updateData.nightCount = Math.max(
-    1,
-    Math.ceil((outDate.getTime() - inDate.getTime()) / (1000 * 60 * 60 * 24)),
+  if (outDate <= inDate) {
+    return NextResponse.json(
+      { error: "Check-out date must be after check-in date" },
+      { status: 400 },
+    );
+  }
+  updateData.nightCount = Math.ceil(
+    (outDate.getTime() - inDate.getTime()) / (1000 * 60 * 60 * 24),
   );
 
-  // Recompute balance if amounts changed
+  // Overbooking guard: recheck capacity when the stay shape changes
+  const stayFieldsChanged = [
+    "roomCount",
+    "roomType",
+    "checkInDate",
+    "checkOutDate",
+  ].some((k) => updateData[k] !== undefined);
+  if (stayFieldsChanged) {
+    const newStatus =
+      (updateData.status as string | undefined) ?? existing.status;
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    if (
+      (newStatus === "confirmed" || newStatus === "completed") &&
+      outDate >= todayStart
+    ) {
+      const roomType =
+        (updateData.roomType as string | undefined) ?? existing.roomType;
+      const roomCount =
+        (updateData.roomCount as number | undefined) ?? existing.roomCount;
+      const violation = await findCapacityViolation({
+        roomType,
+        roomCount,
+        checkIn: inDate,
+        checkOut: outDate,
+        excludeBookingId: data.id,
+      });
+      if (violation) {
+        return NextResponse.json(
+          {
+            error: `Overbooking guard: ${violation.booked + violation.requested} ${violation.roomType} rooms would exceed the ${violation.total} available for those dates`,
+          },
+          { status: 409 },
+        );
+      }
+    }
+  }
+
+  // Recompute balance from the full ledger (payments + refunds)
   const total =
     updateData.totalAmount !== undefined
       ? Number(updateData.totalAmount)
@@ -471,29 +864,72 @@ export async function PATCH(request: Request) {
     updateData.amountPaidOnline !== undefined
       ? Number(updateData.amountPaidOnline)
       : Number(existing.amountPaidOnline);
-  const paymentsAgg = await prisma.payment.aggregate({
-    _sum: { amount: true },
-    where: { bookingId: data.id, isRefund: false },
-  });
+  const [paymentsAgg, refundsAgg] = await Promise.all([
+    prisma.payment.aggregate({
+      _sum: { amount: true },
+      where: { bookingId: data.id, isRefund: false },
+    }),
+    prisma.payment.aggregate({
+      _sum: { amount: true },
+      where: { bookingId: data.id, isRefund: true },
+    }),
+  ]);
   const totalPaid = paidOnline + Number(paymentsAgg._sum?.amount || 0);
-  const newBalance = total - totalPaid;
+  const totalRefunded = Number(refundsAgg._sum?.amount || 0);
+  const newBalance = round2(total - totalPaid + totalRefunded);
   updateData.balanceAmount = newBalance;
-  updateData.paymentStatus = newBalance > 0 ? "partially_paid" : "paid_in_full";
+  updateData.paymentStatus =
+    newBalance <= 0
+      ? "paid_in_full"
+      : totalPaid > 0
+        ? "partially_paid"
+        : "pending";
 
   // Recompute GST if total changed
   if (updateData.totalAmount !== undefined) {
-    const gstRate = total >= 7500 ? 18 : 12;
-    const taxableValue = total / (1 + gstRate / 100);
-    const gstAmount = total - taxableValue;
-    updateData.gstRate = gstRate;
-    updateData.cgstAmount = gstAmount / 2;
-    updateData.sgstAmount = gstAmount / 2;
+    Object.assign(updateData, gstBreakdown(total));
   }
 
   const booking = await prisma.booking.update({
     where: { id: data.id },
     data: updateData,
   });
+
+  const changes: string[] = [];
+  for (const [key, value] of Object.entries(updateData)) {
+    if (
+      [
+        "nightCount",
+        "balanceAmount",
+        "paymentStatus",
+        "gstRate",
+        "cgstAmount",
+        "sgstAmount",
+      ].includes(key)
+    )
+      continue;
+    const prev = (existing as unknown as Record<string, unknown>)[key];
+    const prevStr =
+      prev instanceof Date ? prev.toISOString().slice(0, 10) : String(prev ?? "");
+    const nextStr =
+      value instanceof Date
+        ? value.toISOString().slice(0, 10)
+        : String(value ?? "");
+    if (prevStr !== nextStr) {
+      changes.push(
+        `${UPDATE_FIELD_LABELS[key] || key}: ${prevStr || "—"} → ${nextStr || "—"}`,
+      );
+    }
+  }
+  if (changes.length) {
+    await prisma.bookingAmendment.create({
+      data: {
+        bookingId: data.id,
+        type: "field_update",
+        summary: changes.join(", "),
+      },
+    });
+  }
 
   logger.info("booking", `Updated booking ${booking.bookingId}`, {
     bookingId: booking.id,

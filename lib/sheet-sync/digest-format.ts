@@ -27,6 +27,8 @@ export function formatDigest(
   deleted: SheetRow[],
   conflicts: SheetRow[],
   importFailed: SheetRow[] = [],
+  merged: SheetRow[] = [],
+  pendingDups: SheetRow[] = [],
 ): string {
   const lines: string[] = ["*Ekantah Sheet — incomplete rows*"];
   const shown = rows.slice(0, MAX_ROWS_IN_DIGEST);
@@ -54,6 +56,21 @@ export function formatDigest(
     );
   }
 
+  if (pendingDups.length) {
+    lines.push(
+      "",
+      `*${pendingDups.length} possible duplicate(s) held from import:*`,
+    );
+    for (const row of pendingDups.slice(0, 5)) {
+      const cj = row.conflictJson as { confidence?: number } | null;
+      const pct = cj?.confidence ? ` (${Math.round(cj.confidence * 100)}%)` : "";
+      lines.push(`  ${rowTag(row)} ${describeRow(row)}${pct}`);
+    }
+    lines.push(
+      "  merge or import these in /dashboard/sheet-sync — accept/keep don't apply until imported",
+    );
+  }
+
   if (importFailed.length) {
     lines.push("", `*${importFailed.length} row(s) failed to import:*`);
     for (const row of importFailed.slice(0, 5)) {
@@ -64,6 +81,23 @@ export function formatDigest(
   if (deleted.length) {
     lines.push("", `*${deleted.length} row(s) disappeared from the sheet:*`);
     for (const row of deleted.slice(0, 5)) lines.push(`  ${rowTag(row)}`);
+  }
+
+  if (merged.length) {
+    lines.push(
+      "",
+      `*${merged.length} row(s) auto-merged as duplicates of existing records:*`,
+    );
+    for (const row of merged.slice(0, 5)) {
+      const cj = row.conflictJson as { merge?: { confidence?: number } } | null;
+      const pct = cj?.merge?.confidence
+        ? ` (${Math.round(cj.merge.confidence * 100)}%)`
+        : "";
+      lines.push(`  ${rowTag(row)} ${describeRow(row)}${pct}`);
+    }
+    lines.push(
+      "  _review these in /dashboard/sheet-sync — unlink + import reverts a wrong merge_",
+    );
   }
 
   if (softGapCount > 0) {
@@ -78,7 +112,9 @@ export function formatDigest(
     rows.length === 0 &&
     !deleted.length &&
     !conflicts.length &&
+    !pendingDups.length &&
     !importFailed.length &&
+    !merged.length &&
     softGapCount === 0
   ) {
     lines.push("", "all tracked rows complete");

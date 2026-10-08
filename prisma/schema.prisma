@@ -80,9 +80,23 @@ model Booking {
   emailsSent       EmailSent[]
   whatsappMessages WhatsAppMessage[]
   payments         Payment[]
+  amendments       BookingAmendment[]
   guest            Guest?    @relation(fields: [guestId], references: [id])
 
   @@map("bookings")
+}
+
+model BookingAmendment {
+  id        String   @id @default(cuid())
+  bookingId String   @map("booking_id")
+  type      String
+  summary   String
+  changedBy String?  @map("changed_by")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@map("booking_amendments")
 }
 
 model Guest {
@@ -138,6 +152,7 @@ model Payment {
   recordedBy      String?       @map("recorded_by")
   isRefund        Boolean       @default(false) @map("is_refund")
   refundReason    String?       @map("refund_reason")
+  idempotencyKey  String?       @unique @map("idempotency_key")
   createdAt       DateTime      @default(now()) @map("created_at")
   updatedAt       DateTime      @updatedAt @map("updated_at")
 

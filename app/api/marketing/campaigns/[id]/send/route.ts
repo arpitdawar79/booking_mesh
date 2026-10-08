@@ -1,9 +1,21 @@
+import { toErrorResponse } from "@/lib/http-error";
 import { prisma } from "@/lib/prisma";
 import { campaignSendSchema } from "@/lib/validation";
 import { sendBroadcastMessage } from "@/lib/whatsapp";
 import { NextResponse } from "next/server";
 
 export async function POST(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  try {
+    return await handlePOST(request, { params });
+  } catch (err) {
+    return toErrorResponse(err, "POST /api/marketing/campaigns/[id]/send");
+  }
+}
+
+async function handlePOST(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {

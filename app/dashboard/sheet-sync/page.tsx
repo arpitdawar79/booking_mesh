@@ -3,6 +3,7 @@
 import { Pagination } from "@/components/ui/pagination";
 import { useToast } from "@/components/ui/toast";
 import { MagicCard } from "@/components/ui/magic-card";
+import { rowRecordLink } from "@/lib/sheet-sync/record-links";
 import { cn } from "@/lib/utils";
 import {
     AlarmClock,
@@ -134,6 +135,12 @@ const STATUS_FILTERS = [
   "legacy",
 ];
 
+const LINKED_FILTERS: { key: string; label: string }[] = [
+  { key: "", label: "Any row" },
+  { key: "record", label: "In the app" },
+  { key: "none", label: "Not in the app" },
+];
+
 function fmt(d: string | null): string {
   if (!d) return "—";
   return new Date(d).toLocaleString("en-IN", {
@@ -150,6 +157,7 @@ export default function SheetSyncPage() {
   const [data, setData] = useState<Payload | null>(null);
   const [tab, setTab] = useState("attention");
   const [status, setStatus] = useState("");
+  const [linked, setLinked] = useState("");
   const [q, setQ] = useState("");
   const [page, setPage] = useState(1);
   const [syncing, setSyncing] = useState(false);
@@ -163,6 +171,7 @@ export default function SheetSyncPage() {
   const load = useCallback(async () => {
     const params = new URLSearchParams({ page: String(page), pageSize: "25" });
     if (status) params.set("status", status);
+    if (linked) params.set("linked", linked);
     if (qDebounced) params.set("q", qDebounced);
     if (tab === "attention") params.set("queue", "attention");
     else if (tab !== "all") params.set("sheet", tab);
@@ -175,7 +184,7 @@ export default function SheetSyncPage() {
     const d = await res.json();
     setData(d);
     if (!cutoff && d.settings?.syncFromDate) setCutoff(d.settings.syncFromDate);
-  }, [page, status, tab, qDebounced, cutoff]);
+  }, [page, status, linked, tab, qDebounced, cutoff]);
 
   useEffect(() => {
     void load();
@@ -378,24 +387,45 @@ export default function SheetSyncPage() {
       </div>
 
       {/* Status chips (secondary filter) */}
-      <div className="flex flex-wrap gap-1.5">
-        {STATUS_FILTERS.map((s) => (
-          <button
-            key={s || "all"}
-            onClick={() => {
-              setStatus(s);
-              setPage(1);
-            }}
-            className={cn(
-              "rounded-lg px-2.5 py-1 text-[11px] font-bold transition border",
-              status === s
-                ? "bg-primary/10 text-primary border-primary/25"
-                : "bg-card text-muted-foreground border-border/60 hover:text-foreground",
-            )}
-          >
-            {s ? (STATUS_META[s]?.label ?? s) : "Any status"}
-          </button>
-        ))}
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+        <div className="flex flex-wrap gap-1.5">
+          {STATUS_FILTERS.map((s) => (
+            <button
+              key={s || "all"}
+              onClick={() => {
+                setStatus(s);
+                setPage(1);
+              }}
+              className={cn(
+                "rounded-lg px-2.5 py-1 text-[11px] font-bold transition border",
+                status === s
+                  ? "bg-primary/10 text-primary border-primary/25"
+                  : "bg-card text-muted-foreground border-border/60 hover:text-foreground",
+              )}
+            >
+              {s ? (STATUS_META[s]?.label ?? s) : "Any status"}
+            </button>
+          ))}
+        </div>
+        <div className="flex flex-wrap gap-1.5">
+          {LINKED_FILTERS.map((l) => (
+            <button
+              key={l.key || "any"}
+              onClick={() => {
+                setLinked(l.key);
+                setPage(1);
+              }}
+              className={cn(
+                "rounded-lg px-2.5 py-1 text-[11px] font-bold transition border",
+                linked === l.key
+                  ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/25"
+                  : "bg-card text-muted-foreground border-border/60 hover:text-foreground",
+              )}
+            >
+              {l.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Rows */}
@@ -435,11 +465,12 @@ export default function SheetSyncPage() {
                   ]),
                 ),
               };
+              const rec = rowRecordLink(row);
               return (
-                <li key={row.id}>
+                <li key={row.id} className="flex items-stretch">
                   <button
                     onClick={() => setOpenRow(row)}
-                    className="w-full px-4 py-3 flex items-center gap-3 hover:bg-muted/20 transition text-left focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary/30"
+                    className="min-w-0 flex-1 px-4 py-3 flex items-center gap-3 hover:bg-muted/20 transition text-left focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary/30"
                   >
                     <span
                       className={cn(
@@ -493,6 +524,18 @@ export default function SheetSyncPage() {
                         ` ×${row.nagCount}`}
                     </span>
                   </button>
+                  {rec ? (
+                    <a
+                      href={rec.href}
+                      target="_blank"
+                      rel="noreferrer"
+                      title={`Open the ${rec.label.toLowerCase()} this row created`}
+                      className="flex shrink-0 items-center gap-1.5 border-l border-border/40 px-3 text-[11px] font-bold text-primary hover:bg-primary/10 transition"
+                    >
+                      <span className="hidden sm:inline">{rec.label}</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  ) : null}
                 </li>
               );
             })}

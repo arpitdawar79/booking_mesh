@@ -99,6 +99,21 @@ export function parseStream(
   return out;
 }
 
+/**
+ * A3: two physical rows sharing an S.No are ambiguous as a pair — the DB key
+ * is (sheet,rowId), so processing both would let the later row silently
+ * clobber the earlier. Returns every cluster with >1 member, in sheet order.
+ */
+export function findRowIdCollisions(rows: ParsedRow[]): Map<string, ParsedRow[]> {
+  const byRowId = new Map<string, ParsedRow[]>();
+  for (const row of rows) byRowId.set(row.rowId, [...(byRowId.get(row.rowId) ?? []), row]);
+  const collided = new Map<string, ParsedRow[]>();
+  for (const [rowId, group] of byRowId) {
+    if (group.length > 1) collided.set(rowId, group);
+  }
+  return collided;
+}
+
 export interface Judgement {
   missingRequired: string[];
   missingSoft: string[];

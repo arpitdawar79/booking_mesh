@@ -1,9 +1,18 @@
+import { toErrorResponse } from "@/lib/http-error";
 import { prisma } from "@/lib/prisma";
 import { sendWhatsAppSchema } from "@/lib/validation";
 import { sendBookingWhatsApp } from "@/lib/whatsapp";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
+  try {
+    return await handlePOST(request);
+  } catch (err) {
+    return toErrorResponse(err, "POST /api/whatsapp/send");
+  }
+}
+
+async function handlePOST(request: Request) {
   const body = await request.json().catch(() => ({}));
   const parsed = sendWhatsAppSchema.safeParse(body);
   if (!parsed.success) {
