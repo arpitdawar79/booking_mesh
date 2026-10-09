@@ -391,61 +391,15 @@ export async function runCheckoutReminderJob(log: LogFn = defaultLog) {
           );
           sentCount++;
         }
-        const balance = Number(booking.balanceAmount);
-        await prisma.booking.update({
-          where: { id: booking.id },
-          data: {
-            status: "completed",
-            amountPaidOnline: booking.totalAmount,
-            balanceAmount: 0,
-            paymentStatus: "paid_in_full",
-          },
-        });
-        if (balance > 0) {
-          await prisma.payment.create({
-            data: {
-              bookingId: booking.id,
-              amount: balance,
-              method: "cash",
-              referenceNumber: "Auto-settled: checkout reminder",
-              recordedBy: "System",
-            },
-          });
-          log(
-            "checkout-reminder",
-            `Marked ${booking.bookingId} fully paid (balance ${balance} cleared)`,
-          );
-        }
+        await prisma.booking.update({ where: { id: booking.id }, data: { status: "completed" } });
+        log("checkout-reminder", `Marked ${booking.bookingId} completed; recorded payments retained`);
       } else {
         log(
           "checkout-reminder",
           `Skipping email for ${booking.bookingId} — no guest email`,
         );
-        const balance = Number(booking.balanceAmount);
-        await prisma.booking.update({
-          where: { id: booking.id },
-          data: {
-            status: "completed",
-            amountPaidOnline: booking.totalAmount,
-            balanceAmount: 0,
-            paymentStatus: "paid_in_full",
-          },
-        });
-        if (balance > 0) {
-          await prisma.payment.create({
-            data: {
-              bookingId: booking.id,
-              amount: balance,
-              method: "cash",
-              referenceNumber: "Auto-settled: checkout reminder",
-              recordedBy: "System",
-            },
-          });
-          log(
-            "checkout-reminder",
-            `Marked ${booking.bookingId} fully paid (balance ${balance} cleared)`,
-          );
-        }
+        await prisma.booking.update({ where: { id: booking.id }, data: { status: "completed" } });
+        log("checkout-reminder", `Marked ${booking.bookingId} completed; recorded payments retained`);
       }
 
       if (booking.guestPhone) {

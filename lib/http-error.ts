@@ -1,5 +1,5 @@
 import { logger } from "@/lib/logger";
-import { NextResponse } from "next/server";
+import type { NextResponse } from "next/server";
 
 export class HttpError extends Error {
   constructor(
@@ -12,7 +12,12 @@ export class HttpError extends Error {
 }
 
 // HttpError → JSON response with its status; anything else → logged + opaque 500.
-export function toErrorResponse(err: unknown, context?: string): NextResponse {
+// next/server is loaded lazily so non-Next entrypoints (cron jobs) can import this module.
+export async function toErrorResponse(
+  err: unknown,
+  context?: string,
+): Promise<NextResponse> {
+  const { NextResponse } = await import("next/server");
   if (err instanceof HttpError) {
     return NextResponse.json({ error: err.message }, { status: err.status });
   }

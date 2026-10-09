@@ -1,3 +1,6 @@
+import { requireGuestStaff } from "@/lib/guests/auth";
+import { resolveGuest } from "@/lib/guests/identity";
+import { syncGuestBooking } from "@/lib/guests/jobs";
 import { parseDateRangeParams } from "@/lib/date-range";
 import { sendEmail, type EmailType } from "@/lib/email";
 import { HttpError, toErrorResponse } from "@/lib/http-error";
@@ -102,6 +105,7 @@ async function lockBookingRow(db: Prisma.TransactionClient, bookingId: string) {
 }
 
 export async function GET(request: Request) {
+  try { await requireGuestStaff(); } catch (err) { return toErrorResponse(err); }
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
   const page = Math.max(1, Number(searchParams.get("page") || "1"));
@@ -177,6 +181,7 @@ export async function POST(request: Request) {
 }
 
 async function handlePost(request: Request) {
+  await requireGuestStaff();
   const body = await request.json().catch(() => ({}));
   const parsed = bookingCreateSchema.safeParse(body);
   if (!parsed.success) {
@@ -261,42 +266,7 @@ async function handlePost(request: Request) {
 
   const gst = gstBreakdown(totalAmount);
 
-  // Auto-create or link existing guest
-  let guestId: string | null = null;
-  if (data.guestPhone || data.guestEmail) {
-    const guestMatch = {
-      OR: [
-        ...(data.guestPhone ? [{ phone: data.guestPhone }] : []),
-        ...(data.guestEmail ? [{ email: data.guestEmail }] : []),
-      ],
-    };
-    const existingGuest = await prisma.guest.findFirst({ where: guestMatch });
-    if (existingGuest) {
-      guestId = existingGuest.id;
-    } else {
-      try {
-        const newGuest = await prisma.guest.create({
-          data: {
-            name: data.guestFullName,
-            phone: data.guestPhone || null,
-            email: data.guestEmail || null,
-          },
-        });
-        guestId = newGuest.id;
-      } catch (err) {
-        // Concurrent request created the same guest first — link to it instead
-        if (
-          err instanceof Prisma.PrismaClientKnownRequestError &&
-          err.code === "P2002"
-        ) {
-          const raced = await prisma.guest.findFirst({ where: guestMatch });
-          guestId = raced?.id ?? null;
-        } else {
-          throw err;
-        }
-      }
-    }
-  }
+  const guestId = await resolveGuest({ name: data.guestFullName, phone: data.guestPhone, email: data.guestEmail });
 
   const booking = await prisma.booking.create({
     data: {
@@ -396,6 +366,7 @@ async function handlePost(request: Request) {
       });
   }
 
+  await syncGuestBooking(booking.id);
   return NextResponse.json({ booking, warning });
 }
 
@@ -408,7 +379,12 @@ export async function PATCH(request: Request) {
 }
 
 async function handlePatch(request: Request) {
+  await requireGuestStaff();
   const body = await request.json().catch(() => ({}));
+  if (body.totalAmount !== undefined || body.adjustTotal || body.partialCancel) {
+    const benefit = typeof body.id === "string" ? await prisma.guestRedemption.findUnique({ where: { bookingId: body.id } }) : null;
+    if (benefit && !benefit.reversedAt) throw new HttpError(409, "Reverse the guest benefit from the guest profile before changing the booking price or partially cancelling.");
+  }
 
   // Dedicated mark-fully-paid action
   if (body.markFullyPaid) {
@@ -445,7 +421,8 @@ async function handlePatch(request: Request) {
     logger.info("booking", `Marked fully paid ${booking.bookingId}`, {
       bookingId: booking.id,
     });
-    return NextResponse.json({ booking });
+    await syncGuestBooking(booking.id);
+    return NextResponse.json({ booking: await prisma.booking.findUniqueOrThrow({ where: { id: booking.id } }) });
   }
 
   // Partial cancellation: reduce room count and adjust totals
@@ -588,7 +565,8 @@ async function handlePatch(request: Request) {
       `Partial cancel on ${booking.bookingId}: -${data.roomsToRemove} room(s)`,
       { bookingId: booking.id },
     );
-    return NextResponse.json({ booking });
+    await syncGuestBooking(booking.id);
+    return NextResponse.json({ booking: await prisma.booking.findUniqueOrThrow({ where: { id: booking.id } }) });
   }
 
   // Price renegotiation: adjust total amount and recompute balance/GST
@@ -653,7 +631,8 @@ async function handlePatch(request: Request) {
     logger.info("booking", `Adjusted total on ${booking.bookingId}`, {
       bookingId: booking.id,
     });
-    return NextResponse.json({ booking });
+    await syncGuestBooking(booking.id);
+    return NextResponse.json({ booking: await prisma.booking.findUniqueOrThrow({ where: { id: booking.id } }) });
   }
 
   // Support both simple status update and full booking update
@@ -738,7 +717,8 @@ async function handlePatch(request: Request) {
         );
     }
 
-    return NextResponse.json({ booking });
+    await syncGuestBooking(booking.id);
+    return NextResponse.json({ booking: await prisma.booking.findUniqueOrThrow({ where: { id: booking.id } }) });
   }
 
   const parsed = bookingUpdateSchema.safeParse(body);
@@ -777,6 +757,15 @@ async function handlePatch(request: Request) {
   }
 
   const updateData: Record<string, unknown> = {};
+  if (data.guestPhone !== undefined || data.guestEmail !== undefined) {
+    const linkedGuestId = await resolveGuest({ name: data.guestFullName || existing.guestFullName,
+      phone: data.guestPhone === undefined ? existing.guestPhone : data.guestPhone,
+      email: data.guestEmail === undefined ? existing.guestEmail : data.guestEmail });
+    if (linkedGuestId !== existing.guestId && (await prisma.guestReward.count({ where: { bookingId: existing.id } }) || await prisma.guestRedemption.count({ where: { bookingId: existing.id } }))) {
+      throw new HttpError(409, "This booking has guest rewards. Resolve or merge the guest profiles before changing its identity.");
+    }
+    updateData.guestId = linkedGuestId;
+  }
   if (data.guestFullName !== undefined)
     updateData.guestFullName = data.guestFullName;
   if (data.guestEmail !== undefined) updateData.guestEmail = data.guestEmail;
@@ -934,5 +923,6 @@ async function handlePatch(request: Request) {
   logger.info("booking", `Updated booking ${booking.bookingId}`, {
     bookingId: booking.id,
   });
-  return NextResponse.json({ booking });
+  await syncGuestBooking(booking.id);
+    return NextResponse.json({ booking: await prisma.booking.findUniqueOrThrow({ where: { id: booking.id } }) });
 }

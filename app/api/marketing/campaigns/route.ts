@@ -1,3 +1,4 @@
+import { requireGuestStaff } from "@/lib/guests/auth";
 import { dateRangeWhere, parseDateRangeParams } from "@/lib/date-range";
 import { toErrorResponse } from "@/lib/http-error";
 import { prisma } from "@/lib/prisma";
@@ -6,6 +7,7 @@ import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
   try {
+    await requireGuestStaff();
     return await handleGET(request);
   } catch (err) {
     return toErrorResponse(err, "GET /api/marketing/campaigns");
@@ -51,6 +53,7 @@ async function handleGET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    await requireGuestStaff(true);
     return await handlePOST(request);
   } catch (err) {
     return toErrorResponse(err, "POST /api/marketing/campaigns");

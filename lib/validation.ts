@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { importContextSchema } from "./contact-import-context";
 
 export const bookingCreateSchema = z.object({
   guestFullName: z.string().min(1, "Guest name is required"),
@@ -422,6 +423,7 @@ export const campaignCreateSchema = z.object({
       "broadcast_list",
       "manual_entry",
       "booking_guest",
+      "phone_book",
     ])
     .array()
     .default([]),
@@ -451,6 +453,7 @@ export const campaignUpdateSchema = z.object({
       "broadcast_list",
       "manual_entry",
       "booking_guest",
+      "phone_book",
     ])
     .array()
     .optional(),
@@ -465,6 +468,20 @@ export const campaignUpdateSchema = z.object({
 export const campaignSendSchema = z.object({
   campaignId: z.string().min(1),
   dryRun: z.boolean().default(false),
+});
+
+export const importPhoneContactsSchema = z.object({
+  importContext: importContextSchema.optional(),
+  contacts: z
+    .array(
+      z.object({
+        phone: z.string().min(5).max(80),
+        name: z.string().max(120).optional().nullable(),
+        email: z.string().email().max(254).optional().nullable(),
+      }),
+    )
+    .min(1, "No contacts provided")
+    .max(1000, "Too many contacts in one batch (max 1000)"),
 });
 
 export const templateCreateSchema = z.object({

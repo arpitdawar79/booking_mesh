@@ -1,5 +1,9 @@
 "use client";
 
+import Link from "next/link";
+import { LeadLinker } from "@/components/guests/lead-linker";
+import { ContactSourceHistory } from "@/components/leads/contact-source-history";
+import { PhoneContactImport } from "@/components/leads/phone-contact-import";
 import { DateRangeFilter } from "@/components/ui/date-range-filter";
 import { MagicCard } from "@/components/ui/magic-card";
 import {
@@ -60,6 +64,7 @@ interface LeadStats {
 
 interface Lead {
   id: string;
+  guestId: string | null;
   phoneNumber: string;
   name: string | null;
   pushName: string | null;
@@ -101,6 +106,10 @@ type Tab = "overview" | "leads" | "campaigns" | "templates";
 export default function MarketingPage() {
   const [tab, setTab] = useState<Tab>("overview");
   const [stats, setStats] = useState<LeadStats | null>(null);
+  const [selectedLeads, setSelectedLeads] = useState<string[]>([]);
+  const [convertLeads, setConvertLeads] = useState(false);
+  const [canConvert, setCanConvert] = useState(false);
+  useEffect(() => { fetch("/api/guest-program").then(r => r.ok ? r.json() : null).then(d => setCanConvert(!!d?.canManage)).catch(() => {}); }, []);
   const [leads, setLeads] = useState<Lead[]>([]);
   const [leadsTotal, setLeadsTotal] = useState(0);
   const [leadsPage, setLeadsPage] = useState(1);
@@ -120,6 +129,7 @@ export default function MarketingPage() {
   const [loading, setLoading] = useState(true);
   const [showCampaignForm, setShowCampaignForm] = useState(false);
   const [showTemplateForm, setShowTemplateForm] = useState(false);
+  const [showPhoneImport, setShowPhoneImport] = useState(false);
   const [sendingCampaign, setSendingCampaign] = useState<string | null>(null);
 
   const fetchStats = useCallback(async () => {
@@ -339,7 +349,7 @@ export default function MarketingPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
       >
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
               Marketing
@@ -348,7 +358,7 @@ export default function MarketingPage() {
               WhatsApp contact extraction, campaigns & broadcast messaging.
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {extracting && activeJob && (
               <button
                 onClick={handleCancelExtract}
@@ -358,6 +368,13 @@ export default function MarketingPage() {
                 Cancel
               </button>
             )}
+            <button
+              onClick={() => setShowPhoneImport(true)}
+              className="flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 text-xs font-bold hover:bg-emerald-500/20 transition"
+            >
+              <Smartphone className="w-4 h-4" />
+              Import from Phone
+            </button>
             <button
               onClick={handleExtract}
               disabled={extracting}
@@ -423,7 +440,7 @@ export default function MarketingPage() {
       )}
 
       {/* Tab Switcher */}
-      <div className="flex gap-1 p-1 rounded-xl bg-muted/30 border border-border/30 w-fit overflow-x-auto">
+      <div className="flex gap-1 p-1 rounded-xl bg-muted/30 border border-border/30 w-fit max-w-full overflow-x-auto">
         {tabs.map((t) => {
           const Icon = t.icon;
           return (
@@ -631,6 +648,7 @@ export default function MarketingPage() {
               <option value="personal_chat">Personal Chat</option>
               <option value="manual_entry">Manual Entry</option>
               <option value="booking_guest">Booking Guest</option>
+              <option value="phone_book">Phone Book</option>
             </select>
             <DateRangeFilter
               value={leadDateRange}
@@ -645,6 +663,12 @@ export default function MarketingPage() {
             {leadsTotal} total leads
           </div>
 
+          {canConvert && <div className="flex flex-wrap items-center gap-3 text-sm">
+            <label className="flex items-center gap-2"><input type="checkbox" checked={leads.some(l => !l.guestId) && leads.filter(l => !l.guestId).every(l => selectedLeads.includes(l.id))} onChange={e => { setSelectedLeads(e.target.checked ? leads.filter(l => !l.guestId).map(l => l.id) : []); setConvertLeads(false); }}/>Select unconverted leads on this page</label>
+            <button disabled={!selectedLeads.length} className="rounded-lg border border-border px-3 py-2 disabled:opacity-50" onClick={()=>setConvertLeads(true)}>Convert {selectedLeads.length} selected lead(s)</button>
+          </div>}
+          {canConvert && selectedLeads.length > 0 && <button className="text-xs text-primary underline" onClick={() => { setSelectedLeads([]);setConvertLeads(false); }}>Clear lead selection</button>}
+          {canConvert && convertLeads && <LeadLinker leadIds={selectedLeads} onConverted={() => fetchLeads()} />}
           {/* Leads List */}
           <div className="space-y-1.5">
             {leads.length === 0 ? (
@@ -657,8 +681,9 @@ export default function MarketingPage() {
             ) : (
               leads.map((lead) => (
                 <MagicCard key={lead.id} className="p-3">
-                  <div className="flex items-center justify-between gap-2">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
                     <div className="flex items-center gap-2.5 min-w-0">
+                      {canConvert && !lead.guestId && <input aria-label={`Select ${lead.name || lead.pushName || lead.phoneNumber} for guest conversion`} type="checkbox" disabled={selectedLeads.length >= 100 && !selectedLeads.includes(lead.id)} checked={selectedLeads.includes(lead.id)} onChange={e => { setSelectedLeads(p => e.target.checked ? [...p,lead.id] : p.filter(id=>id!==lead.id)); setConvertLeads(false); }} />}
                       <div className="w-8 h-8 rounded-full bg-primary/10 border border-primary/15 flex items-center justify-center text-[10px] font-bold text-primary shrink-0">
                         {(lead.name ||
                           lead.pushName ||
@@ -707,6 +732,8 @@ export default function MarketingPage() {
                       From: {lead.sourceGroupName}
                     </div>
                   )}
+                  {lead.guestId && <Link href={`/dashboard/guests/${lead.guestId}`} className="mt-2 inline-block text-xs text-primary underline">Open guest profile</Link>}
+                  <ContactSourceHistory leadId={lead.id} source={lead.source} />
                 </MagicCard>
               ))
             )}
@@ -928,6 +955,15 @@ export default function MarketingPage() {
           )}
         </motion.div>
       )}
+
+      <PhoneContactImport
+        open={showPhoneImport}
+        onClose={() => setShowPhoneImport(false)}
+        onImported={() => {
+          void fetchStats();
+          void fetchLeads();
+        }}
+      />
     </div>
   );
 }
@@ -977,6 +1013,7 @@ function CampaignForm({
     "broadcast_list",
     "manual_entry",
     "booking_guest",
+    "phone_book",
   ];
 
   const handleSubmit = async (e: React.FormEvent) => {

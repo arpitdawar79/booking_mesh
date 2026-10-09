@@ -2,7 +2,7 @@
 
 import { Calculator, Receipt, Save, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { fmtDate } from "./page";
+import { fmtDate } from "./format";
 
 interface Employee {
   id: string;

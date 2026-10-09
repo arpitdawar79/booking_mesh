@@ -1,9 +1,12 @@
+import { requireGuestStaff } from "@/lib/guests/auth";
+import { syncGuestBooking } from "@/lib/guests/jobs";
 import { HttpError, toErrorResponse } from "@/lib/http-error";
 import { prisma } from "@/lib/prisma";
 import { paymentCreateSchema } from "@/lib/validation";
 import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
+  try { await requireGuestStaff(); } catch (err) { return toErrorResponse(err); }
   const { searchParams } = new URL(request.url);
   const bookingId = searchParams.get("bookingId");
   if (!bookingId) {
@@ -19,6 +22,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  try { await requireGuestStaff(); } catch (err) { return toErrorResponse(err); }
   const body = await request.json().catch(() => ({}));
   const parsed = paymentCreateSchema.safeParse(body);
   if (!parsed.success) {
@@ -117,6 +121,7 @@ export async function POST(request: Request) {
       return { payment, balance, paymentStatus };
     });
 
+    await syncGuestBooking(data.bookingId);
     return NextResponse.json(result);
   } catch (err) {
     return toErrorResponse(err, "payment create");

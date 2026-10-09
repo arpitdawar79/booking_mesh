@@ -34,54 +34,58 @@ enum RoomStatus {
 }
 
 model Booking {
-  id                String        @id @default(cuid())
-  bookingId         String        @unique @map("booking_id")
-  bookingDate       DateTime      @default(now()) @map("booking_date")
-  guestFirstName    String        @map("guest_first_name")
-  guestFullName     String        @map("guest_full_name")
-  guestEmail        String?       @map("guest_email")
-  guestPhone        String?       @map("guest_phone")
-  adultCount        Int           @default(1) @map("adult_count")
-  childCount        Int           @default(0) @map("child_count")
-  checkInDate       DateTime      @map("check_in_date")
-  checkOutDate      DateTime      @map("check_out_date")
-  checkInTime       String        @default("1:00 PM") @map("check_in_time")
-  checkOutTime      String        @default("10:00 AM") @map("check_out_time")
-  nightCount        Int           @default(1) @map("night_count")
-  roomCount         Int           @default(1) @map("room_count")
-  roomType          String        @default("Boutique Room") @map("room_type")
-  extraMattressCount Int          @default(0) @map("extra_mattress_count")
-  mealPlan          String        @default("As per booking") @map("meal_plan")
-  currency          String        @default("INR") @map("currency")
-  totalAmount       Decimal       @default(0) @map("total_amount")
-  amountPaidOnline  Decimal       @default(0) @map("amount_paid_online")
-  balanceAmount     Decimal       @default(0) @map("balance_amount")
-  paymentStatus     PaymentStatus @default(partially_paid) @map("payment_status")
-  propertyAddress   String        @default("The Stream by Ekantah") @map("property_address")
-  propertyPhone     String        @default("+91 93193 47443, +91 99100 06437") @map("property_phone")
-  propertyEmail     String        @default("Digital@ekantah.com") @map("property_email")
-  caretakerNumber   String        @default("+91 94599 89576") @map("caretaker_number")
-  parkingDetails    String        @default("Available near the property. Please contact us before arrival for exact guidance.") @map("parking_details")
-  mapLink           String        @default("https://maps.google.com/?q=The%20Stream%20by%20Ekantah%20Tirthan%20Valley") @map("map_link")
-  cancellationPolicy String       @default("As per the booking terms shared at the time of reservation.") @map("cancellation_policy")
-  specialRequests   String        @default("None shared.") @map("special_requests")
-  status            BookingStatus @default(confirmed)
-  gstRate           Decimal?      @map("gst_rate")
-  cgstAmount        Decimal?      @map("cgst_amount")
-  sgstAmount        Decimal?      @map("sgst_amount")
-  igstAmount        Decimal?      @map("igst_amount")
-  hsnCode           String        @default("996311") @map("hsn_code")
-  guestId           String?       @map("guest_id")
-  isBackdated       Boolean       @default(false) @map("is_backdated")
+  id                 String        @id @default(cuid())
+  bookingId          String        @unique @map("booking_id")
+  bookingDate        DateTime      @default(now()) @map("booking_date")
+  guestFirstName     String        @map("guest_first_name")
+  guestFullName      String        @map("guest_full_name")
+  guestEmail         String?       @map("guest_email")
+  guestPhone         String?       @map("guest_phone")
+  adultCount         Int           @default(1) @map("adult_count")
+  childCount         Int           @default(0) @map("child_count")
+  checkInDate        DateTime      @map("check_in_date")
+  checkOutDate       DateTime      @map("check_out_date")
+  checkInTime        String        @default("1:00 PM") @map("check_in_time")
+  checkOutTime       String        @default("10:00 AM") @map("check_out_time")
+  nightCount         Int           @default(1) @map("night_count")
+  roomCount          Int           @default(1) @map("room_count")
+  roomType           String        @default("Boutique Room") @map("room_type")
+  extraMattressCount Int           @default(0) @map("extra_mattress_count")
+  mealPlan           String        @default("As per booking") @map("meal_plan")
+  currency           String        @default("INR") @map("currency")
+  totalAmount        Decimal       @default(0) @map("total_amount")
+  amountPaidOnline   Decimal       @default(0) @map("amount_paid_online")
+  balanceAmount      Decimal       @default(0) @map("balance_amount")
+  paymentStatus      PaymentStatus @default(partially_paid) @map("payment_status")
+  propertyAddress    String        @default("The Stream by Ekantah") @map("property_address")
+  propertyPhone      String        @default("+91 93193 47443, +91 99100 06437") @map("property_phone")
+  propertyEmail      String        @default("Digital@ekantah.com") @map("property_email")
+  caretakerNumber    String        @default("+91 94599 89576") @map("caretaker_number")
+  parkingDetails     String        @default("Available near the property. Please contact us before arrival for exact guidance.") @map("parking_details")
+  mapLink            String        @default("https://maps.google.com/?q=The%20Stream%20by%20Ekantah%20Tirthan%20Valley") @map("map_link")
+  cancellationPolicy String        @default("As per the booking terms shared at the time of reservation.") @map("cancellation_policy")
+  specialRequests    String        @default("None shared.") @map("special_requests")
+  status             BookingStatus @default(confirmed)
+  gstRate            Decimal?      @map("gst_rate")
+  cgstAmount         Decimal?      @map("cgst_amount")
+  sgstAmount         Decimal?      @map("sgst_amount")
+  igstAmount         Decimal?      @map("igst_amount")
+  hsnCode            String        @default("996311") @map("hsn_code")
+  guestId            String?       @map("guest_id")
+  isBackdated        Boolean       @default(false) @map("is_backdated")
   sourceKey          String?       @unique @map("source_key")
-  createdAt         DateTime      @default(now()) @map("created_at")
-  updatedAt         DateTime      @updatedAt @map("updated_at")
+  createdAt          DateTime      @default(now()) @map("created_at")
+  updatedAt          DateTime      @updatedAt @map("updated_at")
 
   emailsSent       EmailSent[]
   whatsappMessages WhatsAppMessage[]
   payments         Payment[]
   amendments       BookingAmendment[]
-  guest            Guest?    @relation(fields: [guestId], references: [id])
+  guest            Guest?             @relation(fields: [guestId], references: [id])
+  rewards          GuestReward[]
+  guestRedemption  GuestRedemption?
+  guestFeedback    GuestFeedback?
+  guestLinks       GuestLink[]
 
   @@map("bookings")
 }
@@ -100,19 +104,39 @@ model BookingAmendment {
 }
 
 model Guest {
-  id          String    @id @default(cuid())
-  name        String
-  phone       String?   @unique
-  email       String?   @unique
-  idType      String?   @map("id_type")
-  idNumber    String?   @map("id_number")
-  address     String?
-  preferences String?
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
+  id              String    @id @default(cuid())
+  name            String
+  phone           String?   @unique
+  email           String?   @unique
+  idType          String?   @map("id_type")
+  idNumber        String?   @map("id_number")
+  address         String?
+  preferences     String?
+  birthday        DateTime? @db.Date
+  city            String?
+  tags            String[]  @default([])
+  notes           String?
+  whatsappConsent Boolean   @default(false) @map("whatsapp_consent")
+  emailConsent    Boolean   @default(false) @map("email_consent")
+  doNotContact    Boolean   @default(false) @map("do_not_contact")
+  lastMarketingAt DateTime? @map("last_marketing_at")
+  referralCode    String    @unique @default(cuid()) @map("referral_code")
+  mergedIntoId    String?   @map("merged_into_id")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
 
   bookings    Booking[]
+  contacts    GuestContact[]
+  leads       UserLead[]
+  activities  GuestActivity[]
+  rewards     GuestReward[]
+  feedback    GuestFeedback[]
+  links       GuestLink[]
+  referrals   GuestReferral[]   @relation("Referrer")
+  referredBy  GuestReferral?    @relation("ReferredGuest")
+  redemptions GuestRedemption[]
 
+  @@index([mergedIntoId])
   @@map("guests")
 }
 
@@ -284,26 +308,26 @@ model Employee {
 }
 
 model SalarySlip {
-  id               String        @id @default(cuid())
-  employeeId       String        @map("employee_id")
-  month            Int
-  year             Int
-  daysWorked       Int           @default(30) @map("days_worked")
-  totalDays        Int           @default(30) @map("total_days")
-  basicSalary      Decimal       @default(0) @map("basic_salary") @db.Decimal(10, 2)
-  overtimeDays     Int           @default(0) @map("overtime_days")
-  overtimeRate     Decimal       @default(0) @map("overtime_rate") @db.Decimal(10, 2)
-  overtimeAmount   Decimal       @default(0) @map("overtime_amount") @db.Decimal(10, 2)
-  allowance        Decimal       @default(0) @db.Decimal(10, 2)
-  deduction        Decimal       @default(0) @db.Decimal(10, 2)
-  deductionReason  String?       @map("deduction_reason")
-  netSalary        Decimal       @default(0) @map("net_salary") @db.Decimal(10, 2)
-  paymentMethod    PaymentMethod @default(cash) @map("payment_method")
-  paymentDate      DateTime?     @map("payment_date")
-  notes            String?
-  whatsappSentAt   DateTime?     @map("whatsapp_sent_at")
-  createdAt        DateTime      @default(now()) @map("created_at")
-  updatedAt        DateTime      @updatedAt @map("updated_at")
+  id              String        @id @default(cuid())
+  employeeId      String        @map("employee_id")
+  month           Int
+  year            Int
+  daysWorked      Int           @default(30) @map("days_worked")
+  totalDays       Int           @default(30) @map("total_days")
+  basicSalary     Decimal       @default(0) @map("basic_salary") @db.Decimal(10, 2)
+  overtimeDays    Int           @default(0) @map("overtime_days")
+  overtimeRate    Decimal       @default(0) @map("overtime_rate") @db.Decimal(10, 2)
+  overtimeAmount  Decimal       @default(0) @map("overtime_amount") @db.Decimal(10, 2)
+  allowance       Decimal       @default(0) @db.Decimal(10, 2)
+  deduction       Decimal       @default(0) @db.Decimal(10, 2)
+  deductionReason String?       @map("deduction_reason")
+  netSalary       Decimal       @default(0) @map("net_salary") @db.Decimal(10, 2)
+  paymentMethod   PaymentMethod @default(cash) @map("payment_method")
+  paymentDate     DateTime?     @map("payment_date")
+  notes           String?
+  whatsappSentAt  DateTime?     @map("whatsapp_sent_at")
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
 
   employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
@@ -318,16 +342,16 @@ enum CronStatus {
 }
 
 model CronRun {
-  id            String     @id @default(cuid())
-  jobName       String     @map("job_name")
-  status        CronStatus
-  startedAt     DateTime   @map("started_at")
-  completedAt   DateTime?  @map("completed_at")
-  durationMs    Int?       @map("duration_ms")
-  logs          String?
-  error         String?
-  triggeredBy   String     @default("schedule") @map("triggered_by")
-  createdAt     DateTime   @default(now()) @map("created_at")
+  id          String     @id @default(cuid())
+  jobName     String     @map("job_name")
+  status      CronStatus
+  startedAt   DateTime   @map("started_at")
+  completedAt DateTime?  @map("completed_at")
+  durationMs  Int?       @map("duration_ms")
+  logs        String?
+  error       String?
+  triggeredBy String     @default("schedule") @map("triggered_by")
+  createdAt   DateTime   @default(now()) @map("created_at")
 
   @@index([jobName, startedAt(sort: Desc)])
   @@index([status])
@@ -341,21 +365,22 @@ enum UserRole {
 }
 
 model User {
-  id           String    @id @default(cuid())
-  email        String    @unique
-  passwordHash String    @map("password_hash")
-  name         String
-  role         UserRole  @default(staff)
-  isActive     Boolean   @default(true) @map("is_active")
-  lastLoginAt  DateTime? @map("last_login_at")
-  resetToken   String?   @map("reset_token")
+  id               String    @id @default(cuid())
+  email            String    @unique
+  passwordHash     String    @map("password_hash")
+  name             String
+  role             UserRole  @default(staff)
+  isActive         Boolean   @default(true) @map("is_active")
+  lastLoginAt      DateTime? @map("last_login_at")
+  resetToken       String?   @map("reset_token")
   resetTokenExpiry DateTime? @map("reset_token_expiry")
-  createdAt    DateTime  @default(now()) @map("created_at")
-  updatedAt    DateTime  @updatedAt @map("updated_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
 
-  refreshTokens RefreshToken[]
-  pushSubscriptions PushSubscription[]
+  refreshTokens      RefreshToken[]
+  pushSubscriptions  PushSubscription[]
   passkeyCredentials PasskeyCredential[]
+  contactImports     ContactImport[]
 
   @@map("users")
 }
@@ -374,11 +399,11 @@ model RefreshToken {
 }
 
 model PushSubscription {
-  id       String   @id @default(cuid())
-  userId   String   @map("user_id")
-  endpoint String   @unique
-  p256dh   String
-  auth     String
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
   createdAt DateTime @default(now()) @map("created_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -413,6 +438,7 @@ enum LeadSource {
   broadcast_list
   manual_entry
   booking_guest
+  phone_book
 }
 
 enum LeadStatus {
@@ -425,6 +451,8 @@ enum LeadStatus {
 model UserLead {
   id              String     @id @default(cuid())
   phoneNumber     String     @unique @map("phone_number")
+  guestId         String?    @map("guest_id")
+  guest           Guest?     @relation(fields: [guestId], references: [id])
   name            String?
   pushName        String?    @map("push_name")
   source          LeadSource @default(group_member) @map("source")
@@ -445,12 +473,27 @@ model UserLead {
   createdAt       DateTime   @default(now()) @map("created_at")
   updatedAt       DateTime   @updatedAt @map("updated_at")
 
-  campaignLogs    CampaignLog[]
+  campaignLogs CampaignLog[]
+  contactImports ContactImport[]
 
   @@index([source])
+  @@index([guestId])
   @@index([status])
   @@index([sourceGroupId])
   @@map("user_leads")
+}
+
+// One immutable source/device snapshot per logical import, shared by its leads.
+model ContactImport {
+  id           String   @id @default(uuid()) @db.Uuid
+  importedById String?  @map("imported_by_id")
+  importedBy   User?    @relation(fields: [importedById], references: [id], onDelete: SetNull)
+  metadata     Json     @db.JsonB
+  createdAt    DateTime @default(now()) @map("created_at")
+  leads        UserLead[]
+
+  @@index([importedById, createdAt])
+  @@map("contact_imports")
 }
 
 enum CampaignStatus {
@@ -463,28 +506,29 @@ enum CampaignStatus {
 }
 
 model MarketingCampaign {
-  id            String          @id @default(cuid())
-  name          String
-  messageBody   String          @map("message_body")
-  templateId    String?         @map("template_id")
-  status        CampaignStatus  @default(draft)
-  targetTags    String[]        @default([]) @map("target_tags")
-  targetSources LeadSource[]    @default([]) @map("target_sources")
-  excludeOptedOut Boolean       @default(true) @map("exclude_opted_out")
-  totalRecipients Int           @default(0) @map("total_recipients")
-  sentCount     Int             @default(0) @map("sent_count")
-  deliveredCount Int            @default(0) @map("delivered_count")
-  failedCount   Int             @default(0) @map("failed_count")
-  readCount     Int             @default(0) @map("read_count")
-  scheduledAt   DateTime?       @map("scheduled_at")
-  startedAt     DateTime?       @map("started_at")
-  completedAt   DateTime?       @map("completed_at")
-  createdBy      String?        @map("created_by")
-  createdAt     DateTime        @default(now()) @map("created_at")
-  updatedAt     DateTime        @updatedAt @map("updated_at")
+  id              String         @id @default(cuid())
+  name            String
+  messageBody     String         @map("message_body")
+  templateId      String?        @map("template_id")
+  status          CampaignStatus @default(draft)
+  targetTags      String[]       @default([]) @map("target_tags")
+  guestIds        String[]       @default([]) @map("guest_ids")
+  targetSources   LeadSource[]   @default([]) @map("target_sources")
+  excludeOptedOut Boolean        @default(true) @map("exclude_opted_out")
+  totalRecipients Int            @default(0) @map("total_recipients")
+  sentCount       Int            @default(0) @map("sent_count")
+  deliveredCount  Int            @default(0) @map("delivered_count")
+  failedCount     Int            @default(0) @map("failed_count")
+  readCount       Int            @default(0) @map("read_count")
+  scheduledAt     DateTime?      @map("scheduled_at")
+  startedAt       DateTime?      @map("started_at")
+  completedAt     DateTime?      @map("completed_at")
+  createdBy       String?        @map("created_by")
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
 
-  template      CampaignTemplate? @relation(fields: [templateId], references: [id])
-  logs          CampaignLog[]
+  template CampaignTemplate? @relation(fields: [templateId], references: [id])
+  logs     CampaignLog[]
 
   @@index([status])
   @@map("marketing_campaigns")
@@ -511,8 +555,8 @@ model CampaignLog {
   readAt      DateTime?         @map("read_at")
   createdAt   DateTime          @default(now()) @map("created_at")
 
-  campaign    MarketingCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
-  lead        UserLead          @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  campaign MarketingCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  lead     UserLead          @relation(fields: [leadId], references: [id], onDelete: Cascade)
 
   @@unique([campaignId, leadId])
   @@index([campaignId])
@@ -522,15 +566,15 @@ model CampaignLog {
 }
 
 model CampaignTemplate {
-  id          String   @id @default(cuid())
-  name        String
-  body        String
-  category    String   @default("general")
-  variables   String[] @default([])
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  id        String   @id @default(cuid())
+  name      String
+  body      String
+  category  String   @default("general")
+  variables String[] @default([])
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  campaigns   MarketingCampaign[]
+  campaigns MarketingCampaign[]
 
   @@map("campaign_templates")
 }
@@ -551,20 +595,20 @@ enum ExtractionJobType {
 }
 
 model ExtractionJob {
-  id              String              @id @default(cuid())
-  type            ExtractionJobType   @default(contacts)
-  status          ExtractionJobStatus @default(pending)
-  progress        Int                 @default(0)   // 0–100
-  totalItems      Int                 @default(0)   @map("total_items")
-  processedItems  Int                 @default(0)   @map("processed_items")
-  enrichProfiles  Boolean             @default(false) @map("enrich_profiles")
-  groupIds        String[]            @default([])  @map("group_ids")
-  result          Json?
-  error           String?
-  startedAt       DateTime?           @map("started_at")
-  completedAt     DateTime?           @map("completed_at")
-  createdAt       DateTime            @default(now()) @map("created_at")
-  updatedAt       DateTime            @updatedAt      @map("updated_at")
+  id             String              @id @default(cuid())
+  type           ExtractionJobType   @default(contacts)
+  status         ExtractionJobStatus @default(pending)
+  progress       Int                 @default(0) // 0–100
+  totalItems     Int                 @default(0) @map("total_items")
+  processedItems Int                 @default(0) @map("processed_items")
+  enrichProfiles Boolean             @default(false) @map("enrich_profiles")
+  groupIds       String[]            @default([]) @map("group_ids")
+  result         Json?
+  error          String?
+  startedAt      DateTime?           @map("started_at")
+  completedAt    DateTime?           @map("completed_at")
+  createdAt      DateTime            @default(now()) @map("created_at")
+  updatedAt      DateTime            @updatedAt @map("updated_at")
 
   @@index([status])
   @@index([type, status])
@@ -588,34 +632,34 @@ enum SheetRowStatus {
 }
 
 model SheetRow {
-  id               String          @id @default(cuid())
+  id               String         @id @default(cuid())
   sheet            String // logical stream: "expenses" | "payouts" | "revenue"
-  rowId            String          @map("row_id") // S.No; payouts uses "p{rowNum}"
-  rowNum           Int             @map("row_num") // physical sheet row (drift/deletion detection)
-  rawJson          Json            @map("raw_json")
-  rowHash          String          @map("row_hash")
-  parsedDate       DateTime?       @map("parsed_date")
-  status           SheetRowStatus  @default(incomplete)
-  missingRequired  String[]        @default([]) @map("missing_required")
-  missingSoft      String[]        @default([]) @map("missing_soft")
+  rowId            String         @map("row_id") // S.No; payouts uses "p{rowNum}"
+  rowNum           Int            @map("row_num") // physical sheet row (drift/deletion detection)
+  rawJson          Json           @map("raw_json")
+  rowHash          String         @map("row_hash")
+  parsedDate       DateTime?      @map("parsed_date")
+  status           SheetRowStatus @default(incomplete)
+  missingRequired  String[]       @default([]) @map("missing_required")
+  missingSoft      String[]       @default([]) @map("missing_soft")
   patches          Json? // app-side overrides: { field: { value, source } }
-  linkedRecordId   String?         @map("linked_record_id")
-  linkedRecordType String?         @map("linked_record_type") // "expense" | "additional_sale" | "booking"
-  linkedRowHash    String?         @map("linked_row_hash")
-  conflictJson     Json?           @map("conflict_json")
-  importError      String?         @map("import_error")
-  firstSeenAt      DateTime        @default(now()) @map("first_seen_at")
-  lastSeenAt       DateTime        @default(now()) @map("last_seen_at")
-  lastNaggedAt     DateTime?       @map("last_nagged_at")
-  nagCount         Int             @default(0) @map("nag_count")
-  escalatedAt      DateTime?       @map("escalated_at")
-  snoozedUntil     DateTime?       @map("snoozed_until")
-  resolvedVia      String?         @map("resolved_via") // "form" | "whatsapp" | "sheet"
-  resolvedAt       DateTime?       @map("resolved_at")
-  createdAt        DateTime        @default(now()) @map("created_at")
-  updatedAt        DateTime        @updatedAt @map("updated_at")
+  linkedRecordId   String?        @map("linked_record_id")
+  linkedRecordType String?        @map("linked_record_type") // "expense" | "additional_sale" | "booking"
+  linkedRowHash    String?        @map("linked_row_hash")
+  conflictJson     Json?          @map("conflict_json")
+  importError      String?        @map("import_error")
+  firstSeenAt      DateTime       @default(now()) @map("first_seen_at")
+  lastSeenAt       DateTime       @default(now()) @map("last_seen_at")
+  lastNaggedAt     DateTime?      @map("last_nagged_at")
+  nagCount         Int            @default(0) @map("nag_count")
+  escalatedAt      DateTime?      @map("escalated_at")
+  snoozedUntil     DateTime?      @map("snoozed_until")
+  resolvedVia      String?        @map("resolved_via") // "form" | "whatsapp" | "sheet"
+  resolvedAt       DateTime?      @map("resolved_at")
+  createdAt        DateTime       @default(now()) @map("created_at")
+  updatedAt        DateTime       @updatedAt @map("updated_at")
 
-  fixTokens        SheetFixToken[]
+  fixTokens SheetFixToken[]
 
   @@unique([sheet, rowId])
   @@index([status])
@@ -640,4 +684,144 @@ model SheetFixToken {
 
   @@index([expiresAt])
   @@map("sheet_fix_tokens")
+}
+
+// Unified guest program. Booking financial snapshots remain on Booking.
+model GuestContact {
+  id        String   @id @default(cuid())
+  guestId   String   @map("guest_id")
+  kind      String
+  value     String
+  createdAt DateTime @default(now()) @map("created_at")
+  guest     Guest    @relation(fields: [guestId], references: [id])
+
+  @@unique([kind, value])
+  @@index([guestId])
+  @@map("guest_contacts")
+}
+
+model GuestActivity {
+  id        String   @id @default(cuid())
+  guestId   String   @map("guest_id")
+  kind      String
+  summary   String
+  actorId   String?  @map("actor_id")
+  metadata  Json?
+  createdAt DateTime @default(now()) @map("created_at")
+  guest     Guest    @relation(fields: [guestId], references: [id])
+
+  @@index([guestId, createdAt])
+  @@map("guest_activities")
+}
+
+model GuestReward {
+  id          String    @id @default(cuid())
+  guestId     String    @map("guest_id")
+  bookingId   String?   @map("booking_id")
+  earningRate Int?      @map("earning_rate")
+  points      Int
+  kind        String
+  reason      String
+  actorId     String?   @map("actor_id")
+  eventKey    String    @unique @map("event_key")
+  expiresAt   DateTime? @map("expires_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  guest       Guest     @relation(fields: [guestId], references: [id])
+  booking     Booking?  @relation(fields: [bookingId], references: [id], onDelete: Restrict)
+
+  @@index([guestId, createdAt])
+  @@index([bookingId])
+  @@map("guest_rewards")
+}
+
+model GuestReferral {
+  id              String    @id @default(cuid())
+  referrerId      String    @map("referrer_id")
+  referredGuestId String    @unique @map("referred_guest_id")
+  status          String    @default("pending")
+  rewardBookingId String?   @map("reward_booking_id")
+  awardedPoints   Int       @default(0) @map("awarded_points")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  rewardedAt      DateTime? @map("rewarded_at")
+  referrer        Guest     @relation("Referrer", fields: [referrerId], references: [id])
+  referredGuest   Guest     @relation("ReferredGuest", fields: [referredGuestId], references: [id])
+
+  @@index([referrerId])
+  @@map("guest_referrals")
+}
+
+model GuestOffer {
+  id          String            @id @default(cuid())
+  code        String            @unique
+  name        String
+  percent     Int
+  maxAmount   Decimal           @map("max_amount") @db.Decimal(10, 2)
+  minAmount   Decimal           @default(0) @map("min_amount") @db.Decimal(10, 2)
+  minStays    Int               @default(0) @map("min_stays")
+  startsAt    DateTime          @map("starts_at")
+  expiresAt   DateTime          @map("expires_at")
+  maxUses     Int               @default(100) @map("max_uses")
+  enabled     Boolean           @default(false)
+  createdAt   DateTime          @default(now()) @map("created_at")
+  redemptions GuestRedemption[]
+
+  @@map("guest_offers")
+}
+
+model GuestRedemption {
+  id            String      @id @default(cuid())
+  guestId       String      @map("guest_id")
+  bookingId     String      @unique @map("booking_id")
+  offerId       String?     @map("offer_id")
+  points        Int         @default(0)
+  amount        Decimal     @db.Decimal(10, 2)
+  originalTotal Decimal     @map("original_total") @db.Decimal(10, 2)
+  ruleSnapshot  Json        @map("rule_snapshot")
+  eventKey      String      @unique @map("event_key")
+  reversedAt    DateTime?   @map("reversed_at")
+  createdAt     DateTime    @default(now()) @map("created_at")
+  guest         Guest       @relation(fields: [guestId], references: [id])
+  offer         GuestOffer? @relation(fields: [offerId], references: [id])
+  booking       Booking     @relation(fields: [bookingId], references: [id], onDelete: Restrict)
+
+  @@unique([guestId, offerId])
+  @@index([guestId])
+  @@map("guest_redemptions")
+}
+
+model GuestFeedback {
+  id         String    @id @default(cuid())
+  guestId    String    @map("guest_id")
+  bookingId  String    @unique @map("booking_id")
+  rating     Int
+  comment    String?
+  followUp   Boolean   @default(false) @map("follow_up")
+  status     String    @default("open")
+  resolution String?
+  resolvedBy String?   @map("resolved_by")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  resolvedAt DateTime? @map("resolved_at")
+  guest      Guest     @relation(fields: [guestId], references: [id])
+  booking    Booking   @relation(fields: [bookingId], references: [id], onDelete: Restrict)
+
+  @@index([guestId])
+  @@index([status])
+  @@map("guest_feedback")
+}
+
+model GuestLink {
+  id        String    @id @default(cuid())
+  guestId   String    @map("guest_id")
+  bookingId String?   @map("booking_id")
+  tokenHash String    @unique @map("token_hash")
+  scope     String
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  guest     Guest     @relation(fields: [guestId], references: [id])
+  booking   Booking?  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([guestId])
+  @@index([expiresAt])
+  @@map("guest_links")
 }

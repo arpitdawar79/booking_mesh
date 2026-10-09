@@ -1,3 +1,4 @@
+import { requireGuestStaff } from "@/lib/guests/auth";
 import { toErrorResponse } from "@/lib/http-error";
 import { prisma } from "@/lib/prisma";
 import { campaignUpdateSchema } from "@/lib/validation";
@@ -8,6 +9,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    await requireGuestStaff();
     return await handleGET(_request, { params });
   } catch (err) {
     return toErrorResponse(err, "GET /api/marketing/campaigns/[id]");
@@ -45,6 +47,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    await requireGuestStaff(true);
     return await handlePATCH(request, { params });
   } catch (err) {
     return toErrorResponse(err, "PATCH /api/marketing/campaigns/[id]");
@@ -80,7 +83,9 @@ async function handlePATCH(
       const targetTags = updateData.targetTags ?? campaign.targetTags;
       const targetSources = updateData.targetSources ?? campaign.targetSources;
 
-      if (excludeOptedOut) leadWhere.status = "active";
+      leadWhere.status = "active";
+      if (campaign.guestIds.length) leadWhere.guestId = { in: campaign.guestIds };
+      leadWhere.OR = [{ guestId: null }, { guest: { mergedIntoId: null, doNotContact: false, whatsappConsent: true } }];
       if (targetTags.length > 0) leadWhere.tags = { hasSome: targetTags };
       if (targetSources.length > 0) leadWhere.source = { in: targetSources };
 
@@ -101,6 +106,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    await requireGuestStaff(true);
     return await handleDELETE(_request, { params });
   } catch (err) {
     return toErrorResponse(err, "DELETE /api/marketing/campaigns/[id]");

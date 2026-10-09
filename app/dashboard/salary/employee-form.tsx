@@ -2,7 +2,7 @@
 
 import { Save, User, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { fmtDate } from "./page";
+import { fmtDate } from "./format";
 
 export function EmployeeForm({
   editingId,

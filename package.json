@@ -6,7 +6,10 @@
   "scripts": {
     "dev": "next dev --port 4001",
     "build": "next build",
-    "build:cron": "esbuild jobs/cron-runner.ts --bundle --platform=node --format=esm --packages=external --outfile=.next/cron-runner.mjs",
+    "build:cron": "esbuild jobs/cron-runner.ts --bundle --platform=node --format=esm --packages=external --alias:@=. --outfile=.next/cron-runner.mjs",
+    "build:cron:job": "esbuild scripts/run-cron-job.ts --bundle --platform=node --format=esm --packages=external --alias:@=. --outfile=.next/run-cron-job.mjs",
+    "dev:cron": "pnpm build:cron && dotenv -e .env -e .env.local -- node .next/cron-runner.mjs",
+    "cron:job": "pnpm build:cron:job && dotenv -e .env -e .env.local -- node .next/run-cron-job.mjs",
     "start": "next start",
     "deploy:prod": "./scripts/pm2_deploy.sh",
     "deploy:legacy": "./scripts/deploy.sh",
@@ -26,10 +29,15 @@
     "test:whatsapp": "NODE_OPTIONS=--conditions=import dotenv -e .env.local -- tsx scripts/test-whatsapp.ts",
     "postinstall": "prisma generate",
     "typecheck": "tsc --noEmit",
+    "test:contacts": "node --import tsx --test lib/__tests__/contact-import*.test.ts",
+    "test:contacts:ui": "node scripts/test-contact-import-ui.mjs",
     "test:sheet-sync": "node --import tsx --test lib/sheet-sync/__tests__/*.test.ts",
     "lint:semgrep": "semgrep --config=.semgrep.yml",
     "search:ast": "ast-grep scan",
-    "graph:update": "graphify update ."
+    "graph:update": "graphify update .",
+    "test:guests": "node --import tsx --test lib/guests/__tests__/*.test.ts",
+    "test:guests:db": "dotenv -e .env -- node scripts/test-guest-program.mjs",
+    "test:guests:ui": "dotenv -e .env -- node scripts/test-guest-program.mjs --ui"
   },
   "keywords": [],
   "author": "",

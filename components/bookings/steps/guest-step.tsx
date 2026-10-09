@@ -26,6 +26,7 @@ interface Props {
   setGuestPhone: (v: string) => void;
   guestEmail: string;
   setGuestEmail: (v: string) => void;
+  contactConflict?: boolean;
   returningGuest?: { name: string; stays: number } | null;
   adultCount: number;
   setAdultCount: (v: number) => void;
@@ -46,6 +47,7 @@ export function GuestStep({
   guestEmail,
   setGuestEmail,
   returningGuest,
+  contactConflict,
   adultCount,
   setAdultCount,
   childCount,
@@ -95,6 +97,8 @@ export function GuestStep({
           </div>
         </div>
 
+        <p className="text-xs text-muted-foreground">A phone number or email automatically creates a guest profile when you save this booking. Matching contacts reuse the existing profile.</p>
+        {contactConflict && <p role="alert" className="rounded-lg border border-destructive/30 p-3 text-sm text-destructive">Phone and email match different guest profiles. Review the profiles in Guests and correct the contact details or merge the duplicate before saving.</p>}
         {/* Returning-guest recognition */}
         <AnimatePresence initial={false}>
           {returningGuest && (
@@ -111,7 +115,7 @@ export function GuestStep({
                 </div>
                 <div className="min-w-0">
                   <p className="text-xs font-extrabold text-primary truncate">
-                    Returning guest · {returningGuest.name}
+                    {returningGuest.stays > 0 ? "Returning guest" : "Existing guest profile"} · {returningGuest.name}
                   </p>
                   <p className="text-[11px] text-muted-foreground/60 font-medium">
                     {returningGuest.stays > 0

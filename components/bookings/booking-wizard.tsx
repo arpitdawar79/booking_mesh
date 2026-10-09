@@ -67,6 +67,7 @@ export function BookingWizard() {
   const [adultCount, setAdultCount] = useState(2);
   const [childCount, setChildCount] = useState(0);
 
+  const [contactConflict, setContactConflict] = useState(false);
   // Returning-guest recognition (debounced lookup by phone/email)
   const [returningGuest, setReturningGuest] = useState<{
     name: string;
@@ -76,12 +77,12 @@ export function BookingWizard() {
     const controller = new AbortController();
     const phoneDigits = guestPhone.replace(/\D/g, "");
     const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail.trim());
-    const query =
-      phoneDigits.length >= 8
-        ? `phone=${encodeURIComponent(guestPhone.trim())}`
-        : emailOk
-          ? `email=${encodeURIComponent(guestEmail.trim())}`
-          : null;
+    const queryParams = new URLSearchParams();
+    if (phoneDigits.length >= 8) queryParams.set("phone",guestPhone.trim());
+    if (emailOk) queryParams.set("email",guestEmail.trim());
+    const query = queryParams.toString();
+    setContactConflict(false);
+    setReturningGuest(null);
     if (!query) {
       setReturningGuest(null);
       return;
@@ -93,7 +94,8 @@ export function BookingWizard() {
         });
         if (!res.ok) return;
         const json = await res.json();
-        const match = json.guests?.[0];
+        setContactConflict(!!json.conflict);
+        const match = json.conflict ? null : json.guests?.[0];
         if (match) {
           setReturningGuest({
             name: match.name,
@@ -540,6 +542,7 @@ export function BookingWizard() {
                 guestEmail={guestEmail}
                 setGuestEmail={setGuestEmail}
                 returningGuest={returningGuest}
+                contactConflict={contactConflict}
                 adultCount={adultCount}
                 setAdultCount={setAdultCount}
                 childCount={childCount}

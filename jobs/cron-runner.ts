@@ -1,3 +1,4 @@
+import { runGuestProgramJob } from "@/lib/guests/jobs";
 import {
     runAdminDigestJob,
     runCheckoutReminderJob,
@@ -73,7 +74,10 @@ const sheetWatchRenewJob = cron.schedule(
   { timezone: "Asia/Kolkata" },
 );
 
+const guestProgramJob = cron.schedule("15 6 * * *", async () => { await runJob("guest-program", runGuestProgramJob); }, { timezone: "Asia/Kolkata" });
+
 log("runner", "Cron runner started. Registered jobs:");
+log("runner", "- guest-program: daily at 6:15 AM (rewards and contact linking)");
 log("runner", `- admin-digest: ${adminDigestJob.getStatus()} (7:00 AM)`);
 log(
   "runner",
@@ -102,6 +106,7 @@ log(
 
 process.on("SIGINT", async () => {
   log("runner", "Received SIGINT, stopping cron jobs...");
+  guestProgramJob.stop();
   adminDigestJob.stop();
   checkoutReminderJob.stop();
   preArrivalReminderJob.stop();
@@ -115,6 +120,7 @@ process.on("SIGINT", async () => {
 
 process.on("SIGTERM", async () => {
   log("runner", "Received SIGTERM, stopping cron jobs...");
+  guestProgramJob.stop();
   adminDigestJob.stop();
   checkoutReminderJob.stop();
   preArrivalReminderJob.stop();

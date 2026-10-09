@@ -1,3 +1,4 @@
+import { runGuestProgramJob } from "@/lib/guests/jobs";
 import { verifyRefreshToken, verifySessionToken } from "@/lib/auth-edge";
 import {
     runAdminDigestJob,
@@ -16,6 +17,7 @@ import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
 const CRON_JOBS = [
+  { name: "guest-program", schedule: "15 6 * * *", timezone: "Asia/Kolkata", description: "Reconcile guest rewards, point expiry and linked marketing contacts; no automatic sends", label: "Guest Program" },
   {
     name: "admin-digest",
     schedule: "0 7 * * *",
@@ -79,6 +81,7 @@ async function requireAdmin(req: NextRequest) {
 
 function getJobFn(name: string) {
   switch (name) {
+    case "guest-program": return runGuestProgramJob;
     case "admin-digest":
       return runAdminDigestJob;
     case "checkout-reminder":

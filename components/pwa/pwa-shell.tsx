@@ -5,6 +5,7 @@ import { SerwistProvider, useSerwist } from "@serwist/turbopack/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { CloudOff, RefreshCw, Wifi } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { InstallPrompt } from "./install-prompt";
 import { OfflineSyncBadge } from "./offline-sync";
 import { PushNotificationPrompt } from "./push-prompt";
@@ -107,6 +108,7 @@ function PWAStatus() {
 }
 
 export function PWAShell({ children }: { children: React.ReactNode }) {
+  const guestForm = usePathname().startsWith("/guest-feedback/");
   return (
     <SerwistProvider
       swUrl="/serwist/sw.js"
@@ -117,9 +119,9 @@ export function PWAShell({ children }: { children: React.ReactNode }) {
     >
       {children}
       <PWAStatus />
-      <InstallPrompt />
+      {!guestForm && <InstallPrompt />}
       <OfflineSyncBadge />
-      <PushNotificationPrompt />
+      {!guestForm && <PushNotificationPrompt />}
     </SerwistProvider>
   );
 }

@@ -1,376 +1,387 @@
 "use client";
-
-import { DateRangeFilter } from "@/components/ui/date-range-filter";
-import { MagicCard } from "@/components/ui/magic-card";
-import { Pagination } from "@/components/ui/pagination";
-import { StatusBadge } from "@/components/ui/status-badge";
-import {
-    applyDateRangeParams,
-    DateRangeSelection,
-} from "@/lib/date-range";
-import { PlusCircle, Search, User, Users, X } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
-
-interface Guest {
-  id: string;
-  name: string;
-  phone: string | null;
-  email: string | null;
-  idType: string | null;
-  idNumber: string | null;
-  address: string | null;
-  preferences: string | null;
-  createdAt: string;
-  _count: { bookings: number };
+import { Users, Search, Plus, Settings, ArrowUpRight } from "lucide-react";
+import { Pagination } from "@/components/ui/pagination";
+import { DateRangeFilter } from "@/components/ui/date-range-filter";
+import {
+  applyDateRangeParams,
+  type DateRangeSelection,
+} from "@/lib/date-range";
+import { LeadLinker } from "@/components/guests/lead-linker";
+import { ProfileForm } from "@/components/guests/profile-form";
+import { CampaignDraft } from "@/components/guests/campaign-draft";
+import {
+  Badge,
+  Notice,
+  Loading,
+  buttonClass,
+  primaryClass,
+  inputClass,
+  money,
+  date,
+} from "@/components/guests/ui";
+import type { GuestSummary } from "@/components/guests/types";
+interface Directory {
+  guests: GuestSummary[];
+  total: number;
+  totalPages: number;
+  overview: {
+    guests: number;
+    returning: number;
+    repeatRate: number;
+    netRevenue: number;
+    rewardPoints: number;
+    comeback: number;
+    openFeedback: number;
+  };
+  canManage: boolean;
 }
-
+const filters = [
+  ["all", "All guests"],
+  ["returning", "Returning"],
+  ["first_time", "First stay"],
+  ["win_back", "Win-back"],
+  ["service_recovery", "Follow-up"],
+  ["birthday", "Birthdays"],
+  ["rewards", "With rewards"],
+  ["upcoming", "Upcoming"],
+  ["prospect", "Prospects"],
+  ["expiring_rewards", "Expiring rewards"],
+  ["profile_incomplete", "Profile gaps"],
+  ["ready_to_contact", "Ready to contact"],
+];
 export default function GuestsPage() {
-  const [guests, setGuests] = useState<Guest[]>([]);
-  const [search, setSearch] = useState("");
-  const [dateRange, setDateRange] = useState<DateRangeSelection>({
-    preset: "this_month",
-  });
-  const [page, setPage] = useState(1);
-  const [total, setTotal] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const pageSize = 20;
-
-  const [formData, setFormData] = useState({
-    name: "",
-    phone: "",
-    email: "",
-    idType: "",
-    idNumber: "",
-    address: "",
-    preferences: "",
-  });
-
+  const [data, setData] = useState<Directory | null>(null),
+    [loading, setLoading] = useState(true),
+    [error, setError] = useState(""),
+    [search, setSearch] = useState(""),
+    [segment, setSegment] = useState("all"),
+    [sort, setSort] = useState("updated"),
+    [tier, setTier] = useState(""),
+    [page, setPage] = useState(1),
+    [range, setRange] = useState<DateRangeSelection>({ preset: "all" }),
+    [adding, setAdding] = useState(false),
+    [converting, setConverting] = useState(false),
+    [selected, setSelected] = useState<string[]>([]),
+    [draft, setDraft] = useState(false);
+  const load = useCallback(
+    async (signal?: AbortSignal) => {
+      setLoading(true);
+      setError("");
+      const p = new URLSearchParams({
+        search,
+        segment,
+        tier,
+        sort,
+        page: String(page),
+        pageSize: "20",
+      });
+      applyDateRangeParams(p, range);
+      try {
+        const r = await fetch(`/api/guests?${p}`, { signal });
+        const d = await r.json();
+        if (!r.ok) throw Error(d.error);
+        setData(d);
+      } catch (e) {
+        if (e instanceof Error && e.name !== "AbortError") setError(e.message);
+      } finally {
+        if (!signal?.aborted) setLoading(false);
+      }
+    },
+    [search, segment, tier, sort, page, range],
+  );
   useEffect(() => {
-    setPage(1);
-  }, [search, dateRange]);
-
-  useEffect(() => {
-    setLoading(true);
-    const params = new URLSearchParams();
-    params.set("page", String(page));
-    params.set("pageSize", String(pageSize));
-    if (search.trim()) params.set("search", search.trim());
-    applyDateRangeParams(params, dateRange);
-
-    fetch(`/api/guests?${params}`)
-      .then((r) => r.json())
-      .then((data) => {
-        setGuests(data.guests || []);
-        setTotal(data.total || 0);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, [page, pageSize, search, dateRange]);
-
-  const totalPages = Math.max(1, Math.ceil(total / pageSize));
-
+    const controller = new AbortController();
+    const timer = setTimeout(() => load(controller.signal), 180);
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [load]);
   return (
-    <div className="space-y-4 lg:space-y-5">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
-          <Users className="w-5 h-5 text-primary" />
-          Guests
-        </h1>
-        <div className="flex items-center gap-2">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              inputMode="search"
-              autoComplete="off"
-              placeholder="Search guests..."
-              className="pl-10 pr-3 py-1.5 rounded-lg border border-border bg-background text-xs focus:outline-none focus:ring-2 focus:ring-ring w-40 sm:w-56"
-            />
-          </div>
-          <DateRangeFilter value={dateRange} onChange={setDateRange} />
-          <button
-            onClick={() => {
-              setFormData({
-                name: "",
-                phone: "",
-                email: "",
-                idType: "",
-                idNumber: "",
-                address: "",
-                preferences: "",
-              });
-              setShowForm(true);
-            }}
-            className="rounded-lg bg-foreground text-background px-4 py-1.5 text-xs font-semibold hover:opacity-90 active:scale-[0.98] transition flex items-center gap-1"
-          >
-            <PlusCircle className="w-3.5 h-3.5" />
-            Add Guest
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="flex items-center gap-2 text-2xl font-semibold">
+            <Users className="h-5 w-5 text-primary" />
+            Guest relationships
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Remember every stay. Give guests a reason to return.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Link href="/dashboard/guests/program" className={buttonClass}>
+            <Settings className="h-4 w-4" />
+            Program
+          </Link>
+          {data?.canManage && (
+            <button
+              className={buttonClass}
+              onClick={() => setConverting((p) => !p)}
+            >
+              Convert leads
+            </button>
+          )}
+          <button onClick={() => setAdding(true)} className={primaryClass}>
+            <Plus className="h-4 w-4" />
+            Add guest
           </button>
         </div>
       </div>
-
-      {showForm && (
-        <MagicCard className="w-full">
-          <div className="p-4 sm:p-5 space-y-3">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground/80">
-                Add Guest
-              </h2>
-              <button
-                onClick={() => setShowForm(false)}
-                className="p-1 rounded-md hover:bg-muted transition"
-              >
-                <X className="w-4 h-4 text-muted-foreground hover:text-foreground" />
-              </button>
+      {data && (
+        <div className="grid grid-cols-2 gap-3 rounded-xl border border-border bg-card p-4 sm:grid-cols-3 lg:grid-cols-6">
+          {[
+            ["Guests", data.overview.guests],
+            [
+              "Returning",
+              `${data.overview.returning} · ${data.overview.repeatRate}%`,
+            ],
+            ["Net received (INR)", money(data.overview.netRevenue)],
+            [
+              "Available points",
+              data.overview.rewardPoints.toLocaleString("en-IN"),
+            ],
+            ["Next actions", data.overview.comeback],
+            ["Feedback follow-ups", data.overview.openFeedback],
+          ].map(([label, value]) => (
+            <div key={label} className="min-w-0">
+              <p className="text-xs text-muted-foreground">{label}</p>
+              <p className="mt-1 break-words text-lg font-semibold">{value}</p>
             </div>
-            <form
-              onSubmit={async (e) => {
-                e.preventDefault();
-                setSaving(true);
-                const res = await fetch("/api/guests", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    ...formData,
-                    phone: formData.phone || undefined,
-                    email: formData.email || undefined,
-                    idType: formData.idType || undefined,
-                    idNumber: formData.idNumber || undefined,
-                    address: formData.address || undefined,
-                    preferences: formData.preferences || undefined,
-                  }),
-                });
-                setSaving(false);
-                if (res.ok) {
-                  setShowForm(false);
-                  setPage(1);
-                  const params = new URLSearchParams();
-                  params.set("page", String(1));
-                  params.set("pageSize", String(pageSize));
-                  if (search.trim()) params.set("search", search.trim());
-                  applyDateRangeParams(params, dateRange);
-                  fetch(`/api/guests?${params}`)
-                    .then((r) => r.json())
-                    .then((data) => {
-                      setGuests(data.guests || []);
-                      setTotal(data.total || 0);
-                    });
-                } else {
-                  alert("Failed to add guest.");
-                }
-              }}
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"
-            >
-              <div>
-                <label className="block text-xs font-medium mb-1">
-                  Name <span className="text-red-400">*</span>
-                </label>
-                <input
-                  required
-                  value={formData.name}
-                  onChange={(e) =>
-                    setFormData((p) => ({ ...p, name: e.target.value }))
-                  }
-                  autoComplete="name"
-                  className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium mb-1">Phone</label>
-                <input
-                  type="tel"
-                  value={formData.phone}
-                  onChange={(e) =>
-                    setFormData((p) => ({ ...p, phone: e.target.value }))
-                  }
-                  inputMode="tel"
-                  autoComplete="tel"
-                  className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium mb-1">Email</label>
-                <input
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) =>
-                    setFormData((p) => ({ ...p, email: e.target.value }))
-                  }
-                  inputMode="email"
-                  autoComplete="email"
-                  className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium mb-1">
-                  ID Type
-                </label>
-                <input
-                  value={formData.idType}
-                  onChange={(e) =>
-                    setFormData((p) => ({ ...p, idType: e.target.value }))
-                  }
-                  className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium mb-1">
-                  ID Number
-                </label>
-                <input
-                  value={formData.idNumber}
-                  onChange={(e) =>
-                    setFormData((p) => ({ ...p, idNumber: e.target.value }))
-                  }
-                  className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium mb-1">
-                  Address
-                </label>
-                <input
-                  value={formData.address}
-                  onChange={(e) =>
-                    setFormData((p) => ({ ...p, address: e.target.value }))
-                  }
-                  autoComplete="street-address"
-                  className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                />
-              </div>
-              <div className="sm:col-span-2 lg:col-span-2">
-                <label className="block text-xs font-medium mb-1">
-                  Preferences
-                </label>
-                <input
-                  value={formData.preferences}
-                  onChange={(e) =>
-                    setFormData((p) => ({ ...p, preferences: e.target.value }))
-                  }
-                  className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                />
-              </div>
-              <div className="flex items-end gap-2">
-                <button
-                  type="submit"
-                  disabled={saving}
-                  className="rounded-lg bg-foreground text-background px-4 py-2 text-xs font-semibold hover:opacity-90 disabled:opacity-50 active:scale-[0.98] transition"
-                >
-                  {saving ? "Saving..." : "Save Guest"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowForm(false)}
-                  className="rounded-lg border border-border px-4 py-2 text-xs font-medium hover:bg-muted transition"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </MagicCard>
-      )}
-
-      {loading && guests.length === 0 ? (
-        <div className="text-muted-foreground">Loading guests...</div>
-      ) : guests.length === 0 ? (
-        <div className="rounded-xl border border-border p-6 sm:p-8 text-center text-muted-foreground">
-          No guests found.
+          ))}
         </div>
-      ) : (
-        <>
-          {/* Mobile cards with MagicCard wrapper */}
-          <div className="lg:hidden space-y-2.5">
-            {guests.map((g) => (
-              <MagicCard key={g.id}>
-                <Link
-                  href={`/dashboard/guests/${g.id}`}
-                  className="block p-3.5 space-y-2 relative z-10"
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
-                        <User className="w-3.5 h-3.5 text-primary" />
-                      </div>
-                      <div>
-                        <div className="font-bold text-sm leading-none">
-                          {g.name}
-                        </div>
-                        <div className="text-xs text-muted-foreground/75 mt-1 font-medium">
-                          {g.phone || g.email || "No contact info"}
-                        </div>
-                      </div>
-                    </div>
-                    <StatusBadge
-                      status={g._count.bookings > 1 ? "confirmed" : "pending"}
-                      className="!text-[9px] !px-1.5 !py-0.5"
+      )}
+      {converting && (
+        <LeadLinker
+          onConverted={() => {
+            setPage(1);
+            load();
+          }}
+        />
+      )}
+      {adding && (
+        <section className="rounded-xl border border-border bg-card p-5">
+          <h2 className="mb-4 font-semibold">New guest profile</h2>
+          <ProfileForm
+            onCancel={() => setAdding(false)}
+            onSaved={() => {
+              setAdding(false);
+              setPage(1);
+              load();
+            }}
+          />
+        </section>
+      )}
+      {draft && (
+        <CampaignDraft guestIds={selected} onClose={() => setDraft(false)} />
+      )}
+      <section className="space-y-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+          <label className="relative min-w-0 flex-1 sm:min-w-48">
+            <Search
+              aria-hidden="true"
+              className="absolute left-3 top-3 h-4 w-4 text-muted-foreground"
+            />
+            <input
+              aria-label="Search guests"
+              placeholder="Search name, phone, city, preferences, tag or lead source"
+              className={inputClass + " pl-10"}
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
+            />
+          </label>
+          <select
+            aria-label="Loyalty tier"
+            className={inputClass + " sm:w-40"}
+            value={tier}
+            onChange={(e) => {
+              setTier(e.target.value);
+              setPage(1);
+            }}
+          >
+            <option value="">All tiers</option>
+            {["Member", "Silver", "Gold", "Platinum"].map((t) => (
+              <option key={t}>{t}</option>
+            ))}
+          </select>
+          <select
+            aria-label="Sort guests"
+            className={inputClass + " sm:w-44"}
+            value={sort}
+            onChange={(e) => {
+              setSort(e.target.value);
+              setPage(1);
+            }}
+          >
+            <option value="updated">Recently updated</option>
+            <option value="priority">Action priority</option>
+            <option value="value">Highest guest value</option>
+            <option value="recent_stay">Most recent stay</option>
+            <option value="points">Most reward points</option>
+            <option value="name">Guest name</option>
+          </select>
+          <DateRangeFilter
+            value={range}
+            onChange={(v) => {
+              setRange(v);
+              setPage(1);
+            }}
+          />
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Search combines keywords across profile details, previous contacts and
+          lead sources. Date filter applies to profile creation. Revenue uses
+          recorded payments on completed stays, after refunds.
+        </p>
+        <div className="flex flex-wrap gap-2" aria-label="Guest segments">
+          {filters.map(([value, label]) => (
+            <button
+              key={value}
+              aria-pressed={segment === value}
+              className={`${buttonClass} ${segment === value ? "border-primary bg-primary/10 text-primary" : ""}`}
+              onClick={() => {
+                setSegment(value);
+                setPage(1);
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        {data?.canManage && selected.length > 0 && (
+          <div className="flex flex-wrap items-center gap-3 rounded-lg bg-muted p-3">
+            <span className="text-sm">{selected.length} guest(s) selected</span>
+            <button className={buttonClass} onClick={() => setDraft(true)}>
+              Prepare campaign
+            </button>
+            <button
+              className={buttonClass}
+              onClick={() => {
+                setSelected([]);
+                setDraft(false);
+              }}
+            >
+              Clear
+            </button>
+          </div>
+        )}
+        {error ? (
+          <Notice message={error} error />
+        ) : loading ? (
+          <Loading />
+        ) : !data?.guests.length ? (
+          <Notice message="No guests match these filters. Add a profile or link historical stays from Program." />
+        ) : (
+          <div className="overflow-hidden rounded-xl border border-border bg-card">
+            <div className="hidden grid-cols-12 gap-3 border-b border-border bg-muted/30 px-4 py-3 text-xs font-medium text-muted-foreground lg:grid">
+              <span className="col-span-4">Guest</span>
+              <span className="col-span-2">Stay history</span>
+              <span className="col-span-2">Value & rewards</span>
+              <span className="col-span-4">Next best action</span>
+            </div>
+            {data.guests.map((g) => (
+              <div
+                key={g.id}
+                className="grid gap-3 border-b border-border p-4 last:border-0 lg:grid-cols-12"
+              >
+                <div className="flex min-w-0 gap-3 lg:col-span-4">
+                  {data.canManage && (
+                    <input
+                      aria-label={`Select ${g.name} for campaign`}
+                      type="checkbox"
+                      className="mt-1.5 h-4 w-4 shrink-0"
+                      checked={selected.includes(g.id)}
+                      onChange={(e) => {
+                        setDraft(false);
+                        setSelected((p) =>
+                          e.target.checked
+                            ? [...p, g.id]
+                            : p.filter((v) => v !== g.id),
+                        );
+                      }}
                     />
+                  )}
+                  <div className="min-w-0">
+                    <Link
+                      href={`/dashboard/guests/${g.id}`}
+                      className="flex items-center gap-1 font-semibold hover:text-primary"
+                    >
+                      {g.name}
+                      <ArrowUpRight className="h-3.5 w-3.5 shrink-0" />
+                    </Link>
+                    <p className="mt-1 break-all text-xs text-muted-foreground">
+                      {g.phone || g.email || "Contact details needed"}
+                      {g.city ? ` · ${g.city}` : ""}
+                    </p>
+                    <div className="mt-2 flex flex-wrap gap-1">
+                      <Badge>{g.tier.name}</Badge>
+                      {g.tags.slice(0, 2).map((t) => (
+                        <Badge key={t}>{t}</Badge>
+                      ))}
+                    </div>
                   </div>
-                  <div className="text-[11px] text-muted-foreground/70 font-semibold uppercase tracking-wider pl-9">
-                    {g._count.bookings} booking
-                    {g._count.bookings !== 1 ? "s" : ""}
-                  </div>
-                </Link>
-              </MagicCard>
+                </div>
+                <div className="text-sm lg:col-span-2">
+                  <p>{g.stats.totalStays} completed stay(s)</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Last: {date(g.stats.lastStay)}
+                  </p>
+                  {g.stats.upcomingStays > 0 && (
+                    <p className="mt-1 text-xs text-primary">
+                      {g.stats.upcomingStays} upcoming
+                    </p>
+                  )}
+                </div>
+                <div className="text-sm lg:col-span-2">
+                  <p className="font-medium">{money(g.stats.netRevenue)}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {g.wallet} points
+                  </p>
+                </div>
+                <div className="lg:col-span-4">
+                  {g.actions[0] ? (
+                    <>
+                      <Link
+                        href={`/dashboard/guests/${g.id}`}
+                        className="text-sm font-medium hover:text-primary"
+                      >
+                        {g.actions[0].title} →
+                      </Link>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {g.actions[0].reason}
+                      </p>
+                    </>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      {g.stats.upcomingStays
+                        ? "Prepare for their next visit"
+                        : "No action needed today"}
+                    </p>
+                  )}
+                  {g.exclusionReason && (
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      Marketing: {g.exclusionReason}
+                    </p>
+                  )}
+                </div>
+              </div>
             ))}
           </div>
-
-          {/* Desktop table with MagicCard wrapper */}
-          <div className="hidden lg:block">
-            <MagicCard className="overflow-visible">
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr>
-                      <th className="text-left">Name</th>
-                      <th className="text-left">Phone</th>
-                      <th className="text-left">Email</th>
-                      <th className="text-left">Bookings</th>
-                      <th className="text-left">ID Type</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {guests.map((g) => (
-                      <tr key={g.id}>
-                        <td className="font-semibold text-xs">
-                          <Link
-                            href={`/dashboard/guests/${g.id}`}
-                            className="hover:text-primary transition"
-                          >
-                            {g.name}
-                          </Link>
-                        </td>
-                        <td className="text-muted-foreground/80">
-                          {g.phone || "—"}
-                        </td>
-                        <td className="text-muted-foreground/80">
-                          {g.email || "—"}
-                        </td>
-                        <td className="font-medium">{g._count.bookings}</td>
-                        <td className="text-muted-foreground/85 text-xs">
-                          {g.idType || "—"}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </MagicCard>
-          </div>
-
+        )}
+        {data && (
           <Pagination
             page={page}
-            totalPages={totalPages}
-            total={total}
+            totalPages={Math.max(1, data.totalPages)}
+            total={data.total}
             onPageChange={setPage}
           />
-        </>
-      )}
+        )}
+      </section>
     </div>
   );
 }
